@@ -1,0 +1,110 @@
+---
+title: C# Base Keyword  
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2023-06-01
+thumbnail: image.jpg
+featured: true
+---
+
+In c#, the base keyword is useful to access base class members such as properties, methods, etc., in the derived class.
+
+Using the base keyword, we can call a base class method that has been overridden by another method in the derived class, 
+and we can specify which base class constructor should be called while creating an instance of the derived class.
+
+## C# Base Keyword Example
+
+Following is the example of using a base keyword to access base class properties and the method that has been overridden 
+by the derived class in the c# programming language.
+
+```c#
+using System;
+
+namespace Tutlane
+{
+    // Base Class
+    public class Users
+    {
+        public string name = "Suresh Dasari";
+        public string location = "Hyderabad";
+        public int age = 32;
+        public virtual void GetInfo()
+        {
+            Console.WriteLine("Name: {0}", name);
+            Console.WriteLine("Location: {0}", location);
+        }
+    }
+    // Derived Class
+    public class Details : Users
+    {
+        public override void GetInfo()
+        {
+            base.GetInfo();
+            Console.WriteLine("Age: {0}", base.age);
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Details d = new Details();
+            d.GetInfo();
+            Console.WriteLine("\nPress Enter Key to Exit..");
+            Console.ReadLine();
+        }
+    }
+}
+```
+
+## C# Call Base Class Constructor from Derived Class
+
+As discussed, we can call a base class constructor from the derived class using the base keyword.
+
+Following is the example of specifying which base class constructor should be called while creating 
+an instance of the derived class.
+
+```c#
+using System;
+
+namespace Tutlane
+{
+    // Base Class
+    public class BClass
+    {
+        public BClass()
+        {
+            Console.WriteLine("Welcome to Tutlane");
+        }
+        public BClass(string a, string b)
+        {
+            Console.WriteLine("Name: {0}", a);
+            Console.WriteLine("Location: {0}", b);
+        }
+    }
+    // Derived Class
+    public class DClass : BClass
+    {
+        // This constructor will call the default constructor
+        public DClass() : base()
+        {
+        }
+
+        // This constructor will call a parameterized constructor
+        public DClass(string x, string y) : base(x, y)
+        {
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DClass d = new DClass();
+            DClass d1 = new DClass("Suresh Dasari", "Hyderabad");
+            Console.WriteLine("\nPress Enter Key to Exit..");
+            Console.ReadLine();
+        }
+    }
+}
+```
+

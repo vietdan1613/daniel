@@ -1,0 +1,161 @@
+---
+title: WPF ROUTED EVENTS
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#WPF"]
+date: 2022-09-20
+thumbnail: image.jpg
+featured: true
+---
+
+Arouted event is a type of event that can invoke handlers on multiple listeners in an element tree rather than 
+just the object that raised the event. It is registered with the WPF event system. RoutedEvents have three main routing strategies 
+which are as follows;
+
+- Direct Event
+- Bubbling Event
+- Tunnel Event
+
+## Direct Event
+
+A direct event is similar to events in Windows forums which are raised by the element in which the event is originated.
+
+Unlike a standard CLR event, direct routed events support class handling and they can be used in Event Setters 
+and Event Triggers within your style of your Custom Control.
+
+A good example of a direct event would be the MouseEnter event.
+
+## Bubbling Event
+
+A bubbling event begins with the element where the event is originated. Then it travels up the visual tree to 
+the topmost element in the visual tree. So, in WPF,the topmost element is most likely a window. 
+
+## Tunnel Event
+
+Event handlers on the element tree root are invoked and then the event travels down the visual  tree  to  all  the  
+children nodes until  it  reaches  the  element  in  which  the  event originated
+
+The  difference  between  a  bubbling  and a tunneling  event  is  that  a  tunneling  event  will always start with
+ a preview
+
+## Custom Routed Events
+
+Let’s takean example to understand more about custom routed events. Follow the steps given below
+
+![add cuustom component](./1.png 'add cuustom component')
+
+Click theAddbutton and you will see that two new files (Themes/Generic.xaml and MyCustomControl.cs) will be added 
+in your solution
+
+```C#
+// Generic.xaml
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:FirstProject.Components">
+    <Style TargetType="{x:Type local:MyCustomControl}">
+        <Setter Property="Margin" Value="50"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:MyCustomControl}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Button x:Name="PART_Button" Content="Click Me" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
+```
+
+```C#
+// MyCustomControl.cs
+using System.Windows;
+using System.Windows.Controls;
+
+namespace FirstProject.Components
+{
+    public class MyCustomControl : Control
+    {
+        static MyCustomControl()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(MyCustomControl), new FrameworkPropertyMetadata(typeof(MyCustomControl)));
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            //demo purpose only, check for previous instances and remove the handler first
+            var button = GetTemplateChild("PART_Button") as Button;
+            if (button != null) button.Click += Button_Click;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            RaiseClickEvent();
+        }
+
+        public static readonly RoutedEvent ClickEvent = 
+            EventManager.RegisterRoutedEvent("Click", RoutingStrategy.Bubble, 
+                typeof(RoutedEventHandler), 
+                typeof(MyCustomControl)); 
+        
+        public event RoutedEventHandler Click 
+        { 
+            add { AddHandler(ClickEvent, value); } 
+            remove { RemoveHandler(ClickEvent, value); } 
+        }
+
+        protected virtual void RaiseClickEvent() 
+        { 
+            RoutedEventArgs args = new RoutedEventArgs(MyCustomControl.ClickEvent); 
+            RaiseEvent(args); 
+        }
+    }
+}
+```
+
+Here is the implementation in MainWindow.xaml to add the custom control with a routed event Click
+
+```C#
+using System;
+using System.Windows;
+
+namespace FirstProject
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+        private void MyCustomControl_Click(object sender, RoutedEventArgs e) 
+        { 
+            MessageBox.Show("It isthe custom routed event of your custom control"); 
+        }
+    }
+}
+```
+
+```C#
+<Window x:Class="FirstProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FirstProject.Components"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <local:MyCustomControl Click="MyCustomControl_Click"/>
+    </Grid>
+</Window>
+```
+
+![result](./2.png 'result')

@@ -1,0 +1,100 @@
+---
+title: Simple Data-Fetching
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2024-01-13
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+We're going to start off as simple as possible, but it's still going to feel a
+little different from anything you've probably done with async data loading
+before, so buckle up.
+
+Where the `data` and `promise` values are coming from all
+depends on how you implement things .Imagine when your app loads, you need 
+some data before you can show anything
+useful. Typically we want to put the data loading requirements right in the
+component that requires the data
+
+```javascript
+// 🚨 This should NOT be copy/pasted for production code and is only here
+// for experimentation purposes. The API for suspense (currently throwing a
+// promise) is likely to change before suspense is officially released.
+// This was strongly inspired by work done in the React Docs by Dan Abramov
+function createResource(promise) {
+  let status = 'pending'
+  let result = promise.then(
+    resolved => {
+      status = 'success'
+      result = resolved
+    },
+    rejected => {
+      status = 'error'
+      result = rejected
+    },
+  )
+  return {
+    read() {
+      if (status === 'pending') throw result
+      if (status === 'error') throw result
+      if (status === 'success') return result
+      throw new Error('This should be impossible')
+    },
+  }
+}
+
+function preloadImage(src) {
+  return new Promise(resolve => {
+    const img = document.createElement('img')
+    img.src = src
+    img.onload = () => resolve(src)
+  })
+}
+
+export {createResource, preloadImage}
+```
+
+```javascript
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonDataView,
+  PokemonInfoFallback,
+  PokemonErrorBoundary,
+} from '../pokemon'
+import {createResource} from '../utils'
+
+let pokemonResource = createResource(fetchPokemon('pikachu'))
+
+function PokemonInfo() {
+  const pokemon = pokemonResource.read()
+  return (
+    <div>
+      <div className="pokemon-info__img-wrapper">
+        <img src={pokemon.image} alt={pokemon.name} />
+      </div>
+      <PokemonDataView pokemon={pokemon} />
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <div className="pokemon-info-app">
+      <div className="pokemon-info">
+        <PokemonErrorBoundary>
+          <React.Suspense fallback={<PokemonInfoFallback name="Pikachu" />}>
+            <PokemonInfo />
+          </React.Suspense>
+        </PokemonErrorBoundary>
+      </div>
+    </div>
+  )
+}
+
+export default App
+```

@@ -1,0 +1,58 @@
+---
+title: Intro to raw React APIs
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-01-08
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+React is the most widely used frontend framework in the world and it's using the
+same APIs that you're using when it creates DOM nodes.
+
+One important thing to know about React is that it supports multiple platforms
+(for example, native and web). Each of these platforms has its own code
+necessary for interacting with that platform, and then there's shared code
+between the platforms.
+
+With that in mind, you need two JavaScript files to write React applications for
+the web:
+
+- React: responsible for creating React elements (kinda like
+  `document.createElement()`)
+- ReactDOM: responsible for rendering React elements to the DOM (kinda like
+  `rootElement.append()`)
+
+Here's a simple example of the API:
+
+```javascript
+const elementProps = { id: 'element-id', children: 'Hello world!' }
+const elementType = 'h1'
+const reactElement = React.createElement(elementType, elementProps)
+ReactDOM.render(reactElement, rootElement)
+```
+
+Full example:
+
+```javascript
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@17.0.0/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js"></script>
+  <script type="module">
+    const rootElement = document.getElementById('root')
+    const element = React.createElement('div', {
+      className: 'container',
+      children: [
+        React.createElement('span', null, 'Hello'),
+        ' ',
+        React.createElement('span', null, 'World'),
+      ],
+    })
+    ReactDOM.render(element, rootElement)
+  </script>
+</body>
+```

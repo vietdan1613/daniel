@@ -1,0 +1,317 @@
+---
+title: System Design
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-17
+thumbnail: image.jpg
+featured: true
+---
+
+## Main concerns
+
+### Reliability
+
+- The system should continue to work correctly even in the face of adversity (hardware or software faults, and 
+even human error)
+
+> Availability = Uptime / (Uptime + DownTime)
+
+- Usually expressed in terms of the number of "nines" we would like to provide: 99.9%, 99.99%, or 99.999% availability.
+
+- To achieve High Availability:
+  - server has to be **stateless**
+  - make sure each **server can handle extra load**
+
+![example](./1.png 'example')
+
+### Scalability
+
+- The ability of a system to continue to work as user load and data grow.
+
+- Common metrics:
+  - **Throughput**: the number of queries or requests processed in a given period. qps (query per second), rps (request per second).
+  - **Latency** (Response time): network delay + latency.
+
+**1. Latency**
+
+- Mean: average of all request’s latency 
+
+> request 1, request 2, …, request 9: 100ms request 10: 3s
+> => mean latency = 390ms
+
+- **Percentile**: the response time threshold at which x% of request are faster than that particular threshold.
+
+> p95 = 100ms => 95 out of 100 requests take less than 100ms, 5 requests take > 100ms.
+
+- **Causes of high latency**:
+  - complex **computation** (O(n^2) vs O(n))
+  - **storage** delay (RAM vs hard disk)
+  - **distance** (use CDN (static: html, css, image))
+  - **protocol**: gPRC http 2, REST API http 1.x
+
+- reduce Latency
+
+  -  Reduce computation complexity. (e.g O(n^2) => O(logn))
+  - **local cache**: cache in RAM of the server.
+  - **shared cache**: use a dedicated server just for cache (REDIS, Memcached)
+  - Optimize **Database query** (indexes, better query).
+  - Use **CDN** for static data (HTML, CSS, image …)
+  - **Parallelism/Concurrency** 
+
+**2. Throughput**
+
+- increase throughput:
+  - Vertical scaling: use a more **powerful machine**.
+  - Horizontal scaling: distribute load access to **multiple smaller machines**.
+  - **Reduce latency**
+
+**3. Throughput and Latency**
+
+- High Latency can cause Low Throughput
+
+![example](./2.png 'example')
+
+## CAP theorem
+
+- It is impossible to build an implementation of read-write storage in an asynchronous network that satisfies 
+all of the following three properties: **Consistency**, **Availability** and **Partition tolerance**.
+
+![example](./3.png 'example')
+
+### Consistency
+
+- If operation B started after operation A successfully completed, then operation B must see the system in 
+the same state as it was on completion of operation A or a newer state.
+
+- Read-After-Write: Any read operation that begins after a write operation completes must return that value 
+or the result of a later write operation
+
+- Example of inconsistency:
+
+![example](./4.png 'example')
+
+
+### Availability
+
+- every request received by a non-failing node in the system must result in a [non-error] response.
+(i.e no **down-time**)
+
+### Partition Tolerance
+
+- The system continues to operate despite network partitions or messages being lost between nodes
+- you’re communicating over an asynchronous network that may delay or drop messages
+
+### Master-Slave
+
+-Replication is asynchronously so it is **not consistent**.
+- If client is partitioned from Master it cannot write => **not available**.
+=> it is just P
+
+![example](./5.png 'example')
+
+## Components of a system
+
+![example](./6.png 'example')
+
+## Web Server
+
+![example](./7.png 'example')
+
+## Database
+
+### Replication 
+
+- 1 Master DB and multiple Slave DBs. Master DB serves all update operations (insert, update, delete).
+
+- Data is synced from Master DB to Slave DBs asynchronously. Slave DBs is read-only (select)
+
+- Benefits:
+  - **Performance**: more read queries can be processed in parallel. => increase read Throughput QPS (query per second).
+  - **High Availability**: if one Slave crashes, the others still can serve.
+
+- Drawback
+  - Slave delay: data in Slave is not up to date.
+
+- In practice, Sharding and Replication often go together: each Shard is a cluster of 1 master + n slaves.
+
+### Sharding
+
+![example](./8.png 'example')
+
+- storing a large database across multiple machines.
+
+- **Why**:
+  - A single machine, or database server, can store only a limited amount of data.
+  - The Database becomes a bottleneck if the data volume becomes too large and too many users attempt to use the application to read or save information simultaneously.
+
+- **Benefits**:
+  - Reduce Latency
+  - Increase throughput
+  - Improve Availability
+  - Scalable
+
+- **Challenges**
+
+  - Some shards become **unbalanced** due to the uneven distribution of data. 
+  > E.g: a single physical shard that contains customer names starting with A receives more data than others. 
+
+  - Application **complexity**: Most database management systems do not have built-in sharding features. Database 
+  designers and software developers must manually split, distribute, and manage the Database.
+
+  - Infra & operational cost
+
+- **How**
+
+1. Shard by Key Range
+
+- Assign a continuous range of keys to each shard.
+- Cons: can overload a single physical node. E.g., shard A (containing names that start with A to I) might have a much larger number of rows of data than shard C (containing names that start with T to Z).
+
+2. Shard by Hash of key
+
+- shard key = hash(row) % N. => if N change, we need to reshard.
+
+- name = “quang” => hash(“quang”) = 12312834 % 3 = 1
+
+## Load balancer (LB)
+
+- When #user increase, it reaches the web server's load limit => users experience slow response or timeout.
+adding more servers to handle user requests. => need a Load Balancer (LB) to 
+distribute the traffic among web servers.
+
+- Benefits:
+  - Distributes client requests or network load efficiently across multiple servers
+  - Ensures high **availability** and **reliability** by sending requests only to online servers
+  - Provides the flexibility to add or remove servers on demand.
+
+![example](./9.png 'example')
+
+- LB Algorithms
+
+  - Round robin: requests are distributed across the group of servers sequentially.
+  > e.g.: there are three servers
+  > 1st req goes to 1st server
+  > 2nd req goes to 2nd server
+  > 3rd req goes to 3rd server
+  > 4th req goes to 1st server
+  - Weighted Round robin: a weight is assigned to each server based on criteria chosen by the site administrator. 
+  For example, server A is assigned a weight of 3 and server B a weight of 1. The load balancer forwards three 
+  requests to server A for each one it sends to server B.
+  - Modulo Hashing: request i goes to server (i%N).
+    - when #server changes, almost all requests will be redirected to another server:
+    > e.g: #server = 5, req_id = 7 is routed to server_id = 7 % 5 = 2 
+    - Cost of change
+  - Least Connections: new request is sent to the server with the fewest current connections to clients.
+  - Least response time
+
+### Ring of hash (Consistent Hashings)
+
+- map each user’s request to a slot on the ring
+> r = hash(req_id) % n
+
+- map each server_id to a slot on the ring as well
+> s = hash(server_id) % n
+
+- use balanced BST to maintain the ring (TreeMap in Java, map in C++, Orderred Dic in Python)
+  - add a new server costs O(logn)
+  - remove a server costs O(logn)
+  - find nearest server on the right side costs O(logn)
+
+![example](./10.png 'example')
+
+## Cache
+
+- A temporary storage area stores the result of expensive responses or frequently accessed data in primary 
+memory so that subsequent requests are served more quickly.
+  - Local Cache. (remember Dynamic programming)
+  - Shared Cache: Redis, Memcached
+
+- Benefits:
+  - Better performance (Cache is faster than DB)
+  - Reduce workload on DB (Cache’s QPS is much higher than DB)
+  - Can scale server, Cache, and DB independently.
+
+### Caching strategies
+
+1. Cache Aside
+
+- Use for heavy-read workload
+
+![example](./11.png 'example')
+
+- **pitfalls**
+
+  **Stale Set**: a stale set occurs when a client sets a stale value in Cache 
+
+  > - Client C1 get(k), k doesn't exist in Cache (cache miss)
+  > - Client C1 query(k) <- 1. C1 is somehow slow at this point (slow network)
+  > - Client C2 update(k,2)
+  > - Client C2 del(k) in cache
+  > - Client C1 set(k,1) (C1 resumes)
+
+  **Thundering herd** when a specific key undergoes heavy read-and-write activity.
+  > - Key k is trendy; lots of clients call get(k)
+  > - C1 get(k), Cache returns v1 very fast (cache hit)
+  > - C2 update k, causing it to be invalidated in Cache, del(k) in Cache
+  > - Now, every other client that tries to get(k) will be cache miss, so they will try query(k), which leads to overload Database
+
+2. Read through
+
+- for heavy-read workload
+
+- need support from cache library to read and write from DB. While in cache-aside, this is handled in Application.
+
+![example](./12.png 'example')
+
+3. Write through
+
+- data is first written to the cache and then to the database
+- no need cache invalidation
+- usually use with Read-Through
+
+## Message queue 
+
+- The Message queue is a durable component that supports asynchronous communication.
+
+- Message queues are often used when we want to delegate work from a service. Ensure that the work is only executed one time
+
+![example](./13.png 'example')
+
+- Benefit:
+  - decouple the system, can scale the producer and consumer independently
+  - async communication, use for time-consuming task: photo customisation (crop, sharpening, blurring …), convert video
+  - notification
+  - image/video processing
+
+### Pub-Sub
+
+- A durable component that support asynchronous communication.
+
+- Used where we need a guarantee that each subscriber gets a copy of the message.
+
+![example](./14.png 'example')
+
+
+
+
+
+
+
+
+
+
+
+
+
+- What is maximum downtime per week for a system that has 99.99% availability?
+> 0.01 * 7 * 24 * 60 = 100 mins
+
+- What if there is only 1 Slave and it crashes? Master still alive => ?
+> **read** operations will be directed to the **master database temporarily**
+
+- What if Master crashes? Slaves are still alive
+> - a **slave** database will be **promoted** to be the new **master**. 
+> - data in the promoted slave is not up to date
+
+- Cache Aside pitfalls

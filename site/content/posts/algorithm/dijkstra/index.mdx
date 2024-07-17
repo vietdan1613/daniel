@@ -1,0 +1,24 @@
+---
+title: Dijkstra & Union Find
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-03-17
+thumbnail: image.png
+featured: true
+---
+
+## Dijkstra
+
+Problem: given a weighted graph of non-negative weight, and a source node s, find shortest path from s to all 
+other nodes.
+
+![example](./1.png 'example')
+
+- run time: O(nlogn+mlogn). Because m >> n => ~O(mlogn)
+    - n is number of node
+    - m is number of edge
+
+- Space: O(n+m) for adjacent list, O(n) for heap => O(n+m)
+
+## Union Find

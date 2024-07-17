@@ -1,0 +1,92 @@
+---
+title: Typescript Function
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#Typescript']
+date: 2020-12-03
+thumbnail: image.jpg
+---
+
+## Functions
+
+Use type annotations for function parameters and return type to keep the calling code inline and ensure 
+the type checking within the function body.
+
+```typescript
+function add(a: number, b: number): number {
+    return a + b;
+}
+```
+
+## Types
+
+```typescript
+add = function (x: number, y: number) {
+    return x + y;
+};
+
+let add: (a: number, b: number) => number =
+    function (x: number, y: number) {
+        return x + y;
+    };
+```
+
+## Optional Parameters
+
+Use the `parameter?` type syntax to make a parameter optional.
+
+Use the expression `typeof(parameter) !== 'undefined'` to check if the parameter has been initialized.
+
+```typescript
+function multiply(a: number, b: number, c?: number): number {
+
+    if (typeof c !== 'undefined') {
+        return a * b * c;
+    }
+    return a * b;
+}
+```
+
+## Default Parameters
+
+1. Use default parameter syntax `parameter:=defaultValue` if you want to set the default initialized value for the parameter.
+
+2. Default parameters are optional.
+
+3. To use the default initialized value of a parameter, you omit the argument when calling the function or pass 
+the `undefined` into the function.
+
+```typescript
+function applyDiscount(price: number, discount: number = 0.05): number {
+  // ...
+}
+
+function applyDiscount(price: number, discount?: number): number {
+  // ...
+}
+```
+
+## Rest Parameters
+
+in this tutorial, you will learn about the TypeScript rest parameters that allows you to represent an indefinite number
+of arguments as an array.
+
+```typescript
+function getTotal(...numbers: number[]) : number {
+    let total = 0;
+    numbers.forEach((num) => total += num);
+    return total;
+}
+```
+
+## Function Overloadings
+
+TypeScript function overloadings allow you to describe the relationship between parameter types and results of a function.
+
+```typescript
+function add(a: number, b: number): number;
+function add(a: string, b: string): string;
+function add(a: any, b: any): any {
+   return a + b;
+}
+```

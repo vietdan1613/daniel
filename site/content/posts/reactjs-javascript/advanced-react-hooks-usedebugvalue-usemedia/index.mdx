@@ -1,0 +1,77 @@
+---
+title: 'useDebugValue: useMedia'
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-05-14
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+[The React DevTools browser extension](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en)
+is a must-have for any React developer. When you start writing custom hooks, it
+can be useful to give them a special label. This is especially useful to
+differentiate different usages of the same hook in a given component.
+
+This is where `useDebugValue` comes in. You use it in a custom hook, and you
+call it like so:
+
+```javascript
+function useCount({ initialCount = 0, step = 1 } = {}) {
+  React.useDebugValue({ initialCount, step })
+  const [count, setCount] = React.useState(initialCount)
+  const increment = () => setCount(c => c + step)
+  return [count, increment]
+}
+```
+
+Full example
+
+```javascript
+import * as React from 'react'
+
+const formatDebugValue = ({ query, state }) => `\`${query}\` => ${state}`
+
+function useMedia(query, initialState = false) {
+  const [state, setState] = React.useState(initialState)
+  React.useDebugValue({ query, state }, formatDebugValue)
+
+  React.useEffect(() => {
+    let mounted = true
+    const mql = window.matchMedia(query)
+    function onChange() {
+      if (!mounted) {
+        return
+      }
+      setState(Boolean(mql.matches))
+    }
+
+    mql.addListener(onChange)
+    setState(mql.matches)
+
+    return () => {
+      mounted = false
+      mql.removeListener(onChange)
+    }
+  }, [query])
+
+  return state
+}
+
+function Box() {
+  const isBig = useMedia('(min-width: 1000px)')
+  const isMedium = useMedia('(max-width: 999px) and (min-width: 700px)')
+  const isSmall = useMedia('(max-width: 699px)')
+  const color = isBig ? 'green' : isMedium ? 'yellow' : isSmall ? 'red' : null
+
+  return <div style={{ width: 200, height: 200, backgroundColor: color }} />
+}
+
+function App() {
+  return <Box />
+}
+
+export default App
+```

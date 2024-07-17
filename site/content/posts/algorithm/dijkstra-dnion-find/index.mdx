@@ -1,0 +1,67 @@
+---
+title: Dijkstra & Union Find
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-13
+thumbnail: image.png
+featured: true
+---
+
+## Dijkstra
+
+- Shortest path in an unweighted graph: BFS
+- Problem: given a weighted graph of non-negative weight, and a source node s, find shortest path 
+from s to all other nodes.
+
+![example](./1.png 'example')
+
+
+## Union Find
+
+- Imagine there are n stones, n boxes. Initially each stone is in one box.
+- A data structure supports the following operations:
+    - Union(u, v): given 2 stones u and v. If u and v are not in the same box, merge their box into 1 box.
+    - Find(x): find the box that contains stone x. We call all stones in a box a set.
+- Sound simple, but it is a robust data structure that can solve many problems.
+
+```javascript
+class DisjointSets {
+    constructor(n) {
+        this.rank = new Array(n);
+        this.parent = new Array(n);
+        this.n = n;
+        this.makeSet();
+    }
+
+    makeSet() {
+        for (let i = 0; i < this.n; i++) {
+            this.parent[i] = i;
+            this.rank[i] = 0;
+        }
+    }
+
+    Find(x) {
+        if (this.parent[x] !== x) {
+            this.parent[x] = this.Find(this.parent[x]);
+        }
+        return this.parent[x];
+    }
+
+    Union(x, y) {
+        let xset = this.Find(x);
+        let yset = this.Find(y);
+
+        if (xset === yset) return;
+
+        if (this.rank[xset] < this.rank[yset]) {
+            this.parent[xset] = yset;
+        } else if (this.rank[xset] > this.rank[yset]) {
+            this.parent[yset] = xset;
+        } else {
+            this.parent[yset] = xset;
+            this.rank[xset] = this.rank[xset] + 1;
+        }
+    }
+}
+```

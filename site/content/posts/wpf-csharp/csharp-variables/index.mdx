@@ -1,0 +1,78 @@
+---
+title: C# VARIABLES
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-15
+thumbnail: image.jpg
+featured: true
+---
+
+A variable is nothing but a name given to a storage area that our programs can 
+manipulate. Each variable in C# has a specific type, which determines the size and 
+layout of the variable's memory, the range of values that can be stored within that 
+memory, and the set of operations that can be applied to the variable.
+
+The basic value types provided in C# can be categorized as
+
+| Type               | Example                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Integral types              | sbyte, byte, short, ushort, int, uint, long, ulong, and char    |
+| Floating point types              | float and double    |
+| Decimal types              | decimal    |
+| Boolean types              | true or false values, as assigned    |
+| Nullable types              | Nullable data types    |
+
+C# also allows defining other value types of variablesuch as enum and reference 
+types of variablessuch as class, which we will cover in subsequent chapters.
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Demo
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            //Syntax for variable definition in C# is
+            //<data_type> < variable_list >;
+            int i, j, k;
+            char c, ch;
+            float f, salary;
+            double d;
+
+            //You can initialize a variable at the time of definition as
+            int i2 = 100;
+
+            int d2 = 3, f2 = 5; /* initializing d and f. */
+            byte z = 22; /* initializes z. */
+            double pi = 3.14159; /* declares an approximation of pi. */
+            char x = 'x'; /* the variable x has the value 'x'. */
+
+            //Sample
+            short aa;
+            int ba;
+            double ca;
+            /* actual initialization */
+            aa = 10;
+            ba = 20;
+            ca = aa + ba;
+            Console.WriteLine("a = {0}, b = {1}, c = {2}", aa, ba, ca);
+            Console.ReadLine();
+            //a = 10, b = 20, c = 30
+
+            //Accepting Values from User
+            //The function Convert.ToInt32() converts the data entered by the user to int data
+            //type, because Console.ReadLine() accepts the data in string format.
+            int num;
+            num = Convert.ToInt32(Console.ReadLine());
+        }
+    }
+}
+```

@@ -1,0 +1,187 @@
+---
+title: Operating System
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-13
+thumbnail: image.png
+featured: true
+---
+
+## Thread - Process
+
+### 1. Process
+
+- a process is a program in execution.
+- a program is not a process, a program becomes a process when an executable file is loaded into memory.
+    + MS Word is not a process
+    + When you double click on MS Word icon, an MS Word process is launched.
+- can have > 1 process associated with the same program
+    + e.g: you launch multiple word files by MS Word.
+    + 2 processes do not share memory.
+- A process includes:
+    + program counter: the pointer specifying the 
+    + next instruction to execute.
+    + stack space: temporary data (func params, local variable …)
+    + heap space: memory that is dynamically allocated 
+    + during process runtime.
+    + data: contain global variables.
+    + text: contain program code.
+
+![example](./1.png 'example')
+
+### 2. Thread
+
+- basic unit of CPU utilization.
+- 1 process can have multiple threads.
+- 1 thread comprises: thread ID, program counter, register set, stack
+- 1 thread shares with other threads of the same process:
+    - text section (program code)
+    - data section
+    - heap space
+
+![example](./2.png 'example')
+
+- Motivation behind Thread:
+    - Resource sharing: threads share memory and resource of the process to which they belong to => easier to communicate between threads.
+    - Responsive: a program can continue running even if a part of it is blocked.
+    - Scalability: multiple threads can run in parallel if computer has multiple processors (cores).
+
+### Thread vs Process
+
+![example](./3.png 'example')
+
+### Thread pool
+
+- A thread pool is a technique in multithreading programming used to manage and optimize the use 
+of threads in an application. In an application, creating and managing threads can be resource-intensive
+- create a number of threads at process startup and place them into a pool threads sit in the pool 
+and wait for work:
+    - when a server receives a request/task, it awakes a thread from pool if available and passes it the request/task
+    - once thread completes its service, it returns to the pool
+
+- Benefit:
+    - reduce thread creation overhead
+    - limit number of thread => avoid crash (db, server)
+    - separate the task to be performed from the thread creations => we can use diff strategies to 
+    schedule the task: execute the task after a delay or periodically.
+
+## Heap space - Stack space
+
+### Stack space
+
+- a region in RAM used for static memory allocation: local variable, reference to objects in heap space,
+function params…
+- Stack overflow error when full
+- Can only be accessed by the owner thread => thread-safe
+- Access time is faster.
+- After function completes => all data belonging to the function is clean
+
+### Heap space
+
+- a region in RAM used for dynamic memory allocation: object (e.g: new keyword in Java)
+- Heap Overflow/ Out of memory error when full
+- Share between all threads => not thread-safe
+- Access time is slower.
+- Data in heap is cleaned by Garbage Collector: when objects that cannot be reached 
+by any ref variable in Stack memory. (Java dev take note)
+
+### How to avoid Stack overflow
+
+- reduce number of local variable
+- avoid recursion, have stop condition.
+- keep tree call shallow
+
+## Concurrency - Parallelism
+
+### Concurrency
+
+- Multiple tasks are running at the same time, but not necessarily simultaneously.
+
+![example](./4.png 'example')
+
+### Parallelism
+
+- Multiple tasks are running simultaneously (parallelly).
+
+![example](./5.png 'example')
+
+### Amdahl Law
+
+- The Amdahl's Law is an important principle in the field of parallel computing and system performance. 
+- Speed up = 1 / (1 - f + f/F)
+    - f: percentage of improvable work
+    - F: improvement factor
+- Example: you have improved the speed of 10% of a program by 2 times. What is the overall speedup of your program?
+    - Speed up = 1 / (1 - 10% + 10%/2) = 1.053
+
+## Race condition and Locks
+
+### Race condition 
+
+- A race condition is a situation that occurs in concurrent or parallel programming when the outcome 
+of a program depends on the relative timing or interleaving of multiple threads or processes. It 
+arises when two or more threads or processes access shared data or resources in a way that leads 
+to unexpected and non-deterministic behavior.
+
+- The situation when 2 or more threads update a shared resource simultaneously leads to the shared 
+resource's uncertain state.
+
+### Locks
+
+- A lock that can be held by at most one thread at a time. If another thread tries to acquire a spin 
+lock while it is already held, the thread busy loops (spins) waiting for the lock to become available.
+
+- Spin lock is optimal for short hold time because if a section is locked, other threads keep 
+waiting and do nothing useful => waste of processor resources.
+
+- You cannot sleep while holding a spinlock. 
+
+E.g: thread A acquires spin lock L, then sleeps. Thread B tries to acquire L, but because L was acquired 
+by A, B has to wait. If the computer only has 1 core, we have a deadlock: B waits for A to release L
+A is sleeping and cannot wake up because B is using processor for spinning.
+
+### Semaphore
+
+- A semaphore is a synchronization primitive used in concurrent programming to control access to a shared 
+resource by multiple threads or processes.
+
+- When a thread attempts to acquire an unavailable semaphore, the semaphore places the task onto a wait 
+queue and puts the task to sleep. The processor is then free to execute other code. When the semaphore 
+becomes available, one of the tasks on the wait queue is awakened so that it can then acquire the semaphore.
+
+E.g: 
+- When a person (thread) reaches the door and it is locked, instead of spinning, he/she puts his name 
+on a list and grabs a ticket then sleeps.
+- When the person inside the room leaves, he check the list and goes over the first name, waking him up 
+and gives him the key.
+
+- Counting semaphore: Semaphore allows more than 1 lock holder. It maintains a number called count, which 
+is the number of available resources.
+- Support 2 functions
+    - down() => acquire the semaphore and decrease count by 1. (count -= 1)
+    - up() => release the semaphore and increase count by 1. (count++) 
+    - When count == 0, thread goes to sleep and waits to be woken up.
+
+### Mutex Lock
+
+- a lock we set before using a shared resource and release after using it. When the lock is set, no 
+other thread can access the locked region of code.
+- Mutex lock will only be released by the thread that locks it.
+
+### Mutex vs Semaphore
+
+- A mutex object allows multiple threads to access a single shared resource but only one at a 
+time. (n threads => 1 resource)
+- Semaphore allows multiple threads to access the finite instance of the resource until available. (n 
+threads => m resources)
+- In mutex, the lock can be acquired and released by the same thread simultaneously.
+- Value of the semaphore variable can be modified by any threads that need some resource
+- Mutex ⇔ Binary Semaphore (Semaphore with S = 0 or 1).
+
+## Virtual memory
+
+- A technique that allows the execution of processes that are not completely in memory.
+- Benefit: programs can be larger than physical memory (RAM).
+- Separation of logical memory (memory space) and physical memory (RAM) => allow large 
+virtual memory to be provided for programmers when only a smaller physical memory is available.

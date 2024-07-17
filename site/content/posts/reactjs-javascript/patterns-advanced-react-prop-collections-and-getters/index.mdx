@@ -1,0 +1,71 @@
+---
+title: Prop Collections and Getters
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-06-11
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+The Prop Collections and Getters Pattern allows your hook to
+support common use cases for UI elements people build with your hook.
+
+Lots of the reusable/flexible components and hooks that we'll create have some
+common use-cases and it'd be cool if we could make it easier to use our
+components and hooks the right way without requiring people to wire things up
+for common use cases.
+
+```javascript
+import * as React from 'react'
+import { Switch } from '../switch'
+
+const callAll =
+  (...fns) =>
+  (...args) =>
+    fns.forEach(fn => fn?.(...args))
+
+function useToggle() {
+  const [on, setOn] = React.useState(false)
+  const toggle = () => setOn(!on)
+
+  function getTogglerProps({ onClick, ...props } = {}) {
+    return {
+      'aria-pressed': on,
+      onClick: callAll(onClick, toggle),
+      ...props
+    }
+  }
+
+  return {
+    on,
+    toggle,
+    getTogglerProps
+  }
+}
+
+function App() {
+  const { on, getTogglerProps } = useToggle()
+  return (
+    <div>
+      <Switch {...getTogglerProps({ on })} />
+      <hr />
+      <button
+        {...getTogglerProps({
+          'aria-label': 'custom-button',
+          onClick: () => console.info('onButtonClick'),
+          id: 'custom-button-id'
+        })}
+      >
+        {on ? 'on' : 'off'}
+      </button>
+    </div>
+  )
+}
+
+export default App
+```
+
+<!-- ![example video](./example.gif) -->

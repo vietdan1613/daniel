@@ -1,0 +1,108 @@
+---
+title: How to freeze last column in WPF datagrid?
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#WPF"]
+date: 2023-08-10
+thumbnail: image.jpg
+featured: true
+---
+
+Having two DataGrids next to each other, with the right one having just the column you want to be fixed.
+
+```c#
+<Window x:Class="FrozenGrid.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="450" Width="800">
+    <DockPanel Margin="50">
+        <Slider DockPanel.Dock="Bottom" Value="5" Minimum="0" Maximum="6" 
+                TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSliderSlided" />
+
+        <DataGrid DockPanel.Dock="Right" Name="_frozen" BorderThickness="0,1,1,1" AutoGenerateColumns="False" ScrollViewer.ScrollChanged="OnFrozenScrolled" HorizontalScrollBarVisibility="Visible">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding [5]}" Header="F" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <DataGrid Name="_grid" AutoGenerateColumns="False" VerticalScrollBarVisibility="Hidden" ScrollViewer.ScrollChanged="OnGridScrolled">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding [0]}" Header="A" />
+                <DataGridTextColumn Binding="{Binding [1]}" Header="B" />
+                <DataGridTextColumn Binding="{Binding [2]}" Header="C" />
+                <DataGridTextColumn Binding="{Binding [3]}" Header="D" />
+                <DataGridTextColumn Binding="{Binding [4]}" Header="E" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>
+```
+
+```c#
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+
+namespace FrozenGrid
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            double[][] data = new double[50][];
+            Random random = new Random();
+            for (int i = 0; i < 50; i++)
+                data[i] = Enumerable.Range(0, 10).Select(r => random.NextDouble()).ToArray();
+
+            _grid.ItemsSource = data;
+            _frozen.ItemsSource = data;
+        }
+
+        private ScrollViewer _gridScroll;
+        private ScrollViewer _frozenScroll;
+        private void OnGridScrolled(object sender, ScrollChangedEventArgs e) => OnScrolled(_frozen, ref _frozenScroll, e);
+        private void OnFrozenScrolled(object sender, ScrollChangedEventArgs e) => OnScrolled(_grid, ref _gridScroll, e);
+        private void OnScrolled(DataGrid targetGrid, ref ScrollViewer targetScroll, ScrollChangedEventArgs e)
+        {
+            if (targetScroll == null)
+                targetScroll = (ScrollViewer)VisualTreeHelper.GetChild(VisualTreeHelper.GetChild(targetGrid, 0), 0);  // Grid > DG_ScrollViewer
+
+            targetScroll.ScrollToVerticalOffset(e.VerticalOffset);
+        }
+
+        private void OnSliderSlided(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!IsInitialized)
+                return;
+
+            if (e.NewValue > e.OldValue)
+            {
+                int freeColumns = (int)(e.NewValue - e.OldValue);
+                for (int i = 0; i < freeColumns; i++)
+                {
+                    DataGridColumn c = _frozen.Columns.First();
+                    _frozen.Columns.Remove(c);
+                    _grid.Columns.Add(c);
+                }
+            }
+            else
+            {
+                int fixColumns = (int)(e.OldValue - e.NewValue);
+                for (int i = 0; i < fixColumns; i++)
+                {
+                    DataGridColumn c = _grid.Columns.Last();
+                    _grid.Columns.Remove(c);
+                    _frozen.Columns.Insert(0, c);
+                }
+            }
+
+            _grid.Visibility = _grid.Columns.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            _frozen.Visibility = _frozen.Columns.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            _grid.VerticalScrollBarVisibility = _frozen.Columns.Count < 1 ? ScrollBarVisibility.Visible : ScrollBarVisibility.Hidden;
+        }
+    }
+}
+```

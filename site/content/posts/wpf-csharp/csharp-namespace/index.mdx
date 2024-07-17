@@ -1,0 +1,151 @@
+---
+title: C# NAMESPACES   
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-26
+thumbnail: image.jpg
+featured: true
+---
+
+A namespace is designed for providing a way to keep one set of names separate 
+from another. The class names declared in one namespace does not conflict with the 
+same class names declared in another
+
+## The using Keyword
+
+A namespace definition begins with the keyword namespace followed by the 
+namespace name as follows:
+
+```c#
+using System;
+using System.ComponentModel;
+
+namespace first_space
+{
+    class namespace_cl
+    {
+        public void func()
+        {
+            Console.WriteLine("Inside first_space");
+        }
+    }
+}
+namespace second_space
+{
+    class namespace_cl
+    {
+        public void func()
+        {
+            Console.WriteLine("Inside second_space");
+        }
+    }
+}
+class TestClass
+{
+    static void Main(string[] args)
+    {
+        first_space.namespace_cl fc = new first_space.namespace_cl();
+        second_space.namespace_cl sc = new second_space.namespace_cl();
+        fc.func();
+        sc.func();
+        Console.ReadKey();
+        //Inside first_space
+        //Inside second_space
+    }
+}
+```
+
+## The using Keyword
+
+The using keyword states that the program is using the names in the given 
+namespace. For example, we are using the System namespace in our programs. The 
+class Console is defined there. We just write:
+
+You can also avoid prepending of namespaces with the using namespace directive. 
+This directive tells the compiler that the subsequent code is making use of names in 
+the specified namespace. The namespace is thus implied for the following code
+
+```c#
+using System;
+using System.ComponentModel;
+using first_space;
+using second_space;
+
+namespace first_space
+{
+    public static class abc
+    {
+        public static void func()
+        {
+            Console.WriteLine("Inside first_space");
+        }
+    }
+}
+namespace second_space
+{
+    class efg
+    {
+        public void func()
+        {
+            Console.WriteLine("Inside second_space");
+        }
+    }
+}
+class TestClass
+{
+    static void Main(string[] args)
+    {
+        efg sc = new efg();
+        abc.func();
+        sc.func();
+        Console.ReadKey();
+        //Inside first_space
+        //Inside second_space
+    }
+}
+```
+
+## Nested Namespaces
+
+You can define one namespace inside another namespace as follows:
+
+```c#
+using System;
+using System.ComponentModel;
+using first_space;
+using first_space.second_space;
+namespace first_space
+{
+    class abc
+    {
+        public void func()
+        {
+            Console.WriteLine("Inside first_space");
+        }
+    }
+    namespace second_space
+    {
+        class efg
+        {
+            public void func()
+            {
+                Console.WriteLine("Inside second_space");
+            }
+        }
+    }
+}
+class TestClass
+{
+    static void Main(string[] args)
+    {
+        abc fc = new abc();
+        efg sc = new efg();
+        fc.func();
+        sc.func();
+        Console.ReadKey();
+        //Inside first_space
+        //Inside second_space
+    }
+}
+```

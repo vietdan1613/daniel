@@ -1,0 +1,199 @@
+---
+title: WPF MULTIMEDIA
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#WPF"]
+date: 2022-10-13
+thumbnail: image.jpg
+featured: true
+---
+
+WPF applications support video and audio using MediaElement. It allows you to integrate 
+audio and video into an application. The MediaElement class works in a similar way as 
+Image class. You just point it at the media and it renders it. The main difference is that it 
+will be a moving image, but if you point it to the file that contains just audio and no video 
+such as an MP3, it will play that without showing anything on the screen. 
+WPF supports all types of video/audio format depending on the machine configuration. If 
+a media file plays a Media Player, it will also work in WPF on the same machine. 
+
+![example](./1.png 'example')
+
+```C#
+<Window x:Class="ForPersonal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ForPersonal"
+        xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="450"
+        Width="800">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+            <MediaElement Name="myMedia"
+                          Source="C:\Missi_Perfume.mp4"
+                          LoadedBehavior="Manual"
+                          Width="591"
+                          Height="274" />
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,10,0,0">
+                <Button Content="Play"
+                        Margin="0,0,10,0"
+                        Padding="5"
+                        Click="mediaPlay" />
+                <Button Content="Pause"
+                        Margin="0,0,10,0"
+                        Padding="5"
+                        Click="mediaPause" />
+                <Button x:Name="muteButt"
+                        Content="Mute"
+                        Padding="5"
+                        Click="mediaMute" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
+```
+
+```C#
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+namespace ForPersonal
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            myMedia.Volume = 100;
+            myMedia.Play();
+        }
+        void mediaPlay(Object sender, EventArgs e)
+        {
+            myMedia.Play();
+        }
+        void mediaPause(Object sender, EventArgs e)
+        {
+            myMedia.Pause();
+        }
+        void mediaMute(Object sender, EventArgs e)
+        {
+            if (myMedia.Volume == 100)
+            {
+                myMedia.Volume = 0;
+                muteButt.Content = "Listen";
+            }
+            else
+            {
+                myMedia.Volume = 100;
+                muteButt.Content = "Mute";
+            }
+        }
+    }
+}
+```
+
+WPF has features to convert text to speech. This API is included in System.Speech 
+namespace. SpeechSynthesizer class transforms text into spoken words. 
+
+![System.Speech assembly](./2.png 'System.Speech assembly')
+
+```C#
+<Window x:Class="ForPersonal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ForPersonal"
+        xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="450"
+        Width="800">
+    <Grid>
+        <Button x:Name="button"
+                Content="Speak"
+                HorizontalAlignment="Left"
+                Margin="218,176,0,0"
+                VerticalAlignment="Top"
+                Click="button_Click"
+                Width="75" />
+        <TextBox x:Name="textBox"
+                 HorizontalAlignment="Left"
+                 Height="23"
+                 Margin="60,104,0,0"
+                 TextWrapping="Wrap"
+                 VerticalAlignment="Top"
+                 Width="418" />
+    </Grid>
+</Window>
+```
+
+```C#
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+using System.Speech.Synthesis;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+namespace ForPersonal
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            if (textBox.Text != "")
+            {
+                SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer();
+                speechSynthesizer.Speak(textBox.Text);
+            }
+            else
+            {
+                MessageBox.Show("Write some thing in the textbox!");
+            }
+        }
+    }
+}
+```
+
+![example](./3.png 'example')

@@ -1,0 +1,53 @@
+---
+title: 2 Pointers & Heap
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-03-18
+thumbnail: image.jpg
+featured: true
+---
+
+# 2-pointers
+
+- use 2 pointers (variables) to keep track of the index of array or string.
+- there are 2 patterns:
+    - Same direction: 2 pointers start at the beginning of the array, move to the end, 1 goes faster than the other.
+    - Opposite direction: 1 pointer at the beginning, 1 pointer at the end of the array, moving toward each other.
+
+### When to use 2-pointer same direction?
+
+- when input is sorted
+- when you want to reduce a nested loop to a single loop
+- when you need to compare value at 1 index with value at another index
+
+### Sliding window
+
+- This technique can be used to solve problems have the following format:
+
+- Return the length of the longest contiguous subarray [u,v] of array A that subarray [u,v] meets the requirement X. 
+X is a requirement such that: if [u,v] doesn't meet X, then [u,v'] doesn't meet X too (v' > v).
+
+- Example
+    - Given a string s, find the length of the longest substring t that contains at most 2 distinct characters.
+    - Given a string, find the length of the longest substring without repeating characters.
+    - Given an array A of 0s and 1s, we may change up to K values from 0 to 1. Return the length of the longest (contiguous) subarray that contains only 1s.
+
+- So the general algorithm will be:
+    - Step 1: Initially l = r = 0
+    - Step 2: Extend r as far as possible, so that subarray [l,r] fulfills the requirement X.
+    - Step 3: When r reaches the point where subarray [l,r] doesn't meet requirement X anymore, we stop and increase l. Then we repeat Step 2 until r reaches the end of input array
+
+- Run time: O(n)
+
+# Heap
+
+- insert(value): insert a value into the heap 
+- pop(): get the min value in the min heap, and remove it from the heap
+- top(): get the min value in the min heap
+
+- runtime (n is the number of node in heap.): 
+    - insert: O(logn)
+    - pop: O(logn)
+    - top: O(1)
+

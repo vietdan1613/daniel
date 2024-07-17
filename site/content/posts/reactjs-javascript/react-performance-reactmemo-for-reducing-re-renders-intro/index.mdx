@@ -1,0 +1,94 @@
+---
+title: React.memo for reducing unnecessary re-renders
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-07-16
+thumbnail: image.jpg
+featured: true
+---
+
+## USing 
+
+when you dont't want to re-renders component when parent change but component nothing change 
+
+## Background
+
+Here's the lifecycle of a React app:
+
+```
+→  render → reconciliation → commit
+         ↖                   ↙
+              state change
+```
+
+Let's define a few terms:
+
+- The "render" phase: create React elements React.createElement
+- The "reconciliation" phase: compare previous elements with the new ones
+- The "commit" phase: update the DOM (if needed).
+
+A React Component can re-render for any of the following reasons:
+
+1. Its props change
+2. Its internal state changes
+3. It is consuming context values which have changed
+4. Its parent re-renders
+
+```jsx
+function CountButton({count, onClick}) {
+  return <button onClick={onClick}>{count}</button>
+}
+
+function NameInput({name, onNameChange}) {
+  return (
+    <label>
+      Name: <input value={name} onChange={e => onNameChange(e.target.value)} />
+    </label>
+  )
+}
+
+function Example() {
+  const [name, setName] = React.useState('')
+  const [count, setCount] = React.useState(0)
+  const increment = () => setCount(c => c + 1)
+  return (
+    <div>
+      <div>
+        <CountButton count={count} onClick={increment} />
+      </div>
+      <div>
+        <NameInput name={name} onNameChange={setName} />
+      </div>
+      {name ? <div>{`${name}'s favorite number is ${count}`}</div> : null}
+    </div>
+  )
+}
+```
+
+Based on how this is implemented, when you click on the counter button, the
+`<CountButton />` re-renders (so we can update the `count` value). But the
+`<NameInput />` is also re-rendered. If you have
+`Record why each component rendered while profiling.` enabled in React DevTools,
+then you'll see that under "Why did this render?" it says "The parent component
+rendered."
+
+So here's how we can improve our example:
+
+```jsx
+function CountButton({count, onClick}) {
+  return <button onClick={onClick}>{count}</button>
+}
+
+function NameInput({name, onNameChange}) {
+  return (
+    <label>
+      Name: <input value={name} onChange={e => onNameChange(e.target.value)} />
+    </label>
+  )
+}
+NameInput = React.memo(NameInput)
+```
+
+## Example
+<!-- ![example video](./example.gif) -->

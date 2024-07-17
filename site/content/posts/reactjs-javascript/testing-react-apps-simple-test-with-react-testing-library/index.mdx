@@ -1,0 +1,56 @@
+---
+title: Simple Test with React Testing Library
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-08-25
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+As much as I enjoy creating DOM nodes and appending them to the `body`, that
+seems like boilerplate that could live in an abstraction. And it is! Among other
+things, that's what React Testing Library does.
+
+Here's a simple example of how to use this:
+
+```javascript
+import {render, fireEvent, screen} from '@testing-library/react'
+
+test('it works', () => {
+  const {container} = render(<Example />)
+  // container is the div that your component has been mounted onto.
+
+  const input = container.querySelector('input')
+  fireEvent.mouseEnter(input) // fires a mouseEnter event on the input
+
+  screen.debug() // logs the current state of the DOM (with syntax highlighting!)
+})
+```
+
+Testing Library also has a suite of assertions that can be installed with Jest.
+They're already added to this project, so you can switch from Jest's built-in
+assertions to more specific assertions which will give you better error
+messages. So go ahead and swap the `expect(message.textContent).toBe(...)`
+assertions with `toHaveTextContent` from
+[`@testing-library/jest-dom`](http://testing-library.com/jest-dom).
+
+```javascript
+import * as React from 'react'
+import {render, fireEvent} from '@testing-library/react'
+import Counter from '../../components/counter'
+
+test('counter increments and decrements when the buttons are clicked', () => {
+  const {container} = render(<Counter />)
+  const [decrement, increment] = container.querySelectorAll('button')
+  const message = container.firstChild.querySelector('div')
+
+  expect(message).toHaveTextContent('Current count: 0')
+  fireEvent.click(increment)
+  expect(message).toHaveTextContent('Current count: 1')
+  fireEvent.click(decrement)
+  expect(message).toHaveTextContent('Current count: 0')
+})
+```

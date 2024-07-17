@@ -1,0 +1,248 @@
+---
+title: Database
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-14
+thumbnail: image.png
+featured: true
+---
+
+- Database is just a bunch of files on disk.
+- Storage Manager is the one that maintains the database files
+- It organizes files as a collection of pages
+
+## Pages
+
+- A Page is a fixed-size block of data:
+    - contains record (tuple), meta-data, indexes …
+    - MySQL: 16KB (default size, can be configured)
+    - SQL server, PostgreSQL: 8KB
+- In a page, all records belong to the same table.
+- When DBMS reads data, it reads by page.
+- MySQL: max size of a row ~ ½ page’s size ~ 8KB (InnoDB engine)
+
+![example](./1.png 'example')
+
+### File Organization
+
+- **Heap File Organization** is a common way DBMS organizes database files on disk
+- Each file is an unordered collection of pages.
+- A special page called **Directory page**: 
+    - at the head of the file.
+    - to keep track of the location of data pages in the file
+    - to keep track of the number of free slots per page
+
+### Directory Page
+
+Mapping from Page_id to its position (offset) in the file. => increase read speed.
+
+![example](./2.png 'example')
+
+### Data Page
+
+- Two parts: header, data
+- Header contains metadata: Page Size, Checksum, DBMS version, Number of empty slot,...
+
+![example](./3.png 'example')
+
+### Page Layout
+
+- Slotted page layout: Slot Array: at the beginning of the Page, right after the Header.
+It maps “slots” to the tuple’s start position offsets.
+- The tuples are at the end of the Page
+- When insert a new tuple:
+    - read the starting location of the last slot used.
+    - create a new slot in slot array
+    - write the new tuple to the position
+
+![example](./4.png 'example')
+
+## Buffer Pool (== Cache)
+
+- A cache layer in memory (RAM). DBMS use Buffer Pool to improve the performance.
+- A region in RAM, organized as an array of fixed-size pages. **Frame’s size** == **Page’s size**.
+- The **page table** is a part of the Buffer Pool that map from the **page_id** to **frame_id**
+- The **page directory** is part of the heap file that map from page_id to its location in the file.
+
+![example](./5.png 'example')
+
+### Buffer pool replacement policies
+
+- The Buffer pool’s size is limited <= RAM’s size (80% RAM)
+- DBMS needs to clear a frame to make room for a new page when it is full.
+- Replacement policy is the way it decides which page to evict from the buffer pool. (Cache invalidation policy)
+    - FIFO
+    - LRU
+
+## LRU (Least-Recently Used)
+
+- For each page, maintain a timestamp of when it was last accessed.
+- When need to evict a page, it selects the one with oldest timestamp.
+- Assumption: if a page is accessed recently, it is likely that the page will be accessed again in near future.
+
+```javascript
+E.g: Size of B.P == 3
+B.P: [ ] [ ] [ ]
+read page 1 => [1] [ ] [ ]
+read page 2 => [1] [2] [ ]
+read page 3 => [1] [2] [3]
+read page 4 => [4] [2] [3]
+read page 1 => [4] [1] [3]
+```
+
+### disadvantage
+
+Sequential flooding issue:
+- when a query performs a sequential scan that reads every page.
+- it pollutes the buffer pool with pages that are read once and then never again.
+
+### LRU-K Idea
+
+- use a hashmap to store the cache key-value
+- use a doubly linked-list (DLL) to store the order each key is accessed.
+- when a key is accessed:
+    - if it is in the DLL, remove it then add to the end of DLL
+    - if it is not in the DLL, and the size of the DLL is full, remove the first element of DLL, and add the 
+    new key to the end of DLL. 
+
+### Index
+
+- A database index is a data structure that **improves the speed** of data retrieval operations on a 
+database table 
+- Types: Hash Indexes, B+Tree Indexes, SSTables Indexes
+- Disadvantage: additional writes operation, storage space to maintain the index data structure
+
+## Hash Indexes
+
+- Based on a **Hash Table**
+    - key: hash code of the indexed columns
+    - value: pointer to the corresponding row (page_id, slot_id)
+- Only **useful** for exact look-up. Cannot support range query, unequal condition ( >, <, >=, <=)
+- Limitation:
+    - **Performance** can be **unstable** in case of hash collision: search in hash table: O(n), average O(1)
+    - Hash indexes **don’t support partial key matching**.
+        - e.g: if you have index on (Col1, Col2), hash index won’t help if query on Col1 only or Col2 only.
+        - select * from student where Col1 = 10; => full scan
+        - select * from student where Col1 = 10 and Col2 = 20; => use hash indexes
+
+## B+Tree Index
+
+- The most common type of Index. Using B+Tree data structure.
+- Performance is **stable** because B+Tree is a self-balanced tree.
+- B+Tree of order M has the following properties:
+    - Self-balanced: every **leaf node is at same depth**
+    - Each node has **M-1 keys** and **M children**.
+    - Every node (except root) is at least half-full: M/2-1 <= #keys <= M-1
+    - Keys in each node are **sorted**.
+    - Leaf nodes are **connected 2-ways** (looks like a Doubly Linked List)
+- key is indexed column. Value can be pointer to the record (postgres) or the record’s data itself (clustered index of mysql)
+- Each **leaf node** is corresponding to one Page. select *  where id = 10; => O(log #keys)
+
+![example](./6.png 'example')
+
+### Search 
+
+- start from root, search correct child and follow the pointer. keys are sorted => can use Binary search
+=> Runtime ~ O(logN)
+
+### Why use B+Tree for index, not BST/AVL/Red-Black Tree
+
+- B+trees are self-balancing while BST are not balancing => can lead to a very tall tree
+- B+trees are much shorter than other balanced binary tree structures such as AVL => fewer disk access.
+- If we want to retrieve a range of entries in order by key, B+trees is much more efficient than AVL, BST or 
+Hash table, because each node contains a large number of key with sorted key.
+
+### What is B+Tree indexes ’s disadvantage?
+
+- more complex than Hash indexes
+- write speed is slower than LMS-tree indexes (SSTable)
+- for equality query (=, !=, IN), Hash Index is much faster. O(1) on average, B+Tree O(logN)
+
+### Type of query that B+Tree indexes support:
+
+- Match full value (same as hash index)
+- Match leftmost prefix: index (Col1, Col2, Col3) => B+Tree index can support query on (Col1), or (Col1, Col2) 
+or (Col1, Col2, Col3)
+- Match part of the first column: index on Name column => B+Tree index can support query all records having 
+Name start with letter “Qu”
+- Match a range of values (>=, >, <= , <)
+
+## B-Tree Index
+
+- B-Tree is similar to B+Tree except:
+    - inner node can contain pointer to records
+    - no duplicated key in B-Tree
+    - leaf-node are not connected as a Doubly Linked List
+
+### B+Tree over B-Tree
+
+- Support full scan: The leaf nodes of B+ trees are linked, so a full scan of all objects in a tree requires 
+just one linear pass through all the leaf nodes.
+- Inner node of B+Tree does not have a pointer to data => more keys can be packed in a B+Tree node => reducing 
+the tree’s height.
+
+![example](./7.png 'example')
+
+## Indexes best practice
+
+- Only index on isolating columns. should not be part of an expression or be inside a function in the query
+> mysql> SELECT id FROM student WHERE **id + 1 = 5**;
+
+- selectivity = number of distinct indexed values / number of rows in table. A highly selective index is good 
+because it lets DBMS filter out more rows when it looks for matches. Trade-off:
+> - more characters => higher selectivity, more space.
+> - less characters => less selectivity, less space.
+
+- Use Covering index: indexes that contain all the data needed to satisfy a query
+> - CREATE INDEX idx_foo ON foo (a, b);
+> - SELECT b FROM foo WHERE a = 123 AND b = 456;
+
+## Transaction 
+
+- a logical unit of processing in a DBMS that entails one or more database access operations.
+- Purpose: to make sure data in database is consistent.
+- Example: Alice transfer 100$ to Bob:
+
+> - Subtract 100$ from Alice account
+> - Add 100$ to Bob account
+> - If there is no transaction, action 1 can be successful and action 2 fail => Alice lost 100$.
+
+## ACID 
+
+A set of properties of database transactions intended to guarantee data validity
+- Atomicity: each transaction is treated as a single "unit", which either succeeds completely, or fails completely. 
+> q1 , q2 => execute q1 successfully, q2 failed => rollback q1 and return error.
+
+- Consistency: data integrity constraints. 
+> e.g., if we have a constraint, all customer accounts must have a positive balance. If a transaction brings a customer account into a negative balance, that transaction will be rolled back
+
+- Isolation: 2 concurrent transactions are isolated from each other. Each transaction can pretend that it is the 
+only transaction running on the entire DB. 
+> - This highest isolation level is rarely used because of the performance expense.
+> - mysql: default isolation level == repeatable read
+
+- Durability: guarantees that once a transaction has been committed, it will remain committed even in the case 
+of a system failure (e.g., power outage or crash).
+
+
+- How Database Management Systems (DBMS) store data on a hard disk?
+- How DBMS manages its memory (RAM)?
+- What is index? How to implement indexes? Best practice for creating indexes?
+- SQL fix-sized = 8kb. 1 row: column text 7KB => where to store?
+- What is a database index?
+- Why don’t we index every column to support fast read?
+- How do Hash Indexes work?
+- What are its disadvantages?
+- Compare B+Tree and B-Tree?
+- given B+Tree index (C1, C2, C3), can B+Tree support query on C2?  
+- Compare B+Tree index and Hash index?
+- Should we index boolean column? 
+> selectivity = 2 / #rows => should not.
+
+- What happens to index when database machine crashes? 
+> DBMS use an additional data structure on disk called write-ahead log (WAL): 
+> append-only file which every B+Tree index modification must be written before it can be applied
+> append-only => fast
+> When the database resumes after a crash, this log is used to restore B+Tree.
+

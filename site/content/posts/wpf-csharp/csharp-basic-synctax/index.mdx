@@ -1,0 +1,93 @@
+---
+title: C# BASIC SYNTAX  
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-15
+thumbnail: image.jpg
+featured: true
+---
+
+C# is an object-oriented programming language. In Object-Oriented Programming 
+methodology, a program consists of various objects that interact with each other by 
+means of actions. The actions that an object may take are called methods. Objects 
+of the same kind are said to have the same type or, more often, are said to be in the 
+same class.
+
+For example, let us consider an object Rectangle. It has attributes such as length and 
+width. Depending upon the design, it may need ways for accepting the values of 
+these attributes, calculating area, and display details.
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Demo
+{
+    class Rectangle
+    {
+        // member variables
+        double length;
+        double width;
+        public void Acceptdetails()
+        {
+            length = 4.5;
+            width = 3.5;
+        }
+        public double GetArea()
+        {
+            return length * width;
+        }
+        public void Display()
+        {
+            Console.WriteLine("Length: {0}", length);
+            Console.WriteLine("Width: {0}", width);
+            Console.WriteLine("Area: {0}", GetArea());
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Rectangle r = new Rectangle();
+            r.Acceptdetails();
+            r.Display();
+            Console.ReadLine();
+            // Length: 4.5
+            // Width: 3.5
+            // Area: 15.75
+        }
+    }
+}
+```
+
+**The using keyword** is used for including the namespaces in the program. A program 
+can include multiple using statements.
+
+**The class keyword** is used for declaring a class.
+
+**Comments** are used for explaining code. Compiler ignores the comment entries. The 
+multiline comments in C# programs start with /* and terminates with the characters
+
+**Variables** are attributes or data members of a class. They are used for storing data. 
+In the preceding program, the Rectangle class has two member variables 
+named length and width.
+
+**Functions** are set of statements that perform a specific task. The member functions 
+of a class are declared within the class. Our sample class Rectangle contains three 
+member functions: AcceptDetails, GetArea, and Display
+
+In the preceding program, the class ExecuteRectangle is used as a class, which 
+contains the Main() method and instantiates the Rectangle class
+
+An identifier is a name used to identify a class, variable, function, or any other userdefined item. The basic rules for naming classes in C# are as follows:
+
+- A name must begin with a letter that could be followed by a sequence of letters, 
+digits (0 - 9), or underscore. The first character in an identifier cannot be a 
+digit.
+- It must not contain any embedded space or symbol like ? - +! @ # % ^ & * ( 
+) [ ] { } . ; : " ' / and \. However, an underscore ( _ ) can be used.
+- It should not be a C# keyword

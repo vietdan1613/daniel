@@ -1,0 +1,33 @@
+---
+title: Trie
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-19
+thumbnail: image.jpg
+featured: true
+---
+
+- a data structure to manage a set of strings
+
+- operations:
+    - add(s): add string s to Trie
+    - startWith(prefix): return true if there is a string in Trie has prefix as prefix.
+
+- In a trie:
+    - Each node represents a single character or part of a string.
+    - The root represents an empty string or null character.
+    - Each path from the root to a leaf node represents a string stored in the trie.
+    - Nodes may have links to other nodes representing subsequent characters in the string.
+
+- Space: O(total number of char of all words)
+- Time: O(len(word)) for each operations (add, startWith, search)
+
+> add(“tea”)    
+> add(“ten”)    
+> add(“to”)     
+> add(“iin”)    
+> startWith(“ii”) => true   
+> startWith(“tem”) => false
+
+![example](./1.png 'example')

@@ -1,0 +1,49 @@
+---
+title: Change Data Capture
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-12
+thumbnail: image.png
+featured: true
+---
+
+**Change Data Capture** (CDC) is a technique used in **databases** to capture and **track changes** made to the data 
+in **real-time**. It enables the detection and propagation of changes (inserts, updates, deletes) from the source 
+system to other systems in an efficient and timely manner. CDC is commonly used in scenarios such as data 
+replication, data warehousing, data integration, and synchronization between different databases or applications.
+
+## Here's a simplified explanation of how CDC works:
+
+- **Capture**: The first step involves capturing changes made to the data in the source database. This can be achieved 
+through various methods such as database triggers, log-based capture, or using specialized CDC software.
+
+- **Identify Changes**: Once changes are captured, CDC mechanisms identify what data has been modified, inserted, or 
+deleted, as well as the specific rows affected by these changes.
+
+- **Store Changes**: The identified changes are then stored in a dedicated location or log, often referred to as a 
+CDC log or journal. This log typically contains metadata about the changes, such as the type of operation 
+(insert, update, delete), the affected table, and the data before and after the change.
+
+- **Propagate Changes**: Finally, the captured changes are propagated or applied to target systems or databases 
+in near real-time. This ensures that the data in the target systems remains synchronized with the source data.
+
+## CDC provides several benefits, including:
+
+- **Real-time data synchronization**: Ensures that data across different systems remains up-to-date in near real-time.
+
+- **Reduced latency**: Changes are propagated quickly, minimizing the delay between when a change occurs and when 
+it is reflected in other systems.
+
+- **Efficient data integration**: Allows for seamless integration of data from multiple sources without the need 
+for bulk data transfers.
+
+- **Minimal impact on performance**: CDC mechanisms are designed to capture changes with minimal overhead on the 
+source database.
+
+## Debezium
+
+First of all, we also have source DB - where we track data changes. Kafka Connect plays the role of detecting 
+changes and pushing events into Apache Kafka. Data can then be pushed to sinks depending on usage needs.
+
+![example](./1.png 'example')

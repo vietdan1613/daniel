@@ -1,0 +1,95 @@
+---
+title: Typescript Getting Started
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#Typescript']
+date: 2020-12-01
+thumbnail: image.jpg
+---
+
+## Introduction to TypeScript
+
+TypeScript builds on top of JavaScript. First, you write the TypeScript code. 
+Then, you compile the TypeScript code into plain JavaScript code using a TypeScript compiler.
+
+TypeScript uses the JavaScript syntaxes and adds additional syntaxes for supporting Types.
+
+![what-is-typescript-typescript](./what-is-typescript-typescript-and-js.png 'What is typescript typescript')
+
+## TypeScript improves your productivity while helping avoid bugs
+
+For example, if users entered `10` and `20`, the **add()** function would return `1020`, instead of `30`.
+
+The reason is that the input1.value and `input2.value` are strings, not numbers. When you use the operator + to add two strings, 
+it concatenates them into a single string.
+
+```typescript
+function add(x, y) {
+   return x + y;
+}
+
+let result = add(input1.value, input2.value);
+console.log(result); // result of concatenating strings
+
+// When you use TypeScript to explicitly specify the type for the parameters like this:
+function add(x: number, y: number) {
+   return x + y;
+}
+```
+
+## TypeScript brings the future JavaScript to today
+
+TypeScript supports the upcoming features planned in the ES Next for the current JavaScript engines.
+It means that you can use the new JavaScript features before web browsers (or other environments) 
+fully support them.
+
+## Install 
+
+1. Install Node.js
+
+2. Install TypeScript compiler
+
+> To install the TypeScript compiler    
+> `npm install -g typescript`     
+> Check the current version     
+> `tsc --v`
+> Live Server extension     
+
+## TypeScript “Hello, World!”
+
+index.html 
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript: Hello, World!</title>
+</head>
+<body>
+    <script src="app.js"></script>
+</body>
+</html>
+```
+
+app.ts
+
+```typescript
+let message: string = 'Hello, World!';
+// create a new heading 1 element
+let heading = document.createElement('h1');
+heading.textContent = message;
+// add the heading the document
+document.body.appendChild(heading);
+```
+
+Compile the app.ts file:
+
+> tsc app.ts
+
+## Why TypeScript
+
+1. TypeScript adds a type system to help you avoid many problems with dynamic types in JavaScript.
+
+2. TypeScript implements the future features of JavaScript a.k.a ES Next so that you can use them today.

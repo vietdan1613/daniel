@@ -1,0 +1,117 @@
+---
+title: C# METHODS  
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-20
+thumbnail: image.jpg
+featured: true
+---
+
+A method is a group of statements that together perform a task. Every C# program 
+has at least one class with a method named Main.
+
+## Defining Methods in C#
+
+Following code snippet shows a function FindMax that takes two integer values and 
+returns the larger of the two. It has public access specifier, so it can be accessed 
+from outside the class using an instance of the class
+
+```c#
+using System;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        class NumberManipulator
+        {
+            public int FindMax(int num1, int num2)
+            {
+                /* local variable declaration */
+                int result;
+                if (num1 > num2)
+                    result = num1;
+                else
+                    result = num2;
+                return result;
+            }
+            static void Main(string[] args)
+            {
+                /* local variable definition */
+                int a = 100;
+                int b = 200;
+                int ret;
+                NumberManipulator n = new NumberManipulator();
+                //calling the FindMax method
+                ret = n.FindMax(a, b);
+                Console.WriteLine("Max value is : {0}", ret);
+                Console.ReadLine();
+                //Max value is : 200
+            }
+        }
+    }
+}
+```
+
+**Recursive Method Call** A method can call itself. This is known as recursion. Following is an example that 
+calculates factorial for a given number using a recursive function:
+
+## Passing Parameters to a Method
+
+| Mechanism               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Value parameters              | This method copies the actual value of an argument into the formal parameter of the function. In this case, changes made to the parameter inside the function have no effect on the argument.    |
+| Reference parameters              | This method copies the reference to the memory location of an argument into the formal parameter. This means that changes made to the parameter affect the argument.    |
+| Output parameters               | This method helps in returning more than one value.   |
+
+A reference parameter is a reference to a memory location of a variable. When 
+you pass parameters by reference, unlike value parameters, a new storage location 
+is not created for these parameters. The reference parameters represent the same 
+memory location as the actual parameters that are supplied to the method.
+
+```c#
+//Passing Parameters by Reference
+using System;
+
+namespace ConsoleApp1
+{
+    class NumberManipulator
+    {
+        public void swap(ref int x, ref int y)
+        {
+            int temp;
+            temp = x; /* save the value of x */
+            x = y; /* put y into x */
+            y = temp; /* put temp into y */
+        }
+
+        static void Main(string[] args)
+        {
+            NumberManipulator n = new NumberManipulator();
+            /* local variable definition */
+            int a = 100;
+            int b = 200;
+            Console.WriteLine("Before swap, value of a : {0}", a);
+            Console.WriteLine("Before swap, value of b : {0}", b);
+            /* calling a function to swap the values */
+            n.swap(ref a, ref b);
+            Console.WriteLine("After swap, value of a : {0}", a);
+            Console.WriteLine("After swap, value of b : {0}", b);
+            Console.ReadLine();
+        }
+    }
+}
+```
+
+A return statement can be used for returning only one value from a function. 
+However, using output parameters, you can return two values from a function. 
+Output parameters are similar to reference parameters, except that they transfer 
+data out of the method rather than into it.
+
+| ref keyword               | out keyword                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| It is necessary the parameters should initialize before it pass to ref.              | It is not necessary to initialize parameters before it pass to out. |
+| It is not necessary to initialize the value of a parameter before returning to the calling method.              | It is necessary to initialize the value of a parameter before returning to the calling method. |
+| The passing of value through ref parameter is useful when the called method also need to change the value of passed parameter.              | The declaring of parameter through out parameter is useful when a method return multiple values. |
+| When ref keyword is used the data may pass in bi-directional.              | When out keyword is used the data only passed in unidirectional. |

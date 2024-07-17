@@ -1,0 +1,123 @@
+---
+title: useTransition
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-09-02
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+When a component suspends, it's literally telling React: "Don't render any
+updates at all from the suspense component on down until I'm ready to roll."
+Now, eventually React will give up on the suspending component and render your
+fallback instead. But there's that brief amount of time that your app will
+appear to be unresponsive to the user and it'd be great if we could avoid that.
+
+Also, you're probably seeing an error in your console right about now and it'd
+be cool to make that go away 😉
+
+The API for this is a hook called `useTransition`. Here's what that looks like:
+
+```javascript
+const SUSPENSE_CONFIG = {timeoutMs: 4000}
+
+function Component() {
+  const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
+  // etc...
+
+  function handleClick() {
+    // do something that triggers some interim state change we want to
+    // happen before suspending starts
+    startTransition(() => {
+      // do something that triggers a suspending component to render
+    })
+  }
+
+  // if needed, you can use the `isPending` boolean to display a loading spinner
+  // or similar
+}
+```
+
+```
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonForm,
+  PokemonDataView,
+  PokemonErrorBoundary,
+} from '../pokemon'
+import {createResource} from '../utils'
+
+function PokemonInfo({pokemonResource}) {
+  const pokemon = pokemonResource.read()
+  return (
+    <div>
+      <div className="pokemon-info__img-wrapper">
+        <img src={pokemon.image} alt={pokemon.name} />
+      </div>
+      <PokemonDataView pokemon={pokemon} />
+    </div>
+  )
+}
+
+const SUSPENSE_CONFIG = {
+  timeoutMs: 4000,
+  busyDelayMs: 300,
+  busyMinDurationMs: 700,
+}
+
+function createPokemonResource(pokemonName) {
+  return createResource(fetchPokemon(pokemonName))
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+  const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
+  const [pokemonResource, setPokemonResource] = React.useState(null)
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      setPokemonResource(null)
+      return
+    }
+    startTransition(() => {
+      setPokemonResource(createPokemonResource(pokemonName))
+    })
+  }, [pokemonName, startTransition])
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleReset() {
+    setPokemonName('')
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className={`pokemon-info ${isPending ? 'pokemon-loading' : ''}`}>
+        {pokemonResource ? (
+          <PokemonErrorBoundary
+            onReset={handleReset}
+            resetKeys={[pokemonResource]}
+          >
+            <React.Suspense
+              fallback={<PokemonInfoFallback name={pokemonName} />}
+            >
+              <PokemonInfo pokemonResource={pokemonResource} />
+            </React.Suspense>
+          </PokemonErrorBoundary>
+        ) : (
+          'Submit a pokemon'
+        )}
+      </div>
+    </div>
+  )
+}
+```

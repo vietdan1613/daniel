@@ -1,0 +1,85 @@
+---
+title: Avoid Implementation Details
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-08-25
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+One of the most important things to remember about testing our software the way
+it is used is to avoid testing implementation details. "Implementation details"
+is a term referring to how an abstraction accomplishes a certain outcome. Thanks
+to the expressiveness of code, you can typically accomplish the same outcome
+using completely different implementation details
+
+Here's one way you might access that `button` to click and assert on it:
+
+```javascript
+const {container} = render(<Counter />)
+container.firstChild // <-- that's the button
+```
+
+What if we changed it a bit:
+
+```javascript
+function Counter() {
+  const [count, setCount] = React.useState(0)
+  const increment = () => setCount(c => c + 1)
+  return (
+    <span>
+      <button onClick={increment}>{count}</button>
+    </span>
+  )
+}
+```
+
+Our tests would break!
+
+So here's a better way to search for that button in our test that's
+implementation detail free and refactor friendly:
+
+```javascript
+render(<Counter />)
+screen.getByText('0') // <-- that's the button
+// or (even better) you can do this:
+screen.getByRole('button', {name: '0'}) // <-- that's the button
+```
+
+As it turns out, clicking these buttons is also a bit of an implementation
+detail. We're firing a single event, when we actually should be firing several
+other events like the user does. When a user clicks a button, they first have to
+move their mouse over the button which will fire some mouse events. They'll also
+mouse down and mouse up on the input and focus it! Lots of events!
+
+For this extra credit, swap out `fireEvent` for `userEvent` which you can get
+like so:
+
+```javascript
+import userEvent from '@testing-library/user-event'
+```
+
+Full example
+
+```javascript
+import * as React from 'react'
+import {render, screen} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import Counter from '../../components/counter'
+
+test('counter increments and decrements when the buttons are clicked', async () => {
+  render(<Counter />)
+  const increment = screen.getByRole('button', {name: /increment/i})
+  const decrement = screen.getByRole('button', {name: /decrement/i})
+  const message = screen.getByText(/current count/i)
+
+  expect(message).toHaveTextContent('Current count: 0')
+  await userEvent.click(increment)
+  expect(message).toHaveTextContent('Current count: 1')
+  await userEvent.click(decrement)
+  expect(message).toHaveTextContent('Current count: 0')
+})
+```

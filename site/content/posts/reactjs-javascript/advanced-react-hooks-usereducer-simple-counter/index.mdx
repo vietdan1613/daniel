@@ -1,0 +1,127 @@
+---
+title: 'useReducer: simple Counter'
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-04-09
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+React's `useState` hook can get you a really long way with React state
+management. That said, sometimes you want to separate the state logic from the
+components that make the state changes. In addition, if you have multiple
+elements of state that typically change together, then having an object that
+contains those elements of state can be quite helpful.
+
+This is where `useReducer` comes in really handy. If you're familiar with redux,
+then you'll feel pretty comfortable here. If not, then you have less to unlearn
+
+Here's an example of using `useReducer` to manage the value of a name in an
+input.
+
+```javascript
+function nameReducer(previousName, newName) {
+  return newName
+}
+
+const initialNameValue = 'Joe'
+
+function NameInput() {
+  const [name, setName] = React.useReducer(nameReducer, initialNameValue)
+  const handleChange = event => setName(event.target.value)
+  return (
+    <>
+      <label>
+        Name: <input defaultValue={name} onChange={handleChange} />
+      </label>
+      <div>You typed: {name}</div>
+    </>
+  )
+}
+```
+
+One important thing to note here is that the reducer (called `nameReducer`
+above) is called with two arguments:
+
+1. the current state
+2. whatever it is that the dispatch function (called `setName` above) is called
+   with. This is often called an "action."
+
+- [Should I useState or useReducer?](https://kentcdodds.com/blog/should-i-usestate-or-usereducer)
+- [How to implement useState with useReducer](https://kentcdodds.com/blog/how-to-implement-usestate-with-usereducer)
+
+## accept the step as the action
+
+```javascript
+const countReducer = (count, change) => count + change
+
+const [count, changeCount] = React.useReducer(countReducer, initialCount)
+const increment = () => changeCount(step)
+```
+
+## simulate setState with an object
+
+```javascript
+const countReducer = (state, action) => ({ ...state, ...action })
+
+const [state, setState] = React.useReducer(countReducer, {
+  count: initialCount
+})
+const { count } = state
+const increment = () => setState({ count: count + step })
+```
+
+## simulate setState with an object OR function
+
+```javascript
+const countReducer = (state, action) => ({
+  ...state,
+  ...(typeof action === 'function' ? action(state) : action)
+})
+
+const [state, setState] = React.useReducer(countReducer, {
+  count: initialCount
+})
+const { count } = state
+const increment = () =>
+  setState(currentState => ({ count: currentState.count + step }))
+```
+
+## traditional dispatch object with a type and switch statement
+
+```javascript
+import * as React from 'react'
+
+function countReducer(state, action) {
+  const { type, step } = action
+  switch (type) {
+    case 'increment': {
+      return {
+        ...state,
+        count: state.count + step
+      }
+    }
+    default: {
+      throw new Error(`Unsupported action type: ${type}`)
+    }
+  }
+}
+
+function Counter({ initialCount = 0, step = 1 }) {
+  const [state, dispatch] = React.useReducer(countReducer, {
+    count: initialCount
+  })
+  const { count } = state
+  const increment = () => dispatch({ type: 'increment', step })
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+export default App
+```

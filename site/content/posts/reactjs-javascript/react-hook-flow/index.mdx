@@ -1,0 +1,39 @@
+---
+title: React Hook Flow
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-03-05
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+Understanding "Hooks Flow" is very important and sometimes even experienced React developers miss a few points.
+
+![React hook flow](./hook-flow.png "React hook flow")
+
+## Mount
+
+- Run the lazy initializer (functions passed to useState or useReducer)
+- Continue the rest of the render function
+- React updates the DOM
+- It runs LayoutEffects
+- Browser paints the screen to reflect
+- Runs the effects
+
+## Update: (When the user make any event it update the state)
+
+- Runs the render phase
+- React updates DOM
+- Cleanup LayoutEffects first
+- Run LayoutEffects
+- Browser paints the screen
+- Cleanup the effects first
+- Run the effects in the render
+
+## Unmount: Component gets removed from the screen (navigate to other screen or from user event)
+
+- Cleanup LayoutEffects
+- Cleanup Effects

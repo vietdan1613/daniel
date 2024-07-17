@@ -1,0 +1,126 @@
+---
+title: C# Data Type
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-14
+thumbnail: image.jpg
+featured: true
+---
+
+The variables in C#, are categorized into the following types:
+
+- Value types
+- Reference types
+- Pointer types
+
+## Value types
+
+Value type variables can be assigned a value directly. They are derived from the class
+System.ValueType.
+
+The value types directly contain data. Some examples are int, char, and float, which 
+stores numbers, alphabets, and floating point numbers, respectively. When you 
+declare an int type, the system allocates memory to store the value.
+
+| Type               | Represents               | Range               | Default Value               |
+|--------------------|--------------------------|---------------------|-----------------------------|
+| bool          | Boolean value    | True or False    | False    |
+| byte          | 8-bit unsigned integer    | 0 to 255     | 0    |
+| char          | 16-bit Unicode character    | U +0000 to U +ffff    | '\0'    |
+| decimal          | 128-bit precise decimal values with 28-29 significant digits    | (-7.9 x 10^28 to 7.9 x 10^28) / 100 to ^28    | 0.0M    |
+| double          | 64-bit double-precision floating point type    | (+/-)5.0 x 10^-324 to (+/-)1.7 x 10^38    | 0.0D    |
+| float          | 32-bit single-precision floating point type    | -3.4 x 1038 to + 3.4 x 1038    | 0.0F    |
+| Int          | 32-bit signed integer type    | -2,147,483,648 to 2,147,483,647    | 0    |
+| long          | 64-bit signed integer type    | -923,372,036,854,775,808 to 9,223,372,036,854,775,807    | 0L    |
+| sbyte          | 8-bit signed integer type    | -128 to 127    | 0    |
+| short          | 16-bit signed integer type    | -32,768 to 32,767     | 0    |
+| uint          | 32-bit unsigned integer type    | 0 to 4,294,967,295    | 0    |
+| 64-bit unsigned integer type          | 0 to 18,446,744,073,709,551,615    | True    | 0    |
+| ushort          | 16-bit unsigned integer type     | 0 to 65,535    | 0    |
+
+To get the exact size of a type or a variable on a particular platform, you can use 
+the sizeof method
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Size of int: {0}", sizeof(int));
+            Console.ReadLine();
+        }
+    }
+}
+// Size of int: 4
+```
+
+## Reference types
+
+The reference types do not contain the actual data stored in a variable, but they 
+contain a reference to the variables.
+
+In other words, they refer to a memory location. Using multiple variables, the 
+reference types can refer to a memory location. If the data in the memory location 
+is changed by one of the variables, the other variable automatically reflects this 
+change in value. Example of built-in reference types 
+are: object, dynamic, and string
+
+**Object Type**
+
+The Object Type is the ultimate base class for all data types in C# Common Type 
+System (CTS). Object is an alias for System.Object class. The object types can be 
+assigned values of any other types, value types, reference types, predefined or user-defined types. However, before assigning values, it needs type conversion.
+
+**Dynamic Type**
+
+You can store any type of value in the dynamic data type variable. Type checking for 
+these types of variables takes place at run-time
+
+Dynamic types are similar to object types except that type checking for object type 
+variables takes place at compile time
+
+**String Type**
+
+The String Type allows you to assign any string values to a variable. The string type 
+is an alias for the System.String class. It is derived from object type. The value for a 
+string type can be assigned using string literals in two forms: quoted and @quoted.
+
+
+## Pointer types
+
+Pointer type variables store the memory address of another type. Pointers in C# have 
+the same capabilities as the pointers in C or C++
+
+```c#
+using System;
+
+namespace ConsoleApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object obj;
+            obj = 100;
+
+            dynamic d = 20;
+
+            String str = "Tutorials Point";
+            // @"Tutorials Point";
+
+            char* cptr;
+            int* iptr;
+        }
+    }
+}
+```
+

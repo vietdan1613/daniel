@@ -1,0 +1,199 @@
+---
+title: C# ENCAPSULATION  
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-20
+thumbnail: image.jpg
+featured: true
+---
+
+Encapsulation is defined 'as the process of enclosing one or more items within a 
+physical or logical package'. Encapsulation, in object oriented programming 
+methodology, prevents access to implementation details.
+
+Encapsulation is implemented by using access specifiers. An access 
+specifier defines the scope and visibility of a class member. C# supports the 
+following access specifiers:
+
+- Public
+- Private
+- Protected
+- Internal
+- Protected internal
+
+## Public Access Specifier
+
+Public access specifier allows a class to expose its member variables and member 
+functions to other functions and objects. Any public member can be accessed from 
+outside the class.
+
+In the example, the member variables length and width are 
+declared public, so they can be accessed from the function Main() using an instance 
+of the Rectangle class, named r
+
+```c#
+using System;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        class Rectangle
+        {
+            //member variables
+            public double length;
+            public double width;
+            public double GetArea()
+            {
+                return length * width;
+            }
+            public void Display()
+            {
+                Console.WriteLine("Length: {0}", length);
+                Console.WriteLine("Width: {0}", width);
+                Console.WriteLine("Area: {0}", GetArea());
+            }
+        }//end class Rectangle 
+        class ExecuteRectangle
+        {
+            static void Main(string[] args)
+            {
+                Rectangle r = new Rectangle();
+                r.length = 4.5;
+                r.width = 3.5;
+                r.Display();
+                Console.ReadLine();
+
+                //Length: 4.5
+                //Width: 3.5
+                //Area: 15.75
+            }
+        }
+    }
+}
+```
+
+## Private Access Specifier
+
+Private access specifier allows a class to hide its member variables and member 
+functions from other functions and objects. Only functions of the same class can 
+access its private members. Even an instance of a class cannot access its private 
+members.
+
+In the example, the member variables length and width are 
+declared private, so they cannot be accessed from the function Main()
+
+```c#
+using System;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        class Rectangle
+        {
+            //member variables
+            private double length;
+            private double width;
+            public void Acceptdetails()
+            {
+                Console.WriteLine("Enter Length: ");
+                length = Convert.ToDouble(Console.ReadLine());
+                Console.WriteLine("Enter Width: ");
+                width = Convert.ToDouble(Console.ReadLine());
+            }
+            public double GetArea()
+            {
+                return length * width;
+            }
+            public void Display()
+            {
+                Console.WriteLine("Length: {0}", length);
+                Console.WriteLine("Width: {0}", width);
+                Console.WriteLine("Area: {0}", GetArea());
+            }
+        }//end class Rectangle 
+        class ExecuteRectangle
+        {
+            static void Main(string[] args)
+            {
+                Rectangle r = new Rectangle();
+                r.Acceptdetails();
+                r.Display();
+                Console.ReadLine();
+                //Enter Length:
+                //4.4
+                //Enter Width:
+                //3.3
+                //Length: 4.4
+                //Width: 3.3
+                //Area: 14.52
+            }
+        }
+    }
+}
+```
+
+## Protected Access Specifier
+
+Protected access specifier allows a child class to access the member variables and 
+member functions of its base class. This way it helps in implementing inheritance. 
+We will discuss this in more details in the inheritance chapter
+
+Internal access specifier allows a class to expose its member variables and member 
+functions to other functions and objects in the current assembly. In other words, any 
+member with internal access specifier can be accessed from any class or method 
+defined within the application in which the member is defined
+
+In the example, notice that the member function GetArea() is not declared 
+with any access specifier
+
+```c#
+using System;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        class Rectangle
+        {
+            //member variables
+            internal double length;
+            internal double width;
+
+            double GetArea()
+            {
+            return length * width;
+            }
+            public void Display()
+            {
+                Console.WriteLine("Length: {0}", length);
+                Console.WriteLine("Width: {0}", width);
+                Console.WriteLine("Area: {0}", GetArea());
+            }
+        }//end class Rectangle 
+        class ExecuteRectangle
+        {
+            static void Main(string[] args)
+            {
+                Rectangle r = new Rectangle();
+                r.length = 4.5;
+                r.width = 3.5;
+                r.Display();
+                Console.ReadLine();
+
+                //Length: 4.5
+                //Width: 3.5
+                //Area: 15.75
+            }
+        }
+    }
+}
+```
+
+## Protected Internal Access Specifier
+
+The protected internal access specifier allows a class to hide its member variables 
+and member functions from other class objects and functions, except a child class 
+within the same application. This is also used while implementing inheritance

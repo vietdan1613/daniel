@@ -1,0 +1,62 @@
+---
+title: "useState: greeting"
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-02-19
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+Normally an interactive application will need to hold state somewhere. In React,
+you use special functions called "hooks" to do this.
+
+- `React.useState`
+- `React.useEffect`
+- `React.useContext`
+- `React.useRef`
+- `React.useReducer`
+
+Some return a value (like `React.useRef` and `React.useContext`), 
+others return a pair of values (like `React.useState` and
+`React.useReducer`), and others return nothing at all (like `React.useEffect`).
+
+Here's an example:
+
+```jsx
+function Counter() {
+  const [count, setCount] = React.useState(0)
+  const increment = () => setCount(count + 1)
+  return <button onClick={increment}>{count}</button>
+}
+```
+
+Full example:
+
+```jsx
+import * as React from 'react'
+
+function Greeting({initialName = ''}) {
+  const [name, setName] = React.useState(initialName)
+  function handleChange(event) {
+    setName(event.target.value)
+  }
+  return (
+    <div>
+      <form>
+        <label htmlFor="name">Name: </label>
+        <input value={name} onChange={handleChange} id="name" />
+      </form>
+      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+    </div>
+  )
+}
+
+function App() {
+  return <Greeting initialName="Kody" />
+}
+
+export default App
+```

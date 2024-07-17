@@ -1,0 +1,68 @@
+---
+title: Testing custom hook
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-09-01
+thumbnail: image.jpg
+featured: true
+---
+
+Step back and think about how
+our guiding testing principle applies to this situation: the more your tests
+resemble the way your software is used, the more confidence they can give you.
+How is your custom hook used? It's used in a component! So that's how it should
+be tested.
+
+```javascript
+import * as React from 'react'
+
+function useCounter({initialCount = 0, step = 1} = {}) {
+  const [count, setCount] = React.useState(initialCount)
+  const increment = () => setCount(c => c + step)
+  const decrement = () => setCount(c => c - step)
+  return {count, increment, decrement}
+}
+
+export default useCounter
+```
+
+```javascript
+import {renderHook, act} from '@testing-library/react'
+import useCounter from '../../components/use-counter'
+
+test('exposes the count and increment/decrement functions', () => {
+  const {result} = renderHook(useCounter)
+  expect(result.current.count).toBe(0)
+  act(() => result.current.increment())
+  expect(result.current.count).toBe(1)
+  act(() => result.current.decrement())
+  expect(result.current.count).toBe(0)
+})
+
+test('allows customization of the initial count', () => {
+  const {result} = renderHook(useCounter, {initialProps: {initialCount: 3}})
+  expect(result.current.count).toBe(3)
+})
+
+test('allows customization of the step', () => {
+  const {result} = renderHook(useCounter, {initialProps: {step: 2}})
+  expect(result.current.count).toBe(0)
+  act(() => result.current.increment())
+  expect(result.current.count).toBe(2)
+  act(() => result.current.decrement())
+  expect(result.current.count).toBe(0)
+})
+
+test('the step can be changed', () => {
+  const {result, rerender} = renderHook(useCounter, {
+    initialProps: {step: 3},
+  })
+  expect(result.current.count).toBe(0)
+  act(() => result.current.increment())
+  expect(result.current.count).toBe(3)
+  rerender({step: 2})
+  act(() => result.current.decrement())
+  expect(result.current.count).toBe(1)
+})
+```

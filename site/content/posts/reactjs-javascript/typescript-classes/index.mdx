@@ -1,0 +1,222 @@
+---
+title: Typescript Class
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#Typescript']
+date: 2020-12-04
+thumbnail: image.jpg
+---
+
+## TypeScript Class
+
+1. Use `class` keyword to define a class in TypeScript.
+
+2. TypeScript leverages the ES6 class syntax and adds type annotations to make the class 
+more robust.
+
+```typescript
+class Person {
+    ssn: string;
+    firstName: string;
+    lastName: string;
+
+    constructor(ssn: string, firstName: string, lastName: string) {
+        this.ssn = ssn;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    getFullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+    }
+}
+
+let person = new Person(171280926, 'John', 'Doe');
+```
+
+
+## Access Modifiers
+
+1. TypeScript provides three access modifiers to class properties and methods: `private`, `protected`, and `public`.
+
+2. The `private` modifier allows access within the same `class`.
+
+3. The `protected` modifier allows access within the same class and subclasses.
+
+4. The `public` modifier allows access from any location.
+
+```typescript
+class Person {
+    private firstName: string;
+
+    protected ssn: string;
+    
+    public getFullName(): string {
+        return `${this.firstName} ${this.lastName}`; 
+    }
+    // other code
+}
+```
+
+## Readonly
+
+1. Use the readonly access modifier to mark a class property as immutable.
+
+2. A readonly property must be initialized as a part of the declaration or in the constructor 
+of the same class.
+
+```typescript
+class Person {
+    readonly birthDate: Date;
+
+    constructor(birthDate: Date) {
+        this.birthDate = birthDate;
+    }
+}
+```
+
+## Getters and Setters
+
+1. Use TypeScript getters/setters to control the access properties of a class.
+
+2. The getter/setters are also known as accessors/mutators.
+
+```typescript
+class Person {
+    private _age: number;
+    private _firstName: string;
+    private _lastName: string;
+
+    public get age() {
+        return this._age;
+    }
+
+    public set age(theAge: number) {
+        if (theAge <= 0 || theAge >= 200) {
+            throw new Error('The age is invalid');
+        }
+        this._age = theAge;
+    }
+
+    public get firstName() {
+        return this._firstName;
+    }
+
+    public set firstName(theFirstName: string) {
+        if (!theFirstName) {
+            throw new Error('Invalid first name.');
+        }
+        this._firstName = theFirstName;
+    }
+
+    public get lastName() {
+        return this._lastName;
+    }
+
+    public set lastName(theLastName: string) {
+        if (!theLastName) {
+            throw new Error('Invalid last name.');
+        }
+        this._lastName = theLastName;
+    }
+
+    public getFullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+    }
+}
+```
+
+## Inheritance
+
+1. Use the `extends` keyword to allow a class to inherit from another class.
+
+2. Use `super()` in the constructor of the child class to call the constructor of the 
+parent class. Also, use the `super.methodInParentClass()` syntax to invoke the `methodInParentClass()` in the method of the child class.
+
+```typescript
+class Person {
+    constructor(private firstName: string, private lastName: string) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    getFullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+    }
+    describe(): string {
+        return `This is ${this.firstName} ${this.lastName}.`;
+    }
+}
+
+class Employee extends Person {
+    constructor(
+        firstName: string,
+        lastName: string,
+        private jobTitle: string) {
+        
+        // call the constructor of the Person class:
+        super(firstName, lastName);
+    }
+}
+```
+
+## Static Methods and Properties
+
+1. Static properties and methods are shared by all instances of a class.
+
+2. Use the static keyword before a property or a method to make it static.
+
+```typescript
+class Employee {
+    private static headcount: number = 0;
+
+    constructor(
+        private firstName: string,
+        private lastName: string,
+        private jobTitle: string) {
+
+        Employee.headcount++;
+    }
+
+    public static getHeadcount() {
+        return Employee.headcount;
+    }
+}
+
+let john = new Employee('John', 'Doe', 'Front-end Developer');
+let jane = new Employee('Jane', 'Doe', 'Back-end Developer');
+
+console.log(Employee.getHeadcount); // 2
+```
+
+
+## Abstract Classes
+
+1. Abstract classes cannot be instantiated.
+
+2. An Abstract class has at least one abstract method.
+
+3. To use an abstract class, you need to inherit it and provide the implementation for the 
+abstract methods.
+
+```typescript
+abstract class Employee {
+    constructor(private firstName: string, private lastName: string) {
+    }
+    abstract getSalary(): number
+    get fullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+    }
+    compensationStatement(): string {
+        return `${this.fullName} makes ${this.getSalary()} a month.`;
+    }
+}
+
+class FullTimeEmployee extends Employee {
+    constructor(firstName: string, lastName: string, private salary: number) {
+        super(firstName, lastName);
+    }
+    getSalary(): number {
+        return this.salary;
+    }
+}
+```

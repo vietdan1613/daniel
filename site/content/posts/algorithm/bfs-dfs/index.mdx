@@ -1,0 +1,79 @@
+---
+title: DFS and BFS
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-03-17
+thumbnail: image.jpg
+featured: true
+---
+
+## DFS - Depth First Search
+
+- an algorithm to search/ traversing the graph data structure
+- recursive
+
+![example](./1.png 'example')
+
+```javascript
+void dfs(int cur) {
+	visited[cur] = true;
+	for(int next: adjList[cur]) {
+		if (visited[next] == false) {
+	dfs(next);
+}}}
+visited = vector<bool>(n, false);
+for (int i = 0; i < n; i++) if (!visited[i]) { dfs(i) };
+```
+
+- Runtime: O(n+m)
+    - n: number of node
+    - m: number of edge 
+- Space: O(n+m)
+
+### DFS on binary tree
+
+```javascript
+void dfs(TreeNode cur) {
+	if (cur == NULL) return;
+	dfs(cur->left);
+	dfs(cur->right);
+}
+```
+
+Thinking flow:
+- Step 1: define problem
+- Step 2: related the defined problem with the subproblems on child nodes.
+- Step 3: define the based case
+
+## BFS - Breadth First Search
+
+- start at a node (it is call source node)
+- explores the neighbor node first, before moving to the next level neighbours
+
+![example](./2.png 'example')
+
+```javascript
+vector<vector<int>> adj;  // adjacency list representation
+int n; // number of nodes
+int s; // source node
+
+queue<int> q;
+vector<bool> visited(n);
+
+q.push(s);
+visited[s] = true;
+while (!q.empty()) {
+    int v = q.front();
+    q.pop();
+    for (int u : adj[v]) {
+        if (!visited[u]) {
+            visited[u] = true;
+            q.push(u);
+        }
+    }
+}
+```
+
+- Run time O(n+m) if we use the adjacent list. worst case m = n*(n-1) 
+- space O(n+m)

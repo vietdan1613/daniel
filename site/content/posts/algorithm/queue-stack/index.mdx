@@ -1,0 +1,77 @@
+---
+title: Queue & Stack
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-26
+thumbnail: image.png
+featured: true
+---
+
+## Queue
+
+![example](./1.png 'example')
+
+First in first out (FIFO) data structure: first element added will be processed first 
+
+Operations: 
+- Insert (enqueue): new element is added at the end of the queue: O(1) 
+- Remove (dequeue): you only can remove the first element: O(1)
+
+Most languages support built-in Queue implementation. Just use the built-in function in the interview; no need to reimplement it unless the interviewer asks.
+
+```javascript
+let arr = []
+arr.push("a")
+arr.push("b")
+arr.push("c")
+arr.push("d")
+console.log(arr)
+//(4) ['a', 'b', 'c', 'd']
+arr.shift()
+console.log(arr)
+//(3) ['b', 'c', 'd']
+```
+
+### Queue Application
+
+- Breadth First Search (BFS): find shortest path in an unweighted graph
+
+- In reality: 
+    - message queue system (Kafka, RabbitMQ); 
+    - waiting lists for a single shared resource (CPU, Disk ..)
+
+### Circular Queue
+
+- Last position is connected to the first position 
+
+- Benefit: reuse space in front of queue
+
+![example](./2.png 'example')
+
+### Double Ended Queue
+
+- elements can be added to or removed from either the front (head) or back (tail)
+
+![example](./3.png 'example')
+
+## Stack
+
+Last in First out (LIFO) 
+
+Operations: 
+    - push(value): push new value to the back of the stack 
+    - pop(): remove the value from the back of the stack 
+
+![example](./4.png 'example')
+
+```javascript
+let arr = []
+arr.push("a")
+arr.push("b")
+arr.push("c")
+arr.push("d")
+console.log(arr)
+arr.pop()
+console.log(arr)
+```

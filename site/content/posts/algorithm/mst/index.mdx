@@ -1,0 +1,31 @@
+---
+title: Minimum Spanning Tree
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-17
+thumbnail: image.png
+featured: true
+---
+
+## Spanning Tree
+
+- Given an undirected, weighted graph G(V, E)
+- A spanning tree is a set of edges:
+    - no cycle
+    - connect all nodes of graph
+- It is indeed a tree
+- 1 graph can have multiple spanning trees
+
+![example](./1.png 'example')
+
+### Kruskal Algorithm
+
+- sort the edges in ascending order
+- consider each node as a separacted node in the beginning
+- iterate each edge: (u, v, w)
+    - if u and v is not in the same tree:
+        - add (u,v) to the spanning tree
+        - union(u,v)
+
+Note: for undirected graph only

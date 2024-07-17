@@ -1,0 +1,99 @@
+---
+title: Render as You Fetch
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-09-02
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+The idea here is: get the data **as soon as you have the information you need**
+for the data. This sounds obvious, but if you think about it, how often do you
+have a component that requests data once it's been mounted. There's a few
+milliseconds between the time you click "go" and the time that component is
+mounted... Unless that component's code is **lazy-loaded**. In which case,
+there's a lot more time involved (first load the code, then parse the code, then
+run the code, then render the component, and finally make the request) and your
+users are hanging around waiting while they could be making requests for the
+data they need.
+
+```javascript
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonForm,
+  PokemonDataView,
+  PokemonErrorBoundary,
+} from '../pokemon'
+import {createResource} from '../utils'
+
+function PokemonInfo({pokemonResource}) {
+  const pokemon = pokemonResource.read()
+  return (
+    <div>
+      <div className="pokemon-info__img-wrapper">
+        <img src={pokemon.image} alt={pokemon.name} />
+      </div>
+      <PokemonDataView pokemon={pokemon} />
+    </div>
+  )
+}
+
+function createPokemonResource(pokemonName) {
+  return createResource(fetchPokemon(pokemonName))
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+  const [pokemonResource, setPokemonResource] = React.useState(null)
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      setPokemonResource(null)
+      return
+    }
+    setPokemonResource(createPokemonResource(pokemonName))
+  }, [pokemonName])
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleReset() {
+    setPokemonName('')
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <React.Suspense
+        fallback={
+          <div className="pokemon-info">
+            <PokemonInfoFallback name={pokemonName} />
+          </div>
+        }
+      >
+        <div className="pokemon-info">
+          {pokemonResource ? (
+            <PokemonErrorBoundary
+              onReset={handleReset}
+              resetKeys={[pokemonName]}
+            >
+              <PokemonInfo pokemonResource={pokemonResource} />
+            </PokemonErrorBoundary>
+          ) : (
+            'Submit a pokemon'
+          )}
+        </div>
+      </React.Suspense>
+    </div>
+  )
+}
+
+export default App
+```

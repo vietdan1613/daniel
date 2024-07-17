@@ -1,0 +1,224 @@
+---
+title: Typescript Basic Types
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#Typescript']
+date: 2020-12-02
+thumbnail: image.jpg
+---
+
+## Annotation 
+
+```typescript
+let variableName: type;
+let variableName: type = value;
+const constantName: type = value;
+```
+
+## Number
+
+```typescript
+let price: number;
+let price = 9.95;
+```
+
+## String
+
+```typescript
+let firstName: string = 'John';
+let title: string = "Web Developer";
+```
+
+## Boolean
+
+```typescript
+let pending: boolean;
+pending = true;
+```
+
+## Object
+
+The TypeScript object type represents all values that are not in primitive types.
+
+The following are primitive types in TypeScript: `number`, `bigint`, `string`, `boolean`, `null`, `undefined`, `symbol`
+
+```typescript
+let employee: object;
+
+employee = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 25,
+    jobTitle: 'Web Developer'
+};
+
+console.log(employee);
+
+let employee: {
+    firstName: string;
+    lastName: string;
+    age: number;
+    jobTitle: string;
+} = {
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 25,
+    jobTitle: 'Web Developer'
+};
+```
+
+**object vs. Object**
+
+The `object` type represents all non-primitive values while the `Object` type describes the functionality of all objects.
+
+For example, the `Object` type has the `toString()` and `valueOf()` methods that can be accessible by any object.
+
+## Array 
+
+```typescript
+let skills: string[];
+skills.push('Software Design');
+
+let scores : (string | number)[];
+scores = ['Programming', 5, 'Software Design', 4]; 
+```
+
+## Tuple
+
+A tuple works like an array with some additional considerations:
+
+1. The number of elements in the tuple is fixed.
+2. The types of elements are known, and need not be the same.
+
+```typescript
+let skill: [string, number];
+skill = ['Programming', 5];
+
+// Optional Tuple Elements
+let bgColor, headerColor: [number, number, number, number?];
+bgColor = [0, 255, 255, 0.5];
+headerColor = [0, 255, 255];
+```
+
+## Enum
+
+```typescript
+enum name {constant1, constant2};
+
+enum Month {Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec};
+
+function isItSummer(month: Month) {
+    let isSummer: boolean;
+    switch (month) {
+        case Month.Jun:
+        case Month.Jul:
+        case Month.Aug:
+            isSummer = true;
+            break;
+        default:
+            isSummer = false;
+            break;
+    }
+    return isSummer;
+}
+```
+
+## Any
+
+```typescript
+let result: any;
+result = 10.123;
+console.log(result.toFixed());
+result.willExist(); //
+```
+
+In this example, the TypeScript compiler doesn’t issue any warning even the `willExist()` 
+method doesn’t exist at compile time because the `willExist()` method might available at runtime.
+
+However, if you change the type of the result variable to object, the TypeScript compiler will 
+issue an error:
+
+
+## Void 
+
+```typescript
+function log(message): void {
+    console.log(messsage);
+}
+```
+
+It is a good practice to add the `void` type as the return type of a function or 
+a method that doesn’t return any value.By doing this, you can gain the following benefits:
+
+1. Improve clarity of the code: you do not have to read the whole function body to see if 
+it returns anything.
+2. Ensure type-safe: you will never assign the function with the void return type to a variable.
+
+## Never
+
+The `never` type is a type that contains no values. Because of this, you cannot assign any 
+value to a variable with a `never` type.
+
+The `never` type represents the return type of a function that always throws an error or a 
+function that contains an indefinite loop.
+
+```typescript
+function raiseError(message: string): never {
+    throw new Error(message);
+}
+```
+
+## Union 
+
+A TypeScript union type allows you to store a value of one or serveral types in a variable.
+
+```typescript
+let result: number | string;
+result = 10; // OK
+result = 'Hi'; // also OK
+result = false; // a boolean value, not OK
+```
+
+## Aliases
+
+Use type aliases to define new names for existing types.
+
+```typescript
+type alphanumeric = string | number;
+let input: alphanumeric;
+input = 100; // valid
+input = 'Hi'; // valid
+input = false; // Compiler error
+```
+
+## Literal
+
+1. A TypeScript string literal type defines a type that accepts specified string literal.
+2. Use the string literal types with union types and type aliases to define types that accept 
+a finite set of string literals.
+
+```typescript
+type MouseEvent: 'click' | 'dblclick' | 'mouseup' | 'mousedown';
+let mouseEvent: MouseEvent;
+mouseEvent = 'click'; // valid
+mouseEvent = 'dblclick'; // valid
+mouseEvent = 'mouseup'; // valid
+mouseEvent = 'mousedown'; // valid
+mouseEvent = 'mouseover'; // compiler error
+
+let anotherEvent: MouseEvent;
+```
+
+## Inference
+
+1. Type inference occurs when you initialize variables, set parameter default values, and 
+determine function return types.
+2. TypeScript uses the best common type algorithm to select the best candidate types that 
+are compatible with all variables.
+3. TypeScript also uses contextual typing to infer types of variables based on the locations 
+of the variables.
+
+```typescript
+let counter: number = 0;
+```
+

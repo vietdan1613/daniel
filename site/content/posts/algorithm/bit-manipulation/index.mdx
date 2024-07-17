@@ -1,0 +1,101 @@
+---
+title: Bit Manipulation
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-10
+thumbnail: image.png
+featured: true
+---
+
+## AND
+
+Only true if both input bits are true:
+
+```javscript
+//0 & 0 = 0
+//1 & 0 = 0
+//0 & 1 = 0
+//1 & 1 = 1
+```
+
+## OR
+
+True if any input bit is true
+
+```javscript
+//0 | 0 = 0
+//1 | 0 = 1
+//0 | 1 = 1
+//1 | 1 = 1
+```
+
+## XOR
+
+True if one and only one input bit is true
+
+```javscript
+//0 ^ 0 = 0
+//1 ^ 0 = 1
+//0 ^ 1 = 1
+//1 ^ 1 = 0
+```
+
+## NOT
+
+Flip the input bit:
+
+```javscript
+//-1 = 0
+//-0 = 1
+```
+
+## Left Shift
+
+Shift left the binary digits by n, pad 0’s on the right
+
+```javscript
+//00010110 << 3
+//= 10110000
+```
+
+## Right Shift
+
+Shift right the binary digits by n, pad 0’s on the left
+
+```javscript
+//00010110 >> 3
+//= 00000010
+```
+
+## Get Bit
+
+```javscript
+get_bit(x, position) = (x >> position) & 1
+//position is counted from right to left, start from 0.
+
+position = 6, x = 01100110
+get_bit(x, 6) = 1
+get_bit(x, position) = (01100110>>6) & 1 = (00000001) & (00000001) = 1
+```
+
+## Set Bit
+
+```javscript
+set_bit(x, position):
+    mask = (1<<position)
+    return (x | mask)
+
+//position = 5
+//x = 00010110
+//mask = 0010000
+//res = 00110110
+```
+
+## Flip Bit
+
+```javscript
+flip_bit(x, position):
+    mask = (1<<position)
+    return x ^ mask
+```

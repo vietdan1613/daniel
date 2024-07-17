@@ -1,0 +1,54 @@
+---
+title: Basic JavaScript-rendered Hello World
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-01-01
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+It doesn't take long to learn how to make "Hello World" appear on the page with
+HTML:
+
+```html
+<html>
+  <body>
+    <div>Hello World</div>
+  </body>
+</html>
+```
+
+The browser takes this HTML code and generates
+[the DOM (the Document Object Model)](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction)
+out of it. The browser then exposes the DOM to JavaScript so you can interact
+with it to add a layer of interactivity to your web-page.
+
+```html
+<html>
+  <body>
+    <div>Hello World</div>
+    <script type="module">
+      // your JavaScript here
+    </script>
+  </body>
+</html>
+```
+
+Here's an example:
+
+```html
+<body>
+  <script type="module">
+    const rootElement = document.createElement('div')
+    rootElement.setAttribute('id', 'root')
+    document.body.append(rootElement)
+    const element = document.createElement('div')
+    element.textContent = 'Hello World'
+    element.className = 'container'
+    rootElement.append(element)
+  </script>
+</body>
+```

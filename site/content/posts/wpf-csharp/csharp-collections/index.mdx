@@ -1,0 +1,523 @@
+---
+title: C# COLLECTIONS
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-18
+thumbnail: image.jpg
+featured: true
+---
+
+Collection classes are specialized classes for data storage and retrieval. These classes 
+provide support for stacks, queues, lists, and hash tables. Most collection classes 
+implement the same interfaces.
+
+Collection classes serve various purposes, such as allocating memory dynamically to 
+elements and accessing a list of items on the basis of an index etc. These classes 
+create collections of objects of the Object class, which is the base class for all data 
+types in C#.
+
+Collection Classes and Their Usage
+
+| Class               | Description and Useage                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| ArrayList              | It represents ordered collection of an object that can be indexedindividually.    |
+| Hashtable              | It uses a key to access the elements in the collection    |
+| SortedList              | It uses a key as well as an index to access the items in a list.    |
+| Stack              | It represents a last-in, first out collection of object.    |
+| Queue              | It represents a first-in, first out collection of object.    |
+| BitArray              | It represents an array of the binary representation using the values 1 and 0    |
+
+## ArrayList Class
+
+Methods and Properties of ArrayList Class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Capacity              | Gets or sets the number of elements that the ArrayList can 
+contain. |
+| Count              | Gets the number of elements actually contained in the 
+ArrayList. |
+| IsFixedSize              | Gets a value indicating whether the ArrayList has a fixed 
+size. |
+| IsReadOnly              | Gets a value indicating whether the ArrayList is read-only. |
+| Item              | Gets or sets the element at the specified index. |
+
+The following table lists some of the commonly used methods of the ArrayList class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public virtual int Add( object value );              | Adds an object to the end of the ArrayList.|
+| public virtual void AddRange( ICollection c );              | Adds the elements of an ICollection to the end of the ArrayList. |
+| public virtual void Clear();              | Removes all elements from the ArrayList. |
+| public virtual bool Contains( object item );              | Determines whether an element is in the ArrayList. |
+| public virtual ArrayList GetRange( int index, int count );              | Returns an ArrayList which represents a subset of the elements in the source ArrayList. |
+| public virtual int IndexOf(object);              | Returns the zero-based index of the first occurrence of a value in the ArrayList or in a portion of it. |
+| public virtual void Insert( int index, object value )              | Inserts an element into the ArrayList at the specified index. |
+| public virtual void InsertRange( int index, ICollection c );              | Inserts the elements of a collection into the ArrayList at the specified index. |
+| public virtual void Remove( object obj );              | Removes the first occurrence of a specific object from the ArrayList. |
+| public virtual void RemoveAt( int index );              | Removes the element at the specified index of the ArrayList. |
+| public virtual void RemoveRange( int index, int count );             | Removes a range of elements from the ArrayList. |
+| public virtual void Reverse();              | Reverses the order of the elements in the ArrayList. |
+| public virtual void SetRange( int index, ICollection c );              | Copies the elements of a collection over a range of elements in the ArrayList. |
+| public virtual void Sort();              | Sorts the elements in the ArrayList. |
+| public virtual void TrimToSize();              | Sets the capacity to the actual number of elements in the ArrayList. |
+
+```c#
+using System;
+using System.Collections;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            ArrayList al = new ArrayList();
+            Console.WriteLine("Adding some numbers:");
+            al.Add(45);
+            al.Add(78);
+            al.Add(33);
+            al.Add(56);
+            al.Add(12);
+            al.Add(23);
+            al.Add(9);
+
+            Console.WriteLine("Capacity: {0} ", al.Capacity);
+            Console.WriteLine("Count: {0}", al.Count);
+
+            Console.Write("Content: ");
+            foreach (int i in al)
+            {
+                Console.Write(i + " ");
+            }
+            Console.WriteLine();
+            Console.Write("Sorted Content: ");
+            al.Sort();
+            foreach (int i in al)
+            {
+                Console.Write(i + " ");
+            }
+            Console.WriteLine();
+            Console.ReadKey();
+            //Adding some numbers:
+            //Capacity: 8
+            //Count: 7
+            //Content: 45 78 33 56 12 23 9
+            //Content: 9 12 23 33 45 56 78
+        }
+    }
+}
+```
+
+## HashtableClass
+
+The Hashtable class represents a collection of key-and-value pairs that are 
+organized based on the hash code of the key. It uses the key to access the elements 
+in the collection.
+
+A hash table is used when you need to access elements by using key, and you can 
+identify a useful key value. Each item in the hash table has a key/value pair. The key 
+is used to access the items in the collection.
+
+Methods and Properties of the Hashtable Class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Count              | Gets the number of key-and-value pairs contained in the 
+Hashtable |
+| IsFixedSize              | Gets a value indicating whether the Hashtable has a fixed size |
+| IsReadOnly              | Gets a value indicating whether the Hashtable is read-only |
+| Item              | Gets or sets the value associated with the specified key |
+| Keys              | Gets an ICollection containing the keys in the Hashtable |
+| Values              | Gets an ICollection containing the values in the Hashtable. |
+
+The following table lists some of the commonly used methods of the Hashtable class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public virtual void Add( object key, object value )              | Adds an element with the specified key and value into the Hashtable. |
+| public virtual void Clear()              | Removes all elements from the Hashtable. |
+| public virtual bool ContainsKey( object key )              | Determines whether the Hashtable contains a specific key. |
+| public virtual bool ContainsValue( object value )              | Determines whether the Hashtable contains a specific value. |
+| public virtual void Remove( object key )              | Removes the element with the specified key from the Hashtable. |
+
+```C#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Hashtable ht = new Hashtable();
+            ht.Add("001", "Zara Ali");
+            ht.Add("002", "Abida Rehman");
+            ht.Add("003", "Joe Holzner");
+            ht.Add("004", "Mausam Benazir Nur");
+            ht.Add("005", "M. Amlan");
+            ht.Add("006", "M. Arif");
+            ht.Add("007", "Ritesh Saikia");
+            if (ht.ContainsValue("Nuha Ali"))
+            {
+                Console.WriteLine("This student name is already in the list");
+            }
+            else
+            {
+                ht.Add("008", "Nuha Ali");
+            }
+            // Get a collection of the keys. 
+            ICollection key = ht.Keys;
+            foreach (string k in key)
+            {
+                Console.WriteLine(k + ": " + ht[k]);
+            }
+            Console.ReadKey();
+
+            //001: Zara Ali
+            //002: Abida Rehman
+            //003: Joe Holzner
+            //004: Mausam Benazir Nur
+            //005: M.Amlan
+            //006: M.Arif
+            //007: Ritesh Saikia
+            //008: Nuha Ali
+        }
+    }
+}
+```
+
+## SortedList Class
+
+The SortedList class represents a collection of key-and-value pairs that are sorted by 
+the keys and are accessible by key and by index.
+
+A sorted list is a combination of an array and a hash table. It contains a list of items 
+that can be accessed using a key or an index. If you access items using an index, it 
+is an ArrayList, and if you access items using a key, it is a Hashtable. The collection 
+of items is always sorted by the key value
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Capacity              | Gets or sets the capacity of the SortedList. |
+| Count              | Gets the number of elements contained in the SortedList. |
+| IsFixedSize              | Gets a value indicating whether the SortedList has a fixed size. |
+| IsReadOnly              | Gets a value indicating whether the SortedList is read-only |
+| Item              | Gets and sets the value associated with a specific key in the SortedList |
+| Keys              | Gets the keys in the SortedList. |
+
+The following table lists some of the commonly used methods of the SortedList class:
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public virtual void Add( object key, object value )              | Adds an element with the specified key and value into the SortedList. |
+| public virtual void Clear();              | Removes all elements from the SortedList. |
+| public virtual bool ContainsKey( object key );              | Determines whether the SortedList contains a specific key |
+| public virtual bool ContainsValue( object value )              | Determines whether the SortedList contains a specific value. |
+| public virtual object GetByIndex( int index );              | Gets the value at the specified index of the SortedList. |
+| public virtual object GetKey( int index );              | Gets the key at the specified index of the SortedList. |
+| public virtual IList GetKeyList();              | Gets the keys in the SortedList. |
+| public virtual IList GetValueList();              | Gets the values in the SortedList. |
+| public virtual int IndexOfKey( object key );              | Returns the zero-based index of the specified key in the SortedList. |
+| public virtual int IndexOfValue( object value );              | Returns the zero-based index of the first occurrence of the specified value in the SortedList |
+| public virtual void Remove( object key )              | Removes the element with the specified key from the SortedList. |
+| public virtual void RemoveAt( int index );              | Removes the element at the specified index of SortedList. |
+| public virtual void TrimToSize();              | Sets the capacity to the actual number of elements in the SortedList. |
+
+```C#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            SortedList sl = new SortedList();
+            sl.Add("001", "Zara Ali");
+            sl.Add("002", "Abida Rehman");
+            sl.Add("003", "Joe Holzner");
+            sl.Add("004", "Mausam Benazir Nur");
+            sl.Add("005", "M. Amlan");
+            sl.Add("006", "M. Arif");
+            sl.Add("007", "Ritesh Saikia");
+            if (sl.ContainsValue("Nuha Ali"))
+            {
+                Console.WriteLine("This student name is already in the list");
+            }
+            else
+            {
+                sl.Add("008", "Nuha Ali");
+            }
+            // get a collection of the keys. 
+            ICollection key = sl.Keys;
+            foreach (string k in key)
+            {
+                Console.WriteLine(k + ": " + sl[k]);
+            }
+            //001: Zara Ali
+            //002: Abida Rehman
+            //003: Joe Holzner
+            //004: Mausam Banazir Nur
+            //005: M.Amlan
+            //006: M.Arif
+            //007: Ritesh Saikia
+            //008: Nuha Ali
+        }
+    }
+}
+```
+
+## Stack Class
+
+It represents a last-in, first out collection of object. It is used when you need a last-in, first-out access of items. 
+When you add an item in the list, it is called pushing the 
+item and when you remove it, it is called popping the item.
+
+The following table lists some of the commonly used methods of the Stack class:
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Count              | Gets the number of elements contained in the Stack. |
+
+The following table lists some of the commonly used methods of the Stack class:
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public virtual void Clear();              | Removes all elements from the Stack. |
+| public virtual bool Contains( object obj );              | Determines whether an element is in the Stack |
+| public virtual object Peek();              | Returns the object at the top of the Stack without removing it. |
+| public virtual object Pop();              | Removes and returns the object at the top of the Stack. |
+| public virtual void Push( object obj );              | Inserts an object at the top of the Stack. |
+| public virtual object[] ToArray()              | Copies the Stack to a new array. |
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Stack st = new Stack();
+            st.Push('A');
+            st.Push('M');
+            st.Push('G');
+            st.Push('W');
+
+            Console.WriteLine("Current stack: ");
+            foreach (char c in st)
+            {
+                Console.Write(c + " ");
+            }
+            Console.WriteLine();
+
+            st.Push('V');
+            st.Push('H');
+            Console.WriteLine("The next poppable value in stack: {0}", st.Peek());
+            Console.WriteLine("Current stack: ");
+            foreach (char c in st)
+            {
+                Console.Write(c + " ");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Removing values ");
+            st.Pop();
+            st.Pop();
+            st.Pop();
+
+            Console.WriteLine("Current stack: ");
+            foreach (char c in st)
+            {
+                Console.Write(c + " ");
+            }
+
+            //Current stack:
+            //W G M A
+            //The next poppable value in stack: H
+            //Current stack:
+            //H V W G M A
+            //Removing values
+            //Current stack:
+            //G M A
+        }
+    }
+}
+```
+
+## Queue Class
+
+It represents a first-in, first out collection of object. It is used when you need a first-in, 
+first-out access of items. When you add an item in the list, it is called enqueue, 
+and when you remove an item, it is called deque.
+
+Methods and Properties of the Queue Class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Count              | Gets the number of elements contained in the Queue |
+
+The following table lists some of the commonly used methods of the Queue class:
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public virtual void Clear()              | Removes all elements from the Queue. |
+| public virtual bool Contains( object obj )              | Determines whether an element is in the Queue. |
+| public virtual object Dequeue()              | Removes and returns the object at the beginning of the Queue |
+| public virtual void Enqueue( object obj )              | Adds an object to the end of the Queue. |
+| public virtual object[] ToArray();              | Copies the Queue to a new array. |
+| public virtual void TrimToSize()              | Sets the capacity to the actual number of elements in the Queue. |
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Queue q = new Queue();
+            q.Enqueue('A');
+            q.Enqueue('M');
+            q.Enqueue('G');
+            q.Enqueue('W');
+            Console.WriteLine("Current queue: ");
+            foreach (char c in q)
+                Console.Write(c + " ");
+            Console.WriteLine();
+            q.Enqueue('V');
+            q.Enqueue('H');
+            Console.WriteLine("Current queue: ");
+            foreach (char c in q)
+                Console.Write(c + " ");
+            Console.WriteLine();
+            Console.WriteLine("Removing some values ");
+            char ch = (char)q.Dequeue();
+            Console.WriteLine("The removed value: {0}", ch);
+            ch = (char)q.Dequeue();
+            Console.WriteLine("The removed value: {0}", ch);
+            Console.ReadKey();
+
+            //Current queue:
+            //A M G W
+            //Current queue:
+            //A M G W V H
+            //Removing values
+            //The removed value: A
+            //The removed value: M
+        }
+    }
+}
+```
+
+## BitArray Class
+
+The BitArray class manages a compact array of bit values, which are represented as 
+Booleans, where true indicates that the bit is on (1) and false indicates the bit is off 
+(0).
+
+It is used when you need to store the bits but do not know the number of bits in 
+advance. You can access items from the BitArray collection by using an integer index, 
+which starts from zero.
+
+Methods and Properties of the BitArray Class
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| Count              | Gets the number of elements contained in the BitArray. |
+| IsReadOnly              | Gets a value indicating whether the BitArray is read-only |
+| Item              | Gets or sets the value of the bit at a specific position in the BitArray. |
+| Length              | Gets or sets the number of elements in the BitArray |
+
+The following table lists some of the commonly used methods of the BitArray class:
+
+| Property               | Description                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| public BitArray And( BitArray value );              | Performs the bitwise AND operation on the elements in the current BitArray against the corresponding elements in the specified BitArray. |
+| public bool Get( int index );              | Gets the value of the bit at a specific position in the BitArray. |
+| public BitArray Not();              | Inverts all the bit values in the current BitArray, so that elements set to true are changed to false, and elements set to false are changed to true |
+| public BitArray Or( BitArray value )              | Performs the bitwise OR operation on the elements in the current BitArray against the corresponding elements in the specified BitArray |
+| public void Set( int index, bool value )              | Sets the bit at a specific position in the BitArray to the specified value. |
+| public void SetAll( bool value );              | Sets all bits in the BitArray to the specified value. |
+| public BitArray Xor( BitArray value )              | Performs the bitwise eXclusive OR operation on the elements in the current BitArray against the corresponding elements in the specified BitArray. |
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApp2022
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            //creating two bit arrays of size 8
+            BitArray ba1 = new BitArray(8);
+            BitArray ba2 = new BitArray(8);
+            byte[] a = { 60 };
+            byte[] b = { 13 };
+
+            //storing the values 60, and 13 into the bit arrays
+            ba1 = new BitArray(a);
+            ba2 = new BitArray(b);
+            //content of ba1
+            Console.WriteLine("Bit array ba1: 60");
+            for (int i = 0; i < ba1.Count; i++)
+            {
+                Console.Write("{0, -6} ", ba1[i]);
+            }
+            Console.WriteLine();
+
+            //content of ba2
+            Console.WriteLine("Bit array ba2: 13");
+            for (int i = 0; i < ba2.Count; i++)
+            {
+                Console.Write("{0, -6} ", ba2[i]);
+            }
+            Console.WriteLine();
+
+
+            BitArray ba3 = new BitArray(8);
+            ba3 = ba1.And(ba2);
+            //content of ba3
+            Console.WriteLine("Bit array ba3 after AND operation: 12");
+            for (int i = 0; i < ba3.Count; i++)
+            {
+                Console.Write("{0, -6} ", ba3[i]);
+            }
+            Console.WriteLine();
+            ba3 = ba1.Or(ba2);
+            //content of ba3
+            Console.WriteLine("Bit array ba3 after OR operation: 61");
+            for (int i = 0; i < ba3.Count; i++)
+            {
+                Console.Write("{0, -6} ", ba3[i]);
+            }
+            Console.WriteLine();
+
+            Console.ReadKey();
+
+            //Bit array ba1: 60
+            //False False True True True True False False
+            //Bit array ba2: 13
+            //True False True True False False False False
+            //Bit array ba3 after AND operation: 12
+            //False False True True False False False False
+            //Bit array ba3 after OR operation: 61
+            //True False True True False False False False
+        }
+    }
+}
+```

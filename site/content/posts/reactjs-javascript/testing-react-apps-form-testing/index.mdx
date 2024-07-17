@@ -1,0 +1,61 @@
+---
+title: Form Testing
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-08-28
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+Our users spend a lot of time interacting with forms and many of our forms are
+among the most important parts of our application. Because of this, it's
+pretty critical to have confidence that those continue to work over time.
+
+You need to ensure that the user can find inputs in the form, fill in their
+information, and validate that when they submit the form the submitted data is
+correct.
+
+Jest has built-in "mock" function APIs. Rather than creating the `submittedData`
+variable. An important thing to keep in mind when testing is simplifying the maintenance
+of the tests by reducing the amount of unrelated cruft in the test
+
+- 📜 `jest.fn()`: https://jestjs.io/docs/en/mock-function-api
+- 📜 `toHaveBeenCalledWith`:
+  https://jestjs.io/docs/en/expect#tohavebeencalledwitharg1-arg2-
+
+There's a library I like to use for generating test data:
+[`@jackfranklin/test-data-bot`](https://www.npmjs.com/package/@jackfranklin/test-data-bot).
+
+```javascript
+import * as React from 'react'
+import {render, screen} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import {build, fake} from '@jackfranklin/test-data-bot'
+import Login from '../../components/login'
+
+const buildLoginForm = build({
+  fields: {
+    username: fake(f => f.internet.userName()),
+    password: fake(f => f.internet.password()),
+  },
+})
+
+test('submitting the form calls onSubmit with username and password', async () => {
+  const handleSubmit = jest.fn()
+  render(<Login onSubmit={handleSubmit} />)
+  const {username, password} = buildLoginForm()
+
+  await userEvent.type(screen.getByLabelText(/username/i), username)
+  await userEvent.type(screen.getByLabelText(/password/i), password)
+  await userEvent.click(screen.getByRole('button', {name: /submit/i}))
+
+  expect(handleSubmit).toHaveBeenCalledWith({
+    username,
+    password,
+  })
+  expect(handleSubmit).toHaveBeenCalledTimes(1)
+})
+```

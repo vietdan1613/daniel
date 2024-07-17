@@ -1,0 +1,67 @@
+---
+title: Simple Test with ReactDOM
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-08-24
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+Everything we do with testing our React components is walking the line of trade-offs 
+of getting our tests to resemble the way our software is actually used and having
+something that's reasonably possible for testing
+
+When we think about how things are used, we need to consider who the users are:
+
+1. The end user that's interacting with our code (clicking buttons/etc)
+2. The developer user that's actually using our code (rendering it, calling our
+   functions, etc.)
+
+When it comes to React components, our developer user will render our component
+with `react-dom`'s `createRoot` API (similar concept for React Native) and in
+some cases they'll pass props and/or wrap it in a context provider. The end user
+will click buttons and assert on the output.
+
+> npm t 
+
+```javascript
+import * as React from 'react'
+import {act} from 'react-dom/test-utils'
+import {createRoot} from 'react-dom/client'
+import Counter from '../../components/counter'
+
+global.IS_REACT_ACT_ENVIRONMENT = true
+
+beforeEach(() => {
+  document.body.innerHTML = ''
+})
+
+test('counter increments and decrements when the buttons are clicked', () => {
+  const div = document.createElement('div')
+  document.body.append(div)
+
+  const root = createRoot(div) // ReactDOM.render
+  act(() => root.render(<Counter />))
+  const [decrement, increment] = div.querySelectorAll('button')
+  const message = div.firstChild.querySelector('div')
+
+  expect(message.textContent).toBe('Current count: 0')
+  const incrementClickEvent = new MouseEvent('click', {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+  })
+  act(() => increment.dispatchEvent(incrementClickEvent))
+  expect(message.textContent).toBe('Current count: 1')
+  const decrementClickEvent = new MouseEvent('click', {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+  })
+  act(() => decrement.dispatchEvent(decrementClickEvent))
+  expect(message.textContent).toBe('Current count: 0')
+})
+```

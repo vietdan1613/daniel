@@ -1,0 +1,59 @@
+---
+title: Using JSX
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-01-15
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+JSX is more easier to understand when reading the code. It's simple HTML-like syntactic sugar on top of the raw
+React APIs:
+
+```jsx
+const ui = <h1 id='greeting'>Hey there</h1>
+
+// ↓ ↓ ↓ ↓ compiles to ↓ ↓ ↓ ↓
+
+const ui = React.createElement('h1', { id: 'greeting', children: 'Hey there' })
+```
+
+Because JSX is not actually JavaScript, you have to convert it using something
+called a code compiler. [Babel](https://babeljs.io) is one such tool.
+
+## interpolate className and children
+
+```jsx
+const className = 'container'
+const children = 'Hello World'
+const element = <div className='hmmm'>how do I make this work?</div>
+```
+
+## spread props
+
+```jsx
+const children = 'Hello World'
+const className = 'container'
+const props = { children, className }
+const element = React.createElement('div', { ...props })
+```
+
+Full example:
+
+```jsx
+<body>
+  <div id='root'></div>
+  <script src='https://unpkg.com/react@17.0.0/umd/react.development.js'></script>
+  <script src='https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js'></script>
+  <script src='https://unpkg.com/@babel/standalone@7.12.4/babel.js'></script>
+  <script type='text/babel'>
+    const children = 'Hello World' const className = 'container' const props ={' '}
+    {(children, className)}
+    const element = <div {...props} />
+    ReactDOM.render(element, document.getElementById('root'))
+  </script>
+</body>
+```

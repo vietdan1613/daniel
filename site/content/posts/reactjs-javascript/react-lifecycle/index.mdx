@@ -1,0 +1,133 @@
+---
+title: Lifecycle methods
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2021-05-15
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+In applications with many components, it’s very important to free up resources taken by the components when they are destroyed.
+
+We want to set up a timer whenever the Clock is rendered to the DOM for the first time. This is called `mounting` in React.
+
+We also want to clear that timer whenever the DOM produced by the Clock is removed. This is called `unmounting` in React.
+
+We can declare special methods on the component class to run some code when a component mounts and unmounts:
+
+The **componentDidMount()** method runs after the component output has been rendered to the DOM. This is a good place to set up a timer:
+
+![React lifecycle](./lifecycle1.png 'React lifecycle')
+
+## componentDidMount()
+
+```javascript
+componentDidMount() {
+    this.timerID = setInterval(
+      () => this.tick(),
+      1000
+    );
+  }
+```
+
+## componentWillUnmount()
+
+Note how we save the timer ID right on this `(this.timerID)`.
+
+While this.props is set up by React itself and `this.state` has a special meaning, you are free to add additional fields
+to the class manually if you need to store something that doesn’t participate in the data flow (like a timer ID).
+
+We will tear down the timer in the **componentWillUnmount()** lifecycle method:
+
+```javascript
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+```
+
+Full example
+
+```javascript
+class Clock extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { date: new Date() }
+  }
+
+  componentDidMount() {
+    this.timerID = setInterval(() => this.tick(), 1000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerID)
+  }
+
+  tick() {
+    this.setState({
+      date: new Date()
+    })
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Hello, world!</h1>
+        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+      </div>
+    )
+  }
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+root.render(<Clock />)
+```
+
+## static getDerivedStateFromProps()
+
+**getDerivedStateFromProps** is invoked right before calling the render method, both on the initial mount and on subsequent
+updates. It should return an object to update the state, or null to update nothing.
+
+## getSnapshotBeforeUpdate()
+
+**getSnapshotBeforeUpdate()** is invoked right before the most recently rendered output is committed to e.g. the DOM.
+It enables your component to capture some information from the DOM (e.g. scroll position) before it is potentially changed.
+Any value returned by this lifecycle method will be passed as a parameter to **componentDidUpdate()**.
+
+For example:
+
+```javascript
+class ScrollingList extends React.Component {
+  constructor(props) {
+    super(props)
+    this.listRef = React.createRef()
+  }
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    // Are we adding new items to the list?
+    // Capture the scroll position so we can adjust scroll later.
+    if (prevProps.list.length < this.props.list.length) {
+      const list = this.listRef.current
+      return list.scrollHeight - list.scrollTop
+    }
+    return null
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // If we have a snapshot value, we've just added new items.
+    // Adjust scroll so these new items don't push the old ones out of view.
+    // (snapshot here is the value returned from getSnapshotBeforeUpdate)
+    if (snapshot !== null) {
+      const list = this.listRef.current
+      list.scrollTop = list.scrollHeight - snapshot
+    }
+  }
+
+  render() {
+    return <div ref={this.listRef}>{/* ...contents... */}</div>
+  }
+}
+```
+

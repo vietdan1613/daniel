@@ -1,0 +1,87 @@
+---
+title: Suspense with a Custom Hook
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2022-09-02
+thumbnail: image.jpg
+featured: true
+---
+
+## Background
+
+React Hooks are amazing. Combine them with React Suspense, and you get some
+really awesome APIs.
+
+You're going to create a `usePokemonResource` with the
+following API:
+
+```javascript
+const [pokemonResource, isPending] = usePokemonResource(pokemonName)
+```
+
+This way users of your hook don't need to bother calling `startTransition` or
+anything. Your custom hook will take care of that. Any time the `pokemonName`
+changes, your hook will trigger an update to the pokemonResource.
+
+```javascript
+import * as React from 'react'
+import {
+  usePokemonResource,
+  PokemonInfoFallback,
+  PokemonForm,
+  PokemonDataView,
+  PokemonErrorBoundary,
+} from '../pokemon'
+
+function PokemonInfo({pokemonResource}) {
+  const pokemon = pokemonResource.data.read()
+  return (
+    <div>
+      <div className="pokemon-info__img-wrapper">
+        <img src={pokemonResource.image.read()} alt={pokemon.name} />
+      </div>
+      <PokemonDataView pokemon={pokemon} />
+    </div>
+  )
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+
+  const [pokemonResource, isPending] = usePokemonResource(pokemonName)
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleReset() {
+    setPokemonName('')
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className={`pokemon-info ${isPending ? 'pokemon-loading' : ''}`}>
+        {pokemonResource ? (
+          <PokemonErrorBoundary
+            onReset={handleReset}
+            resetKeys={[pokemonResource]}
+          >
+            <React.Suspense
+              fallback={<PokemonInfoFallback name={pokemonName} />}
+            >
+              <PokemonInfo pokemonResource={pokemonResource} />
+            </React.Suspense>
+          </PokemonErrorBoundary>
+        ) : (
+          'Submit a pokemon'
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default App
+```

@@ -1,0 +1,91 @@
+---
+title: Hash Table
+category: Algorithm
+author: Daniel Nguyen
+tags: ["#Algorithm"]
+date: 2024-04-26
+thumbnail: image.jpg
+featured: true
+---
+
+## Hash function
+
+- Hash function: any function that can be used to map data of arbitrary size to fixed-size values.
+
+- E.g: SHA256, SHA512, MD5 …
+
+### A good hash function
+
+- one-way algorithm
+
+- efficiently computable
+
+- randomly distributed
+
+![example](./1.png 'example')
+
+### Hashing vs Encoding vs Encryption
+
+![example](./2.png 'example')
+
+## Hash Table
+
+- A data structure which maps keys to values. format:  array of slots (buckets).
+
+- hash table uses hash functions to compute an index (hashcode) from key.
+
+### Complexity
+
+![example](./3.png 'example')
+
+### Load factor
+
+- Measure how full is the hash table
+
+- e.g: if hash table has 100 slots, 69 slots are filled => load factor = 69/100 = 69%
+
+### Collision
+
+- two keys generate the same hash value
+
+- hash function = H(x) = x % 10
+    - x1 = 23, H(x1) = 3
+    - x2 = 3, H(x2) = 3
+
+![example](./4.png 'example')
+
+### Avoid Hash collision
+
+1. Chaining (hash table): each slot of the table is a linked list
+
+![example](./5.png 'example')
+
+- Insert(key, value): to the tail of linked list at index => O(1) 
+
+- Search(key): when all the key is in the same slot => O(n). Average case O(1)
+
+- Delete(key): delete key in the linkedlist table[index] => O(n)
+
+2. Open addressing (Linear probing - array)
+
+- the hash table is just an array, one item per slot.
+
+- when array’s size >= number of keys (if the array is nearly full) => double its size
+
+- Search(key) => need to find value, keep probing until you either:
+    - encounter key => return value
+    - or find an empty slot => return not found
+
+- Delete(key)
+    - index = Search(key)
+    - mark table[index] as Deleted (-oo, oo) (instead of make it empty, why?)
+
+![example](./6.png 'example')
+
+
+**Note: prefer using array when possible, because hashmap is slower.**
+
+Example:
+    - count the frequency of number <= 1000 => should use array
+    - count the frequency of number <= 10^9 => have to use hashmap
+    - count the frequency of string/ object => have to use hashmap

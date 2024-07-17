@@ -1,0 +1,98 @@
+---
+title: WPF LOCALIZATION
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#WPF"]
+date: 2022-09-30
+thumbnail: image.jpg
+featured: true
+---
+
+## LOCALIZATION
+---
+
+Localization is the translation of application resources into localized versions for the specific 
+cultures that the application supports.
+
+In WPF, localizable applications are very easy to create with resx file which is the simplest 
+solution for localization. Let’s take a simple example to understand how it works:
+
+- In your solution explorer, you will see the Resources.resx file under Properties 
+folder.
+
+![solution explorer](./1.png 'solution explorer')
+
+- Change the access modifier from internal to public so that it can be accessible in 
+XAML file.
+
+- Now add the following string’s name and values which we will be using in our 
+application
+
+![add the following string](./2.png 'add the following string')
+
+- Make two copies of Resources.resx file with the names Resources.en.resx and 
+Resources.ru-RU.resx. These are naming conventions specific to language and 
+country/region name, and it can be found on National Language Support (NLS) API 
+Reference (https://msdn.microsoft.com/en-us/goglobal/bb896001.aspx) page.
+
+- In the XAML file, first add the namespace declaration to use localize resources
+> xmlns:p="clr-namespace:WPFLocalization.Properties"
+
+- Set the properties of all the controls as shown below. In this example, we will not 
+use hardcoded strings for the content of labels, buttons, and Title of the window in 
+XAML file. We will be using the strings which are defined in *.resx files. For 
+example, for the Title of window, we use the Title string which is defined in *.resx 
+file like this 
+> Title="{x:Static p:Resources.Title}
+
+- Here is the XAML file in which controls are created and initialized with different 
+properties.
+
+![example](./4.png 'example')
+
+```c#
+<Grid>
+ <TextBox 
+      x:Name="textBox" HorizontalAlignment="Left" Height="23" 
+      Margin="128,45,0,0" TextWrapping="Wrap" 
+      VerticalAlignment="Top" Width="304"/>
+ <Label 
+      x:Name="label" Content="{x:Static p:Resources.Name}" 
+      HorizontalAlignment="Left" Margin="52,45,0,0" 
+      VerticalAlignment="Top" Width="86"/>
+ <Button 
+      x:Name="button2" Content="{x:Static p:Resources.Help_Button}" 
+      HorizontalAlignment="Left" Margin="392,241,0,0" 
+      VerticalAlignment="Top" Width="75"/>
+ </Grid>
+```
+
+- By default, the program uses the default Resources.resx. If you want to show the 
+text in Russian language which are defined in Resources.ru-RU.resx file, then you 
+will need to set the culture explicitly when the program starts in App.xaml file as 
+shown below
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+
+namespace Wpf2017
+{
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
+    {
+        App()
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("ru-RU");
+            //System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en");
+        }
+    }
+}
+```

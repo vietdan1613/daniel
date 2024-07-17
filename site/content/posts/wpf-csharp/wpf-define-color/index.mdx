@@ -1,0 +1,176 @@
+---
+title: Using Resources to create palette Color for app
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#WPF"]
+date: 2022-10-18
+thumbnail: image.jpg
+featured: true
+---
+
+Resources are normally definitions connected with some object that you just anticipate to use more often than once. 
+It is the ability to store data locally for controls or for the current window or globally for the entire applications. 
+
+Defining an object as a resource allows us to access it from another place. Whatit means is that the objectcan be reused. 
+Resources are defined in resource dictionaries and any object can be defined as a resource effectively making it a shareable asset. 
+A unique key is  specified  to an XAML  resource  and  with  that  key,it  can  be  referenced  by  using  a StaticResource 
+markup extension. 
+
+Resources can be of two types:
+
+- StaticResource
+- DynamicResource
+
+## Resource Scope
+
+Resources are defined in resource dictionaries, but there are numerous places where a 
+resource dictionary can be defined. In the above example, a resource dictionary is defined 
+on Window/page level. In what dictionary a resource is defined immediately limits the 
+scope of that resource. So the scope, i.e. where you can use the resource, depends on 
+where you've defined it. 
+
+- Define the resource in the resource dictionary of a grid and it's accessible by that 
+grid and by its child elements only.
+- Define it on a window/page and it's accessible by all elements on that window/page.
+- The app root can be found in App.xaml resources dictionary. It's the root of our 
+application, so the resources defined here are scoped to the entire application.
+
+![Resource Scope](./2.png 'Resource Scope')
+
+## Resource Dictionaries
+
+Resource dictionaries in XAML apps imply that the resource dictionaries are kept in 
+separate files. It is followed in almost all XAML apps. Defining resources in separate files 
+can have the following advantages:
+
+- Separation between defining resources in the resource dictionary and UI related 
+code.
+- Defining all the resources in a separate file such as App.xaml would make them 
+available across the app.
+
+```c#
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:PS2G.Component">
+    <!--BACKGROUND-->
+    <SolidColorBrush x:Key="DARK_BACKGROUND_DEFAULT"
+                     Color="#121212" />
+    <!--TEXT-->
+    <SolidColorBrush x:Key="DARK_TEXT_PRIMARY"
+                     Color="#FFFFFF" />
+    <SolidColorBrush x:Key="DARK_TEXT_SECONDARY"
+                     Color="#FFFFFF"
+                     Opacity="0.7" />
+    <SolidColorBrush x:Key="DARK_TEXT_DISABLED"
+                     Color="#FFFFFF"
+                     Opacity="0.5" />
+    <!--PRIMARY-->
+    <SolidColorBrush x:Key="DARK_PRIMARY_MAIN"
+                     Color="#90CAF9" />
+    <SolidColorBrush x:Key="DARK_PRIMARY_DARK"
+                     Color="#42A5F5" />
+    <SolidColorBrush x:Key="DARK_PRIMARY_LIGHT"
+                     Color="#E3F2FD" />
+    <SolidColorBrush x:Key="DARK_PRIMARY_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--SECONDARY-->
+    <SolidColorBrush x:Key="DARK_SECONDARY_MAIN"
+                     Color="#CE93D8" />
+    <SolidColorBrush x:Key="DARK_SECONDARY_DARK"
+                     Color="#AB47BC" />
+    <SolidColorBrush x:Key="DARK_SECONDARY_LIGHT"
+                     Color="#F3E5F5" />
+    <SolidColorBrush x:Key="DARK_SECONDARY_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--ERROR-->
+    <SolidColorBrush x:Key="DARK_ERROR_MAIN"
+                     Color="#F44336" />
+    <SolidColorBrush x:Key="DARK_ERROR_DARK"
+                     Color="#D32F2F" />
+    <SolidColorBrush x:Key="DARK_ERROR_LIGHT"
+                     Color="#E57373" />
+    <SolidColorBrush x:Key="DARK_ERROR_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--ACTION-->
+    <SolidColorBrush x:Key="DARK_ACTION_HOVER"
+                     Color="#FFFFFF"
+                     Opacity="0.08" />
+    <SolidColorBrush x:Key="DARK_ACTION_DISABLEDBACKGROUND"
+                     Color="#FFFFFF"
+                     Opacity="0.12" />
+    <SolidColorBrush x:Key="DARK_ACTION_FOCUS"
+                     Color="#FFFFFF"
+                     Opacity="0.12" />
+    <SolidColorBrush x:Key="DARK_ACTION_SELECTED"
+                     Color="#FFFFFF"
+                     Opacity="0.16" />
+    <SolidColorBrush x:Key="DARK_ACTION_DISABLED"
+                     Color="#FFFFFF"
+                     Opacity="0.30" />
+    <SolidColorBrush x:Key="DARK_ACTION_ACTIVE"
+                     Color="#FFFFFF"
+                     Opacity="0.56" />
+    <!--WARNING-->
+    <SolidColorBrush x:Key="DARK_WARNING_MAIN"
+                     Color="#FFA726" />
+    <SolidColorBrush x:Key="DARK_WARNING_DARK"
+                     Color="#F57C00" />
+    <SolidColorBrush x:Key="DARK_WARNING_LIGHT"
+                     Color="#FFB74D" />
+    <SolidColorBrush x:Key="DARK_WARNING_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--INFO-->
+    <SolidColorBrush x:Key="DARK_INFO_MAIN"
+                     Color="#EDF4FB" />
+    <SolidColorBrush x:Key="DARK_INFO_DARK"
+                     Color="#EDF4FB" />
+    <SolidColorBrush x:Key="DARK_INFO_LIGHT"
+                     Color="#EDF4FB" />
+    <SolidColorBrush x:Key="DARK_INFO_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--SUCCESS-->
+    <SolidColorBrush x:Key="DARK_SUCCESS_MAIN"
+                     Color="#66BB6A" />
+    <SolidColorBrush x:Key="DARK_SUCCESS_DARK"
+                     Color="#388E3C" />
+    <SolidColorBrush x:Key="DARK_SUCCESS_LIGHT"
+                     Color="#81C784" />
+    <SolidColorBrush x:Key="DARK_SUCCESS_CONTRAST"
+                     Color="#000000"
+                     Opacity="0.87" />
+    <!--OTHER-->
+    <SolidColorBrush x:Key="DARK_OTHER_DIVIDER"
+                     Color="#FFFFFF"
+                     Opacity="0.12" />
+    <SolidColorBrush x:Key="DARK_OTHER_OUTLINEDBORDER"
+                     Color="#FFFFFF"
+                     Opacity="0.23" />
+    <SolidColorBrush x:Key="DARK_OTHER_FILLEDINPUTBACKGROUND"
+                     Color="#FFFFFF"
+                     Opacity="0.09"/>
+    <SolidColorBrush x:Key="DARK_OTHER_STANDARDINPUTLINE"
+                     Color="#FFFFFF"
+                     Opacity="0.42"/>
+    <SolidColorBrush x:Key="DARK_OTHER_SNACKBAR"
+                     Color="#323232" />
+    <SolidColorBrush x:Key="DARK_OTHER_RATINGACTIVE"
+                     Color="#FFB400" />
+    <SolidColorBrush x:Key="DARK_OTHER_FOCUSRINGCOLOR"
+                     Color="#99C8FF" />
+</ResourceDictionary>
+```
+
+Sometimes you may need to define colors rather than brushes : (one case you would want this 
+is to be able to define Gradients with color parameters) In that case you could just define 
+them like this:
+
+```c#
+<Color x:Key="ButtonColor1">Blue</Color>
+<Color x:Key="ButtonColor1">#AABBCC</Color>
+<Color x:Key="ButtonColor1" A="0" R="124" G="111" B="44"/>
+```

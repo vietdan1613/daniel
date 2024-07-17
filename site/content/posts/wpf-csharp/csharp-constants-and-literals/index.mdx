@@ -1,0 +1,115 @@
+---
+title: C# CONSTANTS AND LITERALS
+category: WPF - CSharp
+author: Daniel Nguyen
+tags: ["#CSharp"]
+date: 2022-10-18
+thumbnail: image.jpg
+featured: true
+---
+
+The constants refer to fixed values that the program may not alter during its 
+execution. These fixed values are also called literals. Constants can be of any of the 
+basic data types like an integer constant, a floating constant, a character constant, 
+or a string literal. There are also enumeration constants as well.
+
+The constants are treated just like regular variables except that their values cannot 
+be modified after their definition.
+
+## Integer Literals
+
+**Integer literals**
+
+> 212 /* Legal */   
+> 215u /* Legal */  
+> 0xFeeL /* Legal */    
+> 078 /* Illegal: 8 is not an octal digit */    
+> 032UU /* Illegal: cannot repeat a suffix */   
+
+**Various types of Integer literals**
+
+> 85 /* decimal */  
+> 0213 /* octal */  
+> 0x4b /* hexadecimal */    
+> 30 /* int */  
+> 30u /* unsigned int */    
+> 30l /* long */    
+> 30ul /* unsigned long */
+
+## Floating-point Literals
+
+A floating-point literal has an integer part, a decimal point, a fractional part, and an 
+exponent part. You can represent floating point literals either in decimal form or 
+exponential form.
+
+**Floating-point literals**
+
+> 3.14159 /* Legal */   
+> 314159E-5L /* Legal */    
+> 510E /* Illegal: incomplete exponent */   
+> 210f /* Illegal: no decimal or exponent */    
+> .e55 /* Illegal: missing integer or fraction */   
+
+## Character Constants
+
+Character literals are enclosed in single quotes. For example, 'x' and can be stored 
+in a simple variable of char type. A character literal can be a plain character (such as
+'x'), an escape sequence (such as '\t'), or a universal character (such as '\u02C0').
+
+Here, is a list of some of such escape sequence codes
+
+| Escape sequence               | Meaning                                                                            |
+|------------------------|----------------------------------------------------------------------------------------|
+| \\\\              | \ character    |
+| \'               | " character    |
+| \"               | " character    |
+| \?              | ? character    |
+| \a              | Alert or bell    |
+| \b               | Backspace    |
+| \f              | Form feed    |
+| \n               | Newline    |
+| \r              | Carriage return    |
+| \t              | Horizontal tab    |
+| \v              | Vertical tab    |
+| \ooo              | Octal number of one to three digits    |
+| \xhh              | Hexadecimal number of one or more digits    |
+
+## String Literals
+
+String literals or constants are enclosed in double quotes "" or with @"". A string 
+contains characters that are similar to character literals: plain characters, escape 
+sequences, and universal characters. You can break a long line into multiple lines using string literals and separating the 
+parts using whitespaces.
+
+>"hello, dear"  
+>"hello, \  
+>dear"  
+>"hello, " "d" "ear"    
+>@"hello dear"  
+
+## Defining Constants
+
+```c#
+using System;
+
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // const <data_type> <constant_name> = value;
+            const double pi = 3.14159; // constant declaration 
+            double r;
+            Console.WriteLine("Enter Radius: ");
+            r = Convert.ToDouble(Console.ReadLine());
+            double areaCircle = pi * r * r;
+            Console.WriteLine("Radius: {0}, Area: {1}", r, areaCircle);
+            Console.ReadLine();
+            //Enter Radius:
+            //3
+            //Radius: 3, Area: 28.27431
+        }
+    }
+}
+```
