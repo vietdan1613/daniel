@@ -7,6 +7,7 @@ import Sticky from '@components/Sticky'
 import Seo from '@widgets/Seo'
 import AuthorCompact from '@widgets/AuthorCompact'
 import Categories from '@widgets/Categories'
+import TableOfContentsCompact from '@widgets/TableOfContentsCompact'
 import {
   PostHead,
   PostImage,
@@ -54,24 +55,30 @@ const Post = ({
           </CardComponent>
         </Main>
         <Sidebar>
-          <AuthorCompact author={post.author} omitTitle />
-          <Divider />
-          <Categories categories={categories} />
-          <Divider />
-          {post.category && (
-            <Sticky>
+          {/* <AuthorCompact author={post.author} omitTitle /> */}
+          {/* <Divider /> */}
+          {/* <Categories categories={categories} /> */}
+          {/* <Divider /> */}
+          <Sticky>
+            {post.tableOfContents?.items && (
+              <>
+                <TableOfContentsCompact {...post} />
+                <Divider />
+              </>
+            )}
+            {post.category && (
               <CardList
                 title='Related Posts'
                 nodes={relatedPosts}
                 variant='horizontal-aside'
+                limit={6}
                 omitMedia
                 omitCategory
-                limit={6}
                 distinct
                 aside
               />
-            </Sticky>
-          )}
+            )}
+          </Sticky>
         </Sidebar>
       </Stack>
     </Layout>

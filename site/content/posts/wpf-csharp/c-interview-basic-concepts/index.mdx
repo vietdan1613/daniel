@@ -3,14 +3,124 @@ title: C# Basic Concepts
 category: WPF - CSharp
 author: Daniel Nguyen
 tags: ["#WPF"]
-date: 2024-07-14
-thumbnail: image.png
+date: 2024-07-17
+thumbnail: image.jpg
 featured: true
 ---
 
-1
-What is C#?
-What are the main features of C#?
-Explain the difference between value types and reference types in C#.
-What are namespaces in C#?
-What is a nullable type in C#?
+## What is C#?
+
+C# (pronounced "C-sharp") is a modern, object-oriented programming language developed by Microsoft as part of its .NET initiative
+
+## What are the main features of C#?
+
+1. Object-Oriented Programming (OOP):
+
+C# is built around the principles of object-oriented programming, including classes, inheritance, polymorphism, and encapsulation.
+
+2. Type Safety:
+
+Ensures that all operations are type-checked at compile time, reducing runtime errors and enhancing code reliability.
+
+3. Garbage Collection:
+
+Automatic memory management through garbage collection, which helps in efficiently managing memory and preventing memory leaks.
+
+4. Exception Handling:
+
+Structured exception handling with try, catch, finally, and throw keywords to gracefully handle runtime errors.
+
+5. Language Integrated Query (LINQ):
+
+Provides a powerful, integrated query syntax for querying collections, databases, XML, and more, making data manipulation more intuitive and readable.
+
+6. Asynchronous Programming:
+
+async and await keywords simplify asynchronous programming, allowing developers to write more responsive and scalable applications.
+
+7. Delegates and Events:
+
+Delegates provide a type-safe way to reference methods, and events enable the implementation of the observer pattern, facilitating event-driven programming.
+
+8. Generics:
+
+Allow the creation of type-safe data structures and methods, enabling code reusability and type safety without the performance costs associated with boxing and unboxing.
+
+9. Properties and Indexers:
+
+Properties provide a flexible mechanism to read, write, or compute the values of private fields, and indexers allow objects to be indexed like arrays.
+
+10. Extension Methods:
+
+Enable developers to add new methods to existing types without modifying their source code, enhancing functionality and code readability.
+
+## Explain the difference between value types and reference types in C#.
+
+In C#, the distinction between value types and reference types is fundamental to understanding how data is stored and managed in memory. Here's a detailed explanation of the differences:
+
+**Value Types**
+
+1. Memory Allocation:
+
+- Value types are typically allocated on the stack.
+- Each variable of a value type has its own copy of the data.
+
+2. Examples:
+
+- Primitive types: int, double, bool, char, etc.
+- Structs: Custom structures defined using the struct keyword.
+- Enumerations: Defined using the enum keyword.
+
+3. Lifetime:
+
+- The lifetime of a value type is tied to the scope in which it is declared. When the scope ends, the value type is removed from the stack.
+
+4. Assignment:
+
+When you assign one value type to another, a copy of the data is made. Modifications to one variable do not affect the other.
+
+```C#
+int x = 10;
+int y = x;  // y gets a copy of x
+y = 20;
+// x is still 10
+```
+
+**Reference Types**
+
+1. Memory Allocation:
+
+- Reference types are allocated on the heap.
+- A variable of a reference type stores a reference (or address) to the actual data on the heap.
+
+2. Examples:
+
+- Classes: Defined using the class keyword.
+- Arrays: Any array type (e.g., int[], string[]).
+- Delegates: Types that refer to methods.
+- Strings: The string type in C#.
+
+3. Lifetime:
+
+- The lifetime of a reference type is managed by the .NET garbage collector. When there are no references to an object, the garbage collector can reclaim the memory.
+
+4. Assignment:
+
+- When you assign one reference type to another, only the reference is copied, not the actual data. Both variables then refer to the same object on the heap. Changes to one variable affect the other.
+
+```C#
+class MyClass
+{
+    public int Value;
+}
+
+MyClass obj1 = new MyClass();
+obj1.Value = 10;
+MyClass obj2 = obj1;  // obj2 references the same object as obj1
+obj2.Value = 20;
+// obj1.Value is now 20, because obj1 and obj2 refer to the same object
+```
+
+## What are namespaces in C#?
+
+## What is a nullable type in C#?
