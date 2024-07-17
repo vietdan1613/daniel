@@ -69,5 +69,58 @@ The main features of Windows Presentation Foundation (WPF) include:
 - Provides localization support, enabling applications to be adapted for different languages and cultures.
 
 ## Explain the architecture of WPF.
+
+![Architecture of WPF](./1.jpg 'Architecture of WPF')
+
+Windows Presentation Foundation (WPF) is a graphical subsystem for rendering user interfaces in Windows-based applications. It is part of the .NET framework and provides a consistent programming model for building applications and separating the user interface from business logic. The architecture of WPF can be divided into several key components:
+
+1. **PresentationCore**
+
+This is the foundational component that provides a managed wrapper for the core functionalities of WPF, such as rendering, layout, and input processing. It acts as an intermediary between the managed code and the unmanaged Milcore (Media Integration Layer).
+
+2. **PresentationFramework**
+
+This layer contains the implementation of higher-level WPF features, including controls, styling, data binding, and application management. It builds upon the services provided by PresentationCore and extends them to provide a richer user experience.
+
+3. **WindowsBase**
+
+This assembly includes foundational classes used by both PresentationCore and PresentationFramework. It contains basic functionalities like threading, dependency properties, and event routing.
+
+4. **Milcore** (Media Integration Layer)
+
+Milcore is a low-level, unmanaged component written in C++. It interacts directly with DirectX to provide efficient rendering of graphics. Milcore is responsible for visual composition, managing visual trees, and rendering graphics to the screen.
+
+5. **DirectX**
+
+DirectX is a collection of APIs for handling tasks related to multimedia, especially game programming and video, on Microsoft platforms. WPF leverages DirectX for high-performance rendering of graphics.
+
+6. **User32**
+
+User32 is a Windows API used for handling basic user input and window management. WPF uses User32 for managing windows and input messages, but most of the graphical rendering is offloaded to DirectX via Milcore.
+
+7. **Core APIs and Services**
+
+WPF includes several core APIs and services that provide functionalities such as layout management, input handling, and data binding:
+
+- Layout System: Manages the size and position of UI elements.
+- Input System: Handles keyboard, mouse, and other input devices.
+- Data Binding: Provides a way to connect UI elements to data sources.
+
+8. **XAML** (Extensible Application Markup Language)
+
+XAML is a declarative XML-based language used to define and instantiate WPF objects. It is the primary language for designing WPF user interfaces, allowing developers to separate the UI design from the logic.
+
+9. **Controls and User Interface Elements**
+
+WPF provides a rich set of built-in controls, such as buttons, text boxes, and list views, which can be used to build the user interface. These controls are highly customizable and can be styled and templated.
+
+10. **Binding and Animation**
+
+WPF supports powerful data binding capabilities that enable automatic synchronization of UI elements with data sources. Additionally, WPF provides a robust animation system that allows developers to create complex animations and transitions for UI elements.
+
+11. **Dependency Properties and Routed Events**
+
+Dependency properties are a special type of property that WPF uses to enable advanced features such as data binding, animation, and property inheritance. Routed events allow events to propagate up or down the visual tree, enabling a more flexible event handling system.
+
 ## What is XAML? How is it used in WPF?
 ## Describe the difference between WPF and WinForms.
