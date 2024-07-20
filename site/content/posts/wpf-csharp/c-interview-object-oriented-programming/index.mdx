@@ -3,14 +3,294 @@ title: C# Object-Oriented Programming
 category: WPF - CSharp
 author: Daniel Nguyen
 tags: ["#WPF"]
-date: 2024-07-14
+date: 2024-07-19
 thumbnail: image.png
 featured: true
 ---
 
-2   
-Explain the four pillars of Object-Oriented Programming.
-What is inheritance in C#?
-What is polymorphism in C#?
-What is an interface, and how is it different from an abstract class?
-Explain the concept of encapsulation with an example.
+## Explain the four pillars of Object-Oriented Programming.
+
+1. `Encapsulation`
+
+Encapsulation is the concept of bundling data (fields) and methods (functions) that `operate on the data 
+into a single unit called a class`. It restricts direct access to some of the object's components, which 
+can prevent the accidental modification of data. Encapsulation is achieved through access modifiers:
+
+- `private`: The members are accessible only within the class.
+- `protected`: The members are accessible within the class and its subclasses.
+- `public`: The members are accessible from outside the class.
+
+2. `Abstraction`
+
+Abstraction is the concept of `hiding the complex implementation details` and `showing only the 
+essential features of the object`. It helps in reducing programming complexity and effort. 
+Abstraction can be achieved using abstract classes and interfaces.
+
+3. `Inheritance`
+
+Inheritance in C# is a fundamental concept of object-oriented programming that allows one class 
+(the derived or child class) to `inherit the fields, properties, methods, and events of another class` 
+(the base or parent class). This promotes code reusability and establishes a natural hierarchical 
+relationship between classes.
+
+4. `Polymorphism`
+
+Polymorphism in C# is a core concept in object-oriented programming (OOP) that allows objects of 
+different classes to be treated as objects of a common base class. It enables a `single interface 
+to represent different underlying data types`, allowing methods to be used interchangeably with 
+different implementations. There are two main types of polymorphism in C#: compile-time (static) 
+polymorphism and runtime (dynamic) polymorphism.. Polymorphism is typically achieved through 
+`method overriding and method overloading`.
+
+## What is inheritance in C#?
+
+- Use the colon `:` symbol to denote inheritance.
+- Members declared as `protected` in the base class are accessible within the derived class but not from outside.
+- The `base` keyword is used to call a method or constructor in the base class from the derived class.
+- The derived class can override base class methods using the `override` keyword, provided the base class m
+ethod is marked with the `virtual` keyword.
+- An abstract class cannot be instantiated and can contain `abstract methods` (methods without implementation) 
+that must be implemented in derived classes.
+- Benefits of Inheritance:
+    - `Code Reusability`: Common code can be placed in a base class and reused in derived classes.
+    - `Polymorphism`: Derived classes can provide specific implementations of base class methods.
+    - `Maintenance`: Easier to manage and update the code when changes are required.
+
+```javascript
+public class Animal
+{
+    public void Eat()
+    {
+        Console.WriteLine("Eating");
+    }
+}
+
+public class Dog : Animal
+{
+    public void Bark()
+    {
+        Console.WriteLine("Barking");
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Dog dog = new Dog();
+        dog.Eat(); // Inherited method
+        dog.Bark(); // Method of Dog class
+    }
+}
+```
+
+## What is polymorphism in C#?
+
+- `Method Overloading`: Defining multiple methods with the same name but different signatures (parameters).
+
+```javascript
+public class MathOperations
+{
+    public int Add(int a, int b)
+    {
+        return a + b;
+    }
+
+    public double Add(double a, double b)
+    {
+        return a + b;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        MathOperations math = new MathOperations();
+        Console.WriteLine(math.Add(1, 2));        // Calls int Add(int, int)
+        Console.WriteLine(math.Add(1.5, 2.5));    // Calls double Add(double, double)
+    }
+}
+```
+
+- `Method Overriding`: A derived class provides a specific implementation of a method that is already 
+defined in its base class. The base class method must be marked with the virtual keyword, and the 
+derived class method must use the override keyword.
+
+```javascript
+public class Animal
+{
+    public virtual void MakeSound()
+    {
+        Console.WriteLine("Animal sound");
+    }
+}
+
+public class Dog : Animal
+{
+    public override void MakeSound()
+    {
+        Console.WriteLine("Bark");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Animal myDog = new Dog();
+        myDog.MakeSound();  // Outputs: Bark
+    }
+}
+```
+
+- `Benefits` of Polymorphism
+    - `Flexibility` and Maintainability: It allows the code to be more flexible and easier to maintain.
+    - Code `Reusability`: Methods written for base classes or interfaces can work with any derived class or implementing class.
+    - `Extensibility`: New classes can be added with little or no modification to existing code.
+
+## What is an interface, and how is it different from an abstract class?
+
+An interface is a contract that `defines a set of methods` and properties that implementing classes must 
+provide. It can be implemented by any class or struct, which then must provide the concrete implementations 
+of the interface's members.
+
+- Implementation: A `class or struct that implements the interface must implement all its members`.
+- Multiple Inheritance: A class or struct `can implement multiple interfaces`.
+- No Implementation: Interfaces `cannot contain any implementation`; all methods and properties are abstract by default.
+
+```javascript
+public interface IShape
+{
+    void Draw();
+    double Area();
+}
+
+public class Circle : IShape
+{
+    public void Draw()
+    {
+        Console.WriteLine("Drawing Circle");
+    }
+
+    public double Area()
+    {
+        return Math.PI * radius * radius;
+    }
+
+    private double radius;
+    public Circle(double radius) => this.radius = radius;
+}
+```
+
+### Abstract Class
+
+- Abstract Class: Can provide `both complete and incomplete implementations`.
+- Abstract Class: A class can inherit from `only one abstract class`. Interface: A class can implement `multiple interfaces`.
+- Abstract Class: `Members can have access modifiers` (private, protected, public, etc.). Interface: Members are `public by default`
+
+```javascript
+public abstract class Shape
+{
+    public abstract void Draw();
+    public abstract double Area();
+
+    public void Display()
+    {
+        Console.WriteLine("Displaying shape");
+    }
+}
+
+public class Circle : Shape
+{
+    private double radius;
+    public Circle(double radius) => this.radius = radius;
+
+    public override void Draw()
+    {
+        Console.WriteLine("Drawing Circle");
+    }
+
+    public override double Area()
+    {
+        return Math.PI * radius * radius;
+    }
+}
+```
+
+## Explain the concept of encapsulation with an example.
+
+Encapsulation in C# is a key principle of object-oriented programming that involves wrapping 
+data (`fields`) and methods (`functions`) that operate on the data `into a single unit, usually a class`, and 
+restricting access to some of the object's components. This ensures that the internal representation 
+of the object is hidden from the outside. The data is accessed and modified through public methods, often 
+referred to as getters and setters.
+
+```javascript
+using System;
+
+public class BankAccount
+{
+    // Private fields
+    private string accountNumber;
+    private decimal balance;
+
+    // Constructor to initialize the account
+    public BankAccount(string accountNumber, decimal initialBalance)
+    {
+        this.accountNumber = accountNumber;
+        balance = initialBalance;
+    }
+
+    // Public method to deposit money
+    public void Deposit(decimal amount)
+    {
+        if (amount > 0)
+        {
+            balance += amount;
+        }
+        else
+        {
+            Console.WriteLine("Deposit amount must be positive.");
+        }
+    }
+
+    // Public method to withdraw money
+    public void Withdraw(decimal amount)
+    {
+        if (amount > 0 && amount <= balance)
+        {
+            balance -= amount;
+        }
+        else
+        {
+            Console.WriteLine("Insufficient funds or invalid amount.");
+        }
+    }
+
+    // Public method to get the current balance
+    public decimal GetBalance()
+    {
+        return balance;
+    }
+}
+
+// Usage
+class Program
+{
+    static void Main()
+    {
+        // Create a new bank account
+        BankAccount account = new BankAccount("123456", 1000m);
+        
+        // Deposit money into the account
+        account.Deposit(500m);
+        
+        // Withdraw money from the account
+        account.Withdraw(200m);
+        
+        // Print the current balance
+        Console.WriteLine("Current Balance: " + account.GetBalance());  // Outputs: Current Balance: 1300
+    }
+}
+```
