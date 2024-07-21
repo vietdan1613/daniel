@@ -3,14 +3,222 @@ title: WPF Layout and Controls
 category: WPF - CSharp
 author: Daniel Nguyen
 tags: ["#WPF"]
-date: 2024-07-14
+date: 2024-07-21
 thumbnail: image.png
 featured: true
 ---
 
-2
-What are the different types of panels available in WPF for layout?
-How does the Grid panel work?
-Explain the usage of StackPanel.
-What is a DataTemplate in WPF?
-What is an ItemsControl?
+## What are the different types of panels available in WPF for layout?
+
+In Windows Presentation Foundation (WPF), several types of panels are available to arrange and layout UI elements. Here are the main types:
+
+1. **StackPanel**:
+
+- Arranges child elements into a `single line` (either vertically or horizontally).
+- Useful for creating `simple lists of controls`.
+- Properties: Orientation (Vertical/Horizontal).
+
+2. **WrapPanel**:
+
+- Positions child elements in sequential `order from left to right`, `breaking content to the next line` at the edge of the containing box.
+- Useful for creating fluid layouts where content can wrap to new lines.
+- Properties: Orientation (Horizontal/Vertical), ItemWidth, ItemHeight.
+
+3. **DockPanel**:
+
+- Arranges child elements relative to each other, either at the `top, bottom, left, right, or center`.
+- Child elements can be docked to any side of the panel.
+- Properties: Dock (Top/Bottom/Left/Right), LastChildFill (Boolean).
+
+4. **Grid**:
+
+- Defines a flexible grid area that consists of `rows and columns`.
+- Child elements can span multiple rows and columns.
+- Properties: RowDefinitions, ColumnDefinitions, Row, Column, RowSpan, ColumnSpan.
+
+5. **UniformGrid**:
+
+- Divides the space evenly among all child elements.
+- All cells in the grid have the same size.
+- Properties: Rows, Columns.
+
+6. **Canvas**:
+
+- Positions child elements according to explicit coordinates.
+- Useful for `absolute positioning`.
+- Properties: Left, Top, Right, Bottom.
+
+7. **VirtualizingStackPanel**:
+
+- Similar to `StackPanel but supports virtualization`, which improves performance by only creating UI elements for visible items.
+- Commonly used in scenarios with large data sets, such as with ListBox or ListView.
+
+## How does the Grid panel work?
+
+- You define the number of rows and columns by adding `RowDefinition` and `ColumnDefinition` elements within the Grid.
+- Elements can span multiple rows and/or columns using the `Grid.RowSpan` and ` ` properties.
+
+```javascript
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Grid Example" Height="200" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Name:" Grid.Row="0" Grid.Column="0" Margin="5"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5"/>
+        
+        <TextBlock Text="Address:" Grid.Row="1" Grid.Column="0" Margin="5"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="5"/>
+        
+        <Button Content="Submit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="5"/>
+    </Grid>
+</Window>
+```
+
+## Explain the usage of StackPanel.
+
+- A StackPanel with `vertical` orientation stacks its children from `top to bottom`. This is the default orientation.
+- A StackPanel with `horizontal` orientation stacks its children from `left to right`. You can set the orientation using the Orientation property.
+
+```javacsript
+<StackPanel Orientation="Horizontal">
+    <!-- Child elements -->
+</StackPanel>
+```
+
+## What is a DataTemplate in WPF?
+
+A DataTemplate in WPF is a powerful feature that allows you to define the visual `representation of data 
+objects`. This is especially useful when working with collections of data in controls like 
+`ListBox, ListView, ComboBox, or ItemsControl`. By using a DataTemplate, you can control how each data 
+item appears in these controls, separating the presentation from the data logic.
+
+```javascript
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DataTemplate Example" Height="200" Width="300">
+    <Window.Resources>
+        <DataTemplate x:Key="PersonTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" Margin="5"/>
+                <TextBlock Text="{Binding Age}" Margin="5"/>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+    
+    <Grid>
+        <ListBox x:Name="personListBox" ItemTemplate="{StaticResource PersonTemplate}" />
+    </Grid>
+</Window>
+```
+
+```javscript
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        List<Person> people = new List<Person>
+        {
+            new Person { Name = "Alice", Age = 30 },
+            new Person { Name = "Bob", Age = 25 },
+            new Person { Name = "Charlie", Age = 35 }
+        };
+
+        personListBox.ItemsSource = people;
+    }
+}
+```
+
+## What is an ItemsControl?
+
+An ItemsControl in WPF is a `base class for all controls that can contain a collection of items`, such as 
+`ListBox, ListView, ComboBox, and TreeView`. It provides a flexible way to display a list of data items 
+and offers various features to customize how the items are presented.
+
+- The `ItemsSource` property is used to bind the control to a collection of data items. This can be any 
+collection that implements IEnumerable, such as `List, ObservableCollection, or even arrays`.
+- The `ItemTemplate` property allows you to define a DataTemplate that specifies the visual structure 
+of each item in the collection. This is essential for customizing the appearance of the items.
+- The `ItemsPanel` property allows you to specify the layout panel that will be used to arrange the items. 
+By default, ItemsControl uses a StackPanel with vertical orientation. You can change this to other panels 
+like WrapPanel or Grid.
+- The `ItemContainerStyle` property allows you to apply a style to each item container. This can be used 
+to set properties such as margin, padding, or background color for each item.
+
+### Data Model
+
+```javascript
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+```
+
+### ViewModel
+
+```javascript
+public class MainViewModel
+{
+    public ObservableCollection<Person> People { get; set; }
+
+    public MainViewModel()
+    {
+        People = new ObservableCollection<Person>
+        {
+            new Person { Name = "Alice", Age = 30 },
+            new Person { Name = "Bob", Age = 25 },
+            new Person { Name = "Charlie", Age = 35 }
+        };
+    }
+}
+```
+
+### XAML
+
+```javascript
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ItemsControl Example" Height="200" Width="300">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
+    <Grid>
+        <ItemsControl ItemsSource="{Binding People}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding Age}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Control.Margin" Value="5" />
+                    <Setter Property="Control.Background" Value="LightGray" />
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+    </Grid>
+</Window>
+```
