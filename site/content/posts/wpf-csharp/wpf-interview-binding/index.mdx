@@ -9,7 +9,75 @@ featured: true
 ---
 
 ## What is data binding in WPF?
+
+Data binding in Windows Presentation Foundation (WPF) is a mechanism that `connects a user interface (UI) to a data source`. 
+This allows for the `automatic synchronization` of data between the UI and the underlying data model. In WPF, data binding 
+enables developers to define a binding between a UI control and a property or a collection in the data model, making it 
+easier to display and interact with data.
+
+### Key Concepts of Data Binding in WPF
+
+- `Binding Source`: The object that contains the data. This could be a simple object, a collection of objects, or a more 
+complex data model.
+
+- `Binding Target`: The UI element that displays the data. This could be a control like a TextBox, ListBox, or DataGrid.
+
+- `Binding Mode`:
+
+    - OneWay: Data flows from the source to the target.
+    - TwoWay: Data flows both ways, allowing changes in the UI to update the source and vice versa.
+    - OneWayToSource: Data flows from the target to the source.
+    - OneTime: Data is set when the binding is created, and changes are not tracked.
+    - Binding Path: Specifies the path to the data property on the binding source.
+
+- `DataContext`: The context in which the data binding occurs. It is typically set at the window or control level and determines 
+the default source for all data bindings within that context.
+
+- `INotifyPropertyChanged Interface`: Used to notify the binding system that a property value has changed. Implementing this 
+interface in your data model ensures that changes in the model are automatically reflected in the UI.
+
+- `ObservableCollection`: A collection that provides notifications when items are added, removed, or when the entire list is 
+refreshed. It is commonly used as a binding source for collections in the UI.
+
 ## Explain the different types of data binding in WPF.
+
+In WPF, data binding allows you to connect UI elements to data sources, facilitating a dynamic and interactive user interface. 
+There are several types of data binding modes, each serving different needs depending on how data should flow between the 
+source and target. Here are the different types of data binding in WPF:
+
+### 1. OneWay Binding
+
+OneWay binding `updates the target property when the source property changes`. However, `changes in the target property do not affect the source property`. 
+This mode is useful when you need to display data that doesn't need to be edited by the user.
+
+### 2. TwoWay Binding
+
+TwoWay binding `updates both the target and source properties`. When the source property changes, the target property is updated, 
+and vice versa. This mode is ideal for editable forms where user input needs to be reflected in the data model.
+
+### 3. OneWayToSource Binding
+
+OneWayToSource binding is the `reverse of OneWay binding`. It updates the source property when the target property changes but 
+not the other way around. This mode can be useful when you need to `capture user input without reflecting changes back to the UI`.
+
+### 4. OneTime Binding
+
+OneTime binding updates the target property `only when the binding is first established`. This means that any subsequent changes
+to the source property will not affect the target property. OneTime binding is suitable for displaying static data that does not 
+change during the lifetime of the application.
+
+### 5. Default Binding
+
+The default binding mode depends on the dependency property being bound. For instance, most read/write properties default 
+to `TwoWay binding`, while read-only properties default to OneWay binding. If no mode is explicitly set, the default mode of 
+the property is used.
+
+```xaml
+<Label Content="{Binding Path=Title, Mode=OneWay}" />
+<TextBox Text="{Binding Path=Description, Mode=TwoWay}" />
+<TextBox Text="{Binding Path=UserInput, Mode=OneWayToSource}" />
+<TextBlock Text="{Binding Path=CreatedDate, Mode=OneTime}" />
+```
 ## What is the MVVM pattern? How is it implemented in WPF?
 ## What are the benefits of using MVVM?
 ## What is the role of ICommand in MVVM?
