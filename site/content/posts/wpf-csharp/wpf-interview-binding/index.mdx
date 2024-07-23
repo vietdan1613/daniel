@@ -79,5 +79,307 @@ the property is used.
 <TextBlock Text="{Binding Path=CreatedDate, Mode=OneTime}" />
 ```
 ## What is the MVVM pattern? How is it implemented in WPF?
+
+The Model-View-ViewModel (MVVM) pattern is a `software architectural pattern` used primarily for designing and implementing user interfaces. 
+It is particularly popular in frameworks like Microsoft's WPF (Windows Presentation Foundation), Silverlight, Xamarin, and other 
+.NET-based technologies, but it can be used in other contexts as well.
+
+Here’s a breakdown of the components in the MVVM pattern:
+
+### 1. Model:
+
+- Represents the `data and business logic` of the application.
+- Encapsulates the application's core functionality and data operations.
+- Typically consists of data models, data access layers, and business rules.
+
+### 2. View:
+
+- Represents the `UI of the application`.
+- Displays the data from the Model and sends user interactions to the ViewModel.
+- Ideally, the View is as passive as possible, relying on the ViewModel to manage user interaction.
+
+### 3. ViewModel:
+
+- Acts as an `intermediary between the View and the Model`.
+- Handles the presentation logic and state of the View.
+- Exposes data from the Model in a way that is easy for the View to use (e.g., through properties and commands).
+- Implements data-binding to bind View components to ViewModel properties.
+- Typically handles user input and updates the Model accordingly.
+
+`Create the Model`
+
+```javascript
+public class User
+{
+    public string Name { get; set; }
+}
+```
+
+`Create the ViewModel`
+
+```javascript
+using System.ComponentModel;
+using System.Windows.Input;
+
+public class UserViewModel : INotifyPropertyChanged
+{
+    private User _user;
+    private string _greeting;
+
+    public UserViewModel()
+    {
+        _user = new User();
+        GreetCommand = new RelayCommand(Greet);
+    }
+
+    public string Name
+    {
+        get { return _user.Name; }
+        set
+        {
+            if (_user.Name != value)
+            {
+                _user.Name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+    }
+
+    public string Greeting
+    {
+        get { return _greeting; }
+        private set
+        {
+            if (_greeting != value)
+            {
+                _greeting = value;
+                OnPropertyChanged(nameof(Greeting));
+            }
+        }
+    }
+
+    public ICommand GreetCommand { get; private set; }
+
+    private void Greet()
+    {
+        Greeting = "Hello, " + Name;
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+```
+
+`Implement the RelayCommand`
+
+```javascript
+using System;
+using System.Windows.Input;
+
+public class RelayCommand : ICommand
+{
+    private readonly Action _execute;
+    private readonly Func<bool> _canExecute;
+
+    public RelayCommand(Action execute, Func<bool> canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter)
+    {
+        return _canExecute == null || _canExecute();
+    }
+
+    public void Execute(object parameter)
+    {
+        _execute();
+    }
+
+    public event EventHandler CanExecuteChanged
+    {
+        add { CommandManager.RequerySuggested += value; }
+        remove { CommandManager.RequerySuggested -= value; }
+    }
+}
+```
+
+`Create the View (XAML)`
+
+```javascript
+<Window x:Class="MVVMExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MVVM Example" Height="200" Width="300">
+    <Window.DataContext>
+        <local:UserViewModel />
+    </Window.DataContext>
+    <Grid>
+        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="200" Height="25" Margin="10"/>
+        <Button Command="{Binding GreetCommand}" Content="Greet" Width="100" Height="25" Margin="10,50,0,0"/>
+        <TextBlock Text="{Binding Greeting}" Width="200" Height="25" Margin="10,100,0,0"/>
+    </Grid>
+</Window>
+```
+
 ## What are the benefits of using MVVM?
+
+### 1. Separation of Concerns
+
+- Modularity: MVVM promotes a clear `separation between` the `UI` (View), `business logic` and state (ViewModel), and `data` (Model). 
+This modularity makes the codebase more organized and manageable.
+- Single Responsibility: Each component has a distinct responsibility, making the code cleaner and easier to maintain.
+
+### 2. Improved Testability
+
+- Unit Testing: With `business logic` and `data handling` encapsulated in the ViewModel and Model, they can be independently unit tested 
+without involving the UI.
+- Mocking: Models and services can be mocked to isolate and test the ViewModel logic effectively.
+
+### 3. Reusability
+
+- Component Reuse: `ViewModels can be reused across different Views` or projects. Views can also be reused with different ViewModels, 
+enhancing code reuse.
+- Templates and Styles: The View can utilize templates, styles, and resources, promoting reuse and consistency across the UI.
+
+### 4. Maintainability
+
+- Easier Updates: `Changes in business logic or data handling do not directly affect the UI`, and vice versa. This reduces the risk of
+bugs when updating the application.
+- Scalability: The clear separation of concerns makes it easier to scale the application by adding new features or components.
+
+### 5. Data Binding
+
+- Automatic UI Updates: `Data binding capabilities ensure that the UI updates automatically` when the underlying data changes, reducing 
+the need for manual synchronization.
+- Declarative UI: The UI can be defined declaratively in XAML, making it easier to design and understand.
+
 ## What is the role of ICommand in MVVM?
+
+In the MVVM (Model-View-ViewModel) pattern, the `ICommand interface plays a crucial role in handling user interactions`, such as `button clicks`, 
+menu selections, and other `UI actions`. It helps to decouple the UI (View) from the business logic (ViewModel), ensuring that the ViewModel 
+handles the command logic. Here’s an overview of the role of ICommand in MVVM:
+
+Key Roles of ICommand in MVVM:
+
+### 1. Encapsulation of Command Logic
+
+- Separation from View: ICommand encapsulates the logic that should be executed in response to user actions. This logic `resides in the ViewModel`, 
+separating it from the View.
+- Reusability: `Commands can be reused across different Views` or components, promoting code reuse.
+
+### 2. Data Binding
+
+- Binding Commands: ICommand enables `binding of UI elements` (e.g., buttons) to `command logic in the ViewModel`. This allows the View to trigger 
+commands directly via data binding, without needing to know the implementation details.
+- Automatic UI Updates: Changes in the ViewModel’s state can automatically enable or disable commands through data binding.
+
+### 3. Enabling/Disabling UI Elements
+
+- CanExecute Method: ICommand includes the `CanExecute method`, which determines whether the command can be executed. This method can be used to enable or 
+`disable UI elements` based on the application’s state.
+- Dynamic UI: The UI can dynamically reflect the state of the application by enabling or disabling commands as needed.
+
+`RelayCommand.cs`
+
+```javascript
+using System;
+using System.Windows.Input;
+
+public class RelayCommand : ICommand
+{
+    private readonly Action _execute;
+    private readonly Func<bool> _canExecute;
+
+    public RelayCommand(Action execute, Func<bool> canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter)
+    {
+        return _canExecute == null || _canExecute();
+    }
+
+    public void Execute(object parameter)
+    {
+        _execute();
+    }
+
+    public event EventHandler CanExecuteChanged
+    {
+        add { CommandManager.RequerySuggested += value; }
+        remove { CommandManager.RequerySuggested -= value; }
+    }
+}
+```
+
+`ViewModel`
+
+```javascript
+using System.Windows.Input;
+
+public class UserViewModel : INotifyPropertyChanged
+{
+    private string _name;
+    private string _greeting;
+
+    public UserViewModel()
+    {
+        GreetCommand = new RelayCommand(Greet, CanGreet);
+    }
+
+    public string Name
+    {
+        get { return _name; }
+        set
+        {
+            if (_name != value)
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+                // Notify the command that its execution status might have changed
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+    }
+
+    public string Greeting
+    {
+        get { return _greeting; }
+        private set
+        {
+            if (_greeting != value)
+            {
+                _greeting = value;
+                OnPropertyChanged(nameof(Greeting));
+            }
+        }
+    }
+
+    public ICommand GreetCommand { get; private set; }
+
+    private void Greet()
+    {
+        Greeting = "Hello, " + Name;
+    }
+
+    private bool CanGreet()
+    {
+        return !string.IsNullOrWhiteSpace(Name);
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+```
