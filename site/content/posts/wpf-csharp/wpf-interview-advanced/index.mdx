@@ -3,14 +3,155 @@ title: WPF Advanced Topics
 category: WPF - CSharp
 author: Daniel Nguyen
 tags: ["#WPF"]
-date: 2024-07-14
+date: 2024-07-26
 thumbnail: image.png
 featured: true
 ---
 
-5
 ## What is DependencyProperty in WPF?
+
+In Windows Presentation Foundation (WPF), a DependencyProperty is a `special type of property` that extends the functionality of normal 
+.NET properties. It is used primarily for UI-related properties to support features such as `data binding, animation, styling, and property` 
+value inheritance.
+
+`Defining a DependencyProperty`
+
+```javascript
+public class MyControl : Control
+{
+    // Registering a DependencyProperty
+    public static readonly DependencyProperty MyPropertyProperty =
+        DependencyProperty.Register(
+            "MyProperty", 
+            typeof(string), 
+            typeof(MyControl), 
+            new PropertyMetadata("Default Value"));
+
+    // .NET property wrapper
+    public string MyProperty
+    {
+        get { return (string)GetValue(MyPropertyProperty); }
+        set { SetValue(MyPropertyProperty, value); }
+    }
+}
+```
+
+`Using DependencyProperty`
+
+```xaml
+<local:MyControl MyProperty="Hello, World!" />
+```
+
 ## How do you create a custom control in WPF?
+
+`Define the Custom Control Class`
+
+```javascript
+using System.Windows;
+using System.Windows.Controls;
+
+namespace MyCustomControls
+{
+    public class MyCustomControl : Control
+    {
+        static MyCustomControl()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(MyCustomControl), 
+                new FrameworkPropertyMetadata(typeof(MyCustomControl)));
+        }
+
+        // Define Dependency Properties here if needed
+        public static readonly DependencyProperty MyPropertyProperty =
+            DependencyProperty.Register(
+                "MyProperty", 
+                typeof(string), 
+                typeof(MyCustomControl), 
+                new PropertyMetadata("Default Value"));
+
+        public string MyProperty
+        {
+            get { return (string)GetValue(MyPropertyProperty); }
+            set { SetValue(MyPropertyProperty, value); }
+        }
+    }
+}
+```
+
+`Define the Default Style`
+
+```javascript
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:MyCustomControls">
+    
+    <Style TargetType="{x:Type local:MyCustomControl}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:MyCustomControl}">
+                    <Border Background="LightGray" BorderBrush="Black" BorderThickness="1">
+                        <TextBlock Text="{TemplateBinding MyProperty}" 
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
+```
+
+`Use the Custom Control in Your Application`
+
+```javascript
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:WpfApp"
+        xmlns:custom="clr-namespace:MyCustomControls;assembly=MyCustomControls"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <custom:MyCustomControl MyProperty="Hello, Custom Control!" />
+    </Grid>
+</Window>
+```
+
 ## Explain the Visual and Logical Tree in WPF.
-What is a RoutedEvent in WPF?
-What is the difference between a RoutedCommand and a normal command?
+
+
+In WPF, understanding the Visual Tree and Logical Tree is crucial for grasping `how the framework renders UI` elements and manages relationships 
+between them. Both trees represent different aspects of the element hierarchy in a WPF application.
+
+### Logical Tree
+
+The Logical Tree represents the `hierarchical relationships between elements that define the user interface` (UI) and behavior. It is primarily 
+concerned with the structure and content of the WPF application and is used for the following:
+
+- **Element Relationships**: Defines how elements are related to each other, such as a Window containing a Grid, which contains Button elements.
+- **Event Routing**: Manages how routed events travel through the element hierarchy.
+- **Resource Lookup**: Facilitates resource lookups, such as styles and templates, which can be defined at any level in the hierarchy.
+- **Data Binding**: Supports data binding, where elements can inherit data contexts from their parent elements.
+
+```javascript
+<Window>
+    <StackPanel>
+        <Button Content="Button 1" />
+        <Button Content="Button 2" />
+    </StackPanel>
+</Window>
+```
+
+### Visual Tree
+
+The Visual Tree `represents the rendering structure of the elements`. It includes all the visual elements, including those generated by control 
+templates and styles. The Visual Tree is essential for rendering, hit-testing, and animations. It is used for:
+
+- **Rendering**: Defines the visual structure of elements, including elements created by templates and styles.
+- **Hit Testing**: Determines which visual element is under a specific point (e.g., mouse click).
+- **Animations**: Manages animations applied to visual elements.
+- **Transforms** and Effects: Manages transforms (like rotate, scale) and effects (like drop shadow) applied to elements.
+
+![Visual Tree](./1.png 'Visual Tree')
+
+## What is a RoutedEvent in WPF?
+
+## What is the difference between a RoutedCommand and a normal command?
