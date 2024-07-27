@@ -154,4 +154,234 @@ templates and styles. The Visual Tree is essential for rendering, hit-testing, a
 
 ## What is a RoutedEvent in WPF?
 
+In Windows Presentation Foundation (WPF), a `RoutedEvent is a type of event that can invoke handlers on multiple listeners` 
+in a tree of elements. Routed events are a core part of the WPF event system, providing a way to handle events that can 
+traverse the element tree rather than being confined to a single element. There are three main routing strategies for 
+routed events in WPF:
+
+- **Direct**: This routing strategy behaves similarly to standard .NET events. The event is `raised and handled on the same element`, 
+and it does not propagate to other elements.
+- **Bubbling**: In this routing strategy, the event `starts at the source element` (the element that raised the event) and then 
+`bubbles up to its parent elements` in the logical tree, potentially reaching the root element.
+- **Tunneling**: Tunneling events start `at the root of the logical tree` and `tunnel down to the source element` that raised the event. 
+Tunneling events are often used in conjunction with bubbling events to ensure that parent elements can preemptively handle or 
+manipulate an event before it reaches the source element.
+
+### Below is a complete example demonstrating the use of a routed event in WPF.
+
+`Create a new class file for your custom control. Let's call it MyCustomControl.cs.`
+
+```javascript
+using System.Windows;
+using System.Windows.Controls;
+
+namespace RoutedEventExample
+{
+    public class MyCustomControl : Control
+    {
+        // Register a routed event using the bubbling strategy
+        public static readonly RoutedEvent MyRoutedEvent = EventManager.RegisterRoutedEvent(
+            "MyEvent", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MyCustomControl));
+
+        // Provide CLR accessors for the event
+        public event RoutedEventHandler MyEvent
+        {
+            add { AddHandler(MyRoutedEvent, value); }
+            remove { RemoveHandler(MyRoutedEvent, value); }
+        }
+
+        // Method to raise the event
+        protected void RaiseMyEvent()
+        {
+            RoutedEventArgs newEventArgs = new RoutedEventArgs(MyCustomControl.MyRoutedEvent);
+            RaiseEvent(newEventArgs);
+        }
+
+        // Override the OnClick method to raise the event when the control is clicked
+        protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
+        {
+            base.OnMouseLeftButtonDown(e);
+            RaiseMyEvent();
+        }
+    }
+}
+```
+
+`Next, add the custom control to your main window's XAML file, MainWindow.xaml.`
+
+```javascript
+<Window x:Class="RoutedEventExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RoutedEventExample"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <local:MyCustomControl x:Name="myCustomControl" Width="200" Height="100" Background="LightBlue" Margin="10"/>
+    </Grid>
+</Window>
+```
+
+In the code-behind file for the main window, MainWindow.xaml.cs, handle the routed event.
+
+```javascript
+using System.Windows;
+
+namespace RoutedEventExample
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            // Add the event handler for the custom routed event
+            myCustomControl.AddHandler(MyCustomControl.MyRoutedEvent, new RoutedEventHandler(MyCustomControl_MyEvent));
+        }
+
+        // Event handler method
+        private void MyCustomControl_MyEvent(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Routed event received!");
+        }
+    }
+}
+```
+
 ## What is the difference between a RoutedCommand and a normal command?
+
+In WPF, commands are a powerful way to handle user input actions in a decoupled manner, allowing for a clean separation 
+between the UI and the logic that handles the actions. There are two main types of commands in WPF: `RoutedCommand` and normal 
+`command` (typically represented by the ICommand interface). Here are the key differences between them:
+
+### RoutedCommand
+
+Routing Mechanism: RoutedCommands use the WPF routing infrastructure, which means they `can bubble up or tunnel down` the element 
+tree. This allows any element in the tree to handle the command, not just the one that initiated it.
+
+`XAML`
+
+```javascript
+<Window x:Class="RoutedCommandExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Window.CommandBindings>
+        <CommandBinding Command="local:CustomCommands.MyRoutedCommand" Executed="MyRoutedCommand_Executed" CanExecute="MyRoutedCommand_CanExecute"/>
+    </Window.CommandBindings>
+    <Grid>
+        <Button Command="local:CustomCommands.MyRoutedCommand" Content="Click Me" />
+    </Grid>
+</Window>
+```
+
+`Code-behind:`
+
+```javascript
+using System.Windows;
+using System.Windows.Input;
+
+namespace RoutedCommandExample
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void MyRoutedCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("RoutedCommand executed!");
+        }
+
+        private void MyRoutedCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+    }
+
+    public static class CustomCommands
+    {
+        public static readonly RoutedCommand MyRoutedCommand = new RoutedCommand();
+    }
+}
+```
+
+### Normal Command (ICommand)
+
+No Routing: Normal commands do not use the WPF routing infrastructure. They are typically `handled by the specific control` that 
+the command is associated with.
+
+`ViewModel`
+
+```javascript
+using System;
+using System.Windows.Input;
+
+namespace NormalCommandExample
+{
+    public class MainViewModel
+    {
+        public ICommand MyCommand { get; }
+
+        public MainViewModel()
+        {
+            MyCommand = new RelayCommand(ExecuteMyCommand, CanExecuteMyCommand);
+        }
+
+        private void ExecuteMyCommand(object parameter)
+        {
+            MessageBox.Show("Normal command executed!");
+        }
+
+        private bool CanExecuteMyCommand(object parameter)
+        {
+            return true;
+        }
+    }
+
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> execute;
+        private readonly Predicate<object> canExecute;
+
+        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+        {
+            this.execute = execute;
+            this.canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return canExecute == null || canExecute(parameter);
+        }
+
+        public void Execute(object parameter)
+        {
+            execute(parameter);
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+    }
+}
+```
+
+`XAML`
+
+```javascript
+<Window x:Class="NormalCommandExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:NormalCommandExample"
+        Title="MainWindow" Height="350" Width="525">
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+    <Grid>
+        <Button Command="{Binding MyCommand}" Content="Click Me" />
+    </Grid>
+</Window>
+```
