@@ -9,7 +9,306 @@ featured: true
 ---
 
 ## What are delegates in C#?
+
+Delegates in C# are `type-safe function pointers` that are used to encapsulate a method with a specific 
+signature and return type. They are the foundation of event handling and callbacks in C#
+
+Delegates are `often used in conjunction with events`. An event in C# is a wrapper around a delegate that 
+provides additional features for managing event subscribers.
+
+```javascript
+using System;
+
+public delegate void ProcessCompletedEventHandler();
+
+public class Publisher
+{
+    public event ProcessCompletedEventHandler ProcessCompleted;
+
+    public void StartProcess()
+    {
+        Console.WriteLine("Process Started...");
+
+        // Simulate some work with a delay
+        System.Threading.Thread.Sleep(2000);
+
+        // Raise the event
+        OnProcessCompleted();
+    }
+
+    protected virtual void OnProcessCompleted()
+    {
+        if (ProcessCompleted != null)
+        {
+            ProcessCompleted();
+        }
+    }
+}
+
+public class Subscriber
+{
+    public void OnProcessCompleted()
+    {
+        Console.WriteLine("Process Completed! Subscriber notified.");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Publisher publisher = new Publisher();
+        Subscriber subscriber = new Subscriber();
+
+        // Subscribe to the event
+        publisher.ProcessCompleted += subscriber.OnProcessCompleted;
+
+        // Start the process
+        publisher.StartProcess();
+
+        // Unsubscribe from the event (optional)
+        publisher.ProcessCompleted -= subscriber.OnProcessCompleted;
+
+        Console.ReadLine();
+    }
+}
+```
+
 ## Explain events in C#.
+
+Events in C# provide a way for `a class to notify other classes or objects` when something of interest occurs. 
+They are an essential part of the event-driven programming model and are built on top of delegates.
+
+```javascript
+public class Publisher
+{
+    // Declare the event using the delegate
+    public event ProcessCompletedEventHandler ProcessCompleted;
+
+    public void StartProcess()
+    {
+        Console.WriteLine("Process Started...");
+
+        // Simulate some work with a delay
+        System.Threading.Thread.Sleep(2000);
+
+        // Raise the event
+        OnProcessCompleted();
+    }
+
+    protected virtual void OnProcessCompleted()
+    {
+        // Check if there are any subscribers
+        ProcessCompleted?.Invoke(this, EventArgs.Empty);
+    }
+}
+
+public class Subscriber
+{
+    // Event handler method
+    public void OnProcessCompleted(object sender, EventArgs e)
+    {
+        Console.WriteLine("Process Completed! Subscriber notified.");
+    }
+}
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Publisher publisher = new Publisher();
+        Subscriber subscriber = new Subscriber();
+
+        // Subscribe to the event
+        publisher.ProcessCompleted += subscriber.OnProcessCompleted;
+
+        // Start the process
+        publisher.StartProcess();
+
+        // Unsubscribe from the event (optional)
+        publisher.ProcessCompleted -= subscriber.OnProcessCompleted;
+
+        Console.ReadLine();
+    }
+}
+```
+
 ## What is LINQ, and how is it used in C#?
+
+LINQ (Language Integrated Query) is a set of features in C# that allows you to` query and manipulate data in a more readable` 
+and concise way. LINQ enables you to write queries directly in C# (or other .NET languages) using a 
+`syntax similar to SQL`. It can be used to query various data sources, such as collections of objects 
+(in-memory data), `XML, databases`, and more.
+
+```javascript
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Student
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        List<Student> students = new List<Student>
+        {
+            new Student { Id = 1, Name = "Alice", Age = 23 },
+            new Student { Id = 2, Name = "Bob", Age = 21 },
+            new Student { Id = 3, Name = "Charlie", Age = 22 },
+            new Student { Id = 4, Name = "David", Age = 21 }
+        };
+
+        // Query syntax
+        var youngStudentsQuery = from student in students
+                                 where student.Age < 23
+                                 select student;
+
+        Console.WriteLine("Young students (query syntax):");
+        foreach (var student in youngStudentsQuery)
+        {
+            Console.WriteLine(student.Name);
+        }
+
+        // Method syntax
+        var youngStudentsMethod = students.Where(student => student.Age < 23);
+
+        Console.WriteLine("Young students (method syntax):");
+        foreach (var student in youngStudentsMethod)
+        {
+            Console.WriteLine(student.Name);
+        }
+    }
+}
+```
+
 ## What are generics in C#?
+
+Generics in C# allow you to define `classes, methods, interfaces, and delegates with a placeholder` for the type of data 
+they store or use. This provides type safety without the need to specify the actual data type when defining the class, 
+method, interface, or delegate. Instead, you specify the data type when you create an instance of the generic type or 
+call a generic method. Generics improve code reusability and performance by enabling you to write a method or class 
+that can work with any data type.
+
+```javascript
+public class GenericList<T>
+{
+    private T[] _items;
+    private int _count;
+
+    public GenericList(int capacity)
+    {
+        _items = new T[capacity];
+        _count = 0;
+    }
+
+    public void Add(T item)
+    {
+        if (_count < _items.Length)
+        {
+            _items[_count++] = item;
+        }
+    }
+
+    public T Get(int index)
+    {
+        if (index >= 0 && index < _count)
+        {
+            return _items[index];
+        }
+        throw new IndexOutOfRangeException();
+    }
+}
+
+GenericList<int> intList = new GenericList<int>(10);
+intList.Add(1);
+intList.Add(2);
+Console.WriteLine(intList.Get(0)); // Outputs: 1
+
+GenericList<string> stringList = new GenericList<string>(10);
+stringList.Add("Hello");
+stringList.Add("World");
+Console.WriteLine(stringList.Get(0)); // Outputs: Hello
+```
+
 ## Explain the difference between IEnumerable and IQueryable.
+
+In C#, IEnumerable and IQueryable are `two interfaces commonly used for data querying` and manipulation, 
+particularly in the context of LINQ (Language Integrated Query). Understanding the differences between 
+them is `crucial for effective data handling and performance optimization in various scenarios`.
+
+### IEnumerable
+
+- Namespace: System.Collections
+- Purpose: Provides a way to iterate over a collection of a specified type.
+
+```javascript
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+
+        // IEnumerable query
+        IEnumerable<int> query = numbers.Where(n => n > 2);
+
+        // Execution happens here
+        foreach (var num in query)
+        {
+            Console.WriteLine(num); // Outputs: 3, 4, 5
+        }
+    }
+}
+```
+
+### IQueryable
+
+- Namespace: System.Linq
+- Purpose: Provides functionality to query data from a data source (like a database) using LINQ.
+
+```javascript
+using System;
+using System.Linq;
+using System.Data.Entity;
+
+public class Product
+{
+    public int ProductId { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+public class MyDbContext : DbContext
+{
+    public DbSet<Product> Products { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        using (var context = new MyDbContext())
+        {
+            // IQueryable query
+            IQueryable<Product> query = context.Products.Where(p => p.Price > 100);
+
+            // Execution happens here (on the database)
+            foreach (var product in query)
+            {
+                Console.WriteLine(product.Name); // Outputs products with price > 100
+            }
+        }
+    }
+}
+```
