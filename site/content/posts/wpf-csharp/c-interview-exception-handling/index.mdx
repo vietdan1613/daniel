@@ -1,16 +1,262 @@
 ---
-title: C# Exception Handling
+title: Exception Handling in C#
 category: WPF - CSharp
 author: Daniel Nguyen
 tags: ["#WPF"]
-date: 2024-07-14
+date: 2024-08-03
 thumbnail: image.png
 featured: true
 ---
 
-4   
-How do you handle exceptions in C#?
-What is the difference between throw and throw ex in C#?
-What is a finally block?
-What are custom exceptions in C#?
-Explain the concept of exception filtering in C#.
+## How do you handle exceptions in C#?
+
+Handling exceptions in C# involves using a combination of `try`, `catch`, `finally`, and `throw` statements. 
+Here's a breakdown of these components:
+
+```javascript
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            // Code that might throw an exception
+            int[] numbers = { 1, 2, 3 };
+            Console.WriteLine(numbers[5]); // This will throw an IndexOutOfRangeException
+
+            using (StreamReader sr = new StreamReader("nonexistentfile.txt"))
+            {
+                // This will throw a FileNotFoundException
+                Console.WriteLine(sr.ReadToEnd());
+            }
+        }
+        catch (IndexOutOfRangeException ex)
+        {
+            Console.WriteLine("An index was out of range: " + ex.Message);
+        }
+        catch (FileNotFoundException ex)
+        {
+            Console.WriteLine("File not found: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An unexpected error occurred: " + ex.Message);
+        }
+        finally
+        {
+            Console.WriteLine("Execution of the try-catch block is complete.");
+        }
+    }
+}
+```
+
+## What is the difference between throw and throw ex in C#?
+
+In C#, both `throw` and `throw ex` are used to raise exceptions, but they 
+`differ in how they affect the stack trace information`, which is crucial for debugging.
+
+- **throw**: Re-throws the `current exception` while preserving the original stack trace information.
+
+- **throw ex**: Throws the `caught exception but resets the stack trace` to the current location. Making it harder 
+to trace the source of the exception, `only use throw ex if you have a specific reason`.
+
+
+```javascript
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            Method1();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Caught in Main: " + ex.StackTrace);
+        }
+    }
+
+    static void Method1()
+    {
+        try
+        {
+            Method2();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Caught in Method1");
+            // throw ex; // Uncomment this to see the difference
+            throw; // Preserve original stack trace
+        }
+    }
+
+    static void Method2()
+    {
+        throw new Exception("An error occurred in Method2");
+    }
+}
+
+// Output with throw:
+
+// Caught in Method1
+// Caught in Main:    at Program.Method2() in ...\Program.cs:line 26
+//    at Program.Method1() in ...\Program.cs:line 19
+//    at Program.Main() in ...\Program.cs:line 10
+
+// Output with throw ex:
+
+// Caught in Method1
+// Caught in Main:    at Program.Method1() in ...\Program.cs:line 20
+//    at Program.Main() in ...\Program.cs:line 10
+```
+
+## What is a finally block?
+
+A finally block in C# is a section of code that is `guaranteed to execute regardless of whether an exception is thrown or not`. 
+It is typically `used for cleanup operations, such as releasing resources, closing file streams`, or resetting variables, 
+ensuring that these operations occur even if an error occurs in the try block.
+
+
+```javascript
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        StreamReader reader = null;
+        try
+        {
+            reader = new StreamReader("example.txt");
+            Console.WriteLine(reader.ReadToEnd());
+        }
+        catch (FileNotFoundException ex)
+        {
+            Console.WriteLine("File not found: " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+        finally
+        {
+            if (reader != null)
+            {
+                reader.Close();
+                Console.WriteLine("File stream closed.");
+            }
+        }
+    }
+}
+```
+
+## What are custom exceptions in C#?
+
+Custom exceptions in C# are `user-defined exception classes that extend the base Exception class`. They are used to 
+create meaningful and specific error conditions that are relevant to the application or domain. Custom exceptions can i
+mprove the readability and maintainability of your code by providing more context about what went wrong, compared to 
+using generic exceptions.
+
+
+```javascript
+using System;
+
+public class InvalidAgeException : Exception
+{
+    public int Age { get; }
+
+    public InvalidAgeException() { }
+
+    public InvalidAgeException(string message) : base(message) { }
+
+    public InvalidAgeException(string message, int age) : base(message)
+    {
+        Age = age;
+    }
+
+    public InvalidAgeException(string message, Exception inner) : base(message, inner) { }
+}
+```
+
+
+```javascript
+public class Person
+{
+    public int Age { get; set; }
+
+    public void SetAge(int age)
+    {
+        if (age < 0 || age > 150)
+        {
+            throw new InvalidAgeException($"Invalid age: {age}", age);
+        }
+
+        Age = age;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Person person = new Person();
+        try
+        {
+            person.SetAge(-5);
+        }
+        catch (InvalidAgeException ex)
+        {
+            Console.WriteLine($"Caught an InvalidAgeException: {ex.Message}");
+            Console.WriteLine($"Invalid age provided: {ex.Age}");
+        }
+    }
+}
+```
+
+## Explain the concept of exception filtering in C#.
+
+Exception filtering in C# `allows you to conditionally catch exceptions based on a predicate`. This is done using the 
+`when keyword` in the catch block. The when clause specifies a condition that must be true for the exception to be caught. 
+This feature provides more granular control over exception handling by enabling you to catch exceptions only when 
+certain conditions are met.
+
+- `Reduces the overhead of handling exception`s that do not meet specific criteria by avoiding unnecessary catch block executions.
+- If an exception is not caught by a catch block with a when filter (because the condition evaluated to false), it will `propagate to the next matching catch` block or up the call stack.
+
+```javascript
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            ThrowException();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException)
+        {
+            Console.WriteLine("Caught an InvalidOperationException.");
+        }
+        catch (Exception ex) when (ex.Message.Contains("special"))
+        {
+            Console.WriteLine("Caught an exception with a special message.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Caught a general exception: {ex.Message}");
+        }
+    }
+
+    static void ThrowException()
+    {
+        throw new InvalidOperationException("This is a special invalid operation.");
+    }
+}
+```
