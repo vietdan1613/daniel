@@ -9,7 +9,164 @@ featured: true
 ---
  
 ## What is garbage collection in C#?
+
+Garbage collection (GC) in C# is an `automated memory management feature` provided by the .NET runtime 
+(CLR - Common Language Runtime). It helps developers by automatically `reclaiming memory occupied by objects
+that are no longer in use`, thus preventing memory leaks and optimizing the use of available memory.
+
+**How Garbage Collection Works**
+
+- **Allocation**: When a new object is created, it is `allocated on the managed heap in Generation 0`.
+- **Triggering a GC**: GC can be triggered under several conditions, such as when Generation 0 is full or when system memory is low. It can also be explicitly triggered by the application, although this is generally discouraged.
+- **Promotion**: Objects that survive a GC cycle are promoted to the next generation. Objects in Generation 0 that survive are promoted to Generation 1, and objects in Generation 1 that survive are promoted to Generation 2.
+- **Collection**: During a garbage collection event, the GC will:
+    - Suspend the execution of the application.
+    - Identify all objects that are still reachable.
+    - Reclaim memory from unreachable objects.
+    - Compact the heap (if necessary) to reduce fragmentation.
+
+**IDisposable and Dispose Pattern:**
+
+The IDisposable interface and the Dispose method provide a way to `release unmanaged resources` deterministically. 
+The using statement ensures that Dispose is called automatically.
+
+```javascript
+public class ResourceHolder : IDisposable
+{
+    private bool disposed = false;
+    private IntPtr unmanagedResource; // Unmanaged resource
+
+    public ResourceHolder()
+    {
+        // Allocate the unmanaged resource
+        unmanagedResource = // allocation logic here
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this); // Suppress finalization
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources here
+            }
+
+            // Free unmanaged resources here
+            if (unmanagedResource != IntPtr.Zero)
+            {
+                // Free the unmanaged resource
+                unmanagedResource = IntPtr.Zero;
+            }
+
+            disposed = true;
+        }
+    }
+
+    ~ResourceHolder()
+    {
+        Dispose(false);
+    }
+}
+```
+
 ## How does the using statement work in C#?
+
+The using statement in C# is used to ensure that **IDisposable** objects are disposed of properly, 
+`releasing any unmanaged resources they hold`. This is particularly useful for managing resources like 
+`file handles, database connections, and network streams`.
+
+```javascript
+using (var resource = new SomeDisposableResource())
+{
+    // Use the resource
+} // Dispose is called automatically here
+```
+
 ## What are weak references?
+
+Weak references in C# provide a way to reference an object without `preventing the garbage collector from reclaiming` 
+the object's memory. They are useful for `caching` scenarios where you want to keep an object alive as long as it is 
+being used but allow it to be collected when memory is needed. 
+
+```javascript
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var strongReference = new MyClass();
+        var weakReference = new WeakReference<MyClass>(strongReference);
+
+        strongReference = null; // Remove strong reference
+
+        MyClass retrievedObject;
+        if (weakReference.TryGetTarget(out retrievedObject))
+        {
+            Console.WriteLine("Object is still alive.");
+        }
+        else
+        {
+            Console.WriteLine("Object has been collected.");
+        }
+    }
+}
+
+class MyClass
+{
+    // Some class implementation
+}
+```
+
 ## What is the difference between Dispose and Finalize methods?
+
+In C#, both **Dispose** and **Finalize** are methods used for `releasing unmanaged resources`, but they serve 
+different purposes and have different usage patterns. Understanding the differences between them is crucial for 
+effective resource management in your applications.
+
+- The **Dispose** method is part of the `IDisposable interface` and is used to explicitly release unmanaged resources.
+- The **Finalize** method (also known as a `destructor in C#`) is used to perform cleanup operations before the object 
+is reclaimed by the garbage collector.
+
+```javascript
+public class ResourceHolder
+{
+    private IntPtr unmanagedResource; // Unmanaged resource
+
+    public ResourceHolder()
+    {
+        // Allocate the unmanaged resource
+        unmanagedResource = /* allocation logic here */;
+    }
+
+    ~ResourceHolder()
+    {
+        // Free the unmanaged resource
+        if (unmanagedResource != IntPtr.Zero)
+        {
+            // Free the unmanaged resource
+            unmanagedResource = IntPtr.Zero;
+        }
+    }
+}
+```
+
 ## Explain the concept of memory leaks and how to prevent them in C#.
+
+Memory leaks in C# occur when `objects are not properly released, leading to increased memory` usage and potential 
+application crashes. To prevent memory leaks, `implement the IDisposable interface and the dispose pattern`, 
+use the using statement, unsubscribe from events, avoid static references, use weak references for caching, and 
+ensure managed resources are disposed of correctly. Additionally, use tools like memory profilers and garbage 
+collection logs to detect and diagnose memory leaks.
+
+**Unmanaged Resources** Unmanaged resources are resources that are not handled by the .NET runtime and require explicit cleanup. Examples include:
+
+- File Handles: Handles to open files provided by the operating system.
+- Database Connections: Connections to databases managed by database engines (e.g., SQL Server, Oracle).
+- Network Sockets: Network connections to other systems or services.
