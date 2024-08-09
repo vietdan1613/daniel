@@ -9,7 +9,298 @@ featured: true
 ---
 
 ## What are design patterns, and why are they important?
+
+Design patterns are `reusable solutions to common problems in software design`. They provide a standard terminology and are specific to particular scenarios.
+
+### Types of Design Patterns
+
+1. **Creational Patterns**: Deal with object creation mechanisms.
+
+- `Singleton`: Ensures a class has only one instance and provides a global point of access to it.
+- `Factory Method`: Creates objects without specifying the exact class of object that will be created.
+- `Abstract Factory`: Provides an interface for creating families of related or dependent objects without specifying their concrete classes.
+- `Builder`: Separates the construction of a complex object from its representation.
+- `Prototype`: Creates new objects by copying an existing object, known as the prototype.
+
+2. **Structural Patterns**: Deal with object composition and typically identify simple ways to realize relationships between entities.
+
+- `Adapter`: Allows incompatible interfaces to work together.
+- `Bridge`: Separates an object’s abstraction from its implementation so the two can vary independently.
+- `Composite`: Composes objects into tree structures to represent part-whole hierarchies.
+- `Decorator`: Adds responsibilities to objects dynamically.
+- `Facade`: Provides a simplified interface to a complex subsystem.
+- `Flyweight`: Reduces the cost of creating and manipulating a large number of similar objects.
+- `Proxy`: Provides a surrogate or placeholder for another object to control access to it.
+
+3. **Behavioral Patterns**: Deal with algorithms and the assignment of responsibilities between objects.
+
+- `Chain of Responsibility`: Passes a request along a chain of handlers.
+- `Command`: Encapsulates a request as an object.
+- `Interpreter`: Implements a specialized language.
+- `Iterator`: Provides a way to access elements of a collection sequentially.
+- `Mediator`: Defines an object that encapsulates how a set of objects interact.
+- `Memento`: Captures and restores an object’s internal state.
+- `Observer`: Defines a one-to-many dependency between objects.
+- `State`: Allows an object to alter its behavior when its internal state changes.
+- `Strategy`: Defines a family of algorithms, encapsulates each one, and makes them interchangeable.
+- `Template Method`: Defines the skeleton of an algorithm, deferring some steps to subclasses.
+- `Visitor`: Represents an operation to be performed on the elements of an object structure.
+
+### Importance of Design Patterns
+
+- `Standardization`: Provide a standard terminology and are well known in the software development community, `facilitating communication among developers`.
+- `Reusability`: Offer `reusable solutions` that can be applied to common problems, saving time and effort in the development process.
+- `Best Practices`: Incorporate the best practices and principles of object-oriented design, helping developers `create more robust and maintainable code`.
+- `Improved Design`: Help in `designing systems that are more flexible, reusable, and easier to manage` and modify over time.
+- `Documentation and Maintenance`: Serve as a guide for `documenting and understanding existing code`, which aids in maintaining and extending the system.
+
 ## Explain the Singleton pattern with an example.
+
+The Singleton pattern ensures that `a class has only one instance` and `provides a global point of access to that instance`. 
+This is useful when exactly one object is needed to coordinate actions across the system.
+
+The lock statement in C# is used to ensure that a block of code runs only by one thread at a time. It provides a mechanism for thread synchronization, 
+which is essential in multi-threaded applications to avoid race conditions and ensure data integrity.
+
+```javascript
+using System;
+
+public class Singleton
+{
+    // Private static variable that holds the single instance of the class
+    private static Singleton instance = null;
+    
+    // Lock synchronization object
+    private static readonly object padlock = new object();
+
+    // Private constructor to prevent instantiation from outside
+    private Singleton()
+    {
+    }
+
+    // Public static method to provide a global point of access to the instance
+    public static Singleton Instance
+    {
+        get
+        {
+            // Double-check locking to ensure thread safety
+            if (instance == null)
+            {
+                lock (padlock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new Singleton();
+                    }
+                }
+            }
+            return instance;
+        }
+    }
+
+    // Example method to demonstrate functionality
+    public void ShowMessage()
+    {
+        Console.WriteLine("Hello from the Singleton instance!");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Access the Singleton instance and call a method on it
+        Singleton.Instance.ShowMessage();
+
+        // Verify that only one instance is created
+        Singleton s1 = Singleton.Instance;
+        Singleton s2 = Singleton.Instance;
+
+        if (s1 == s2)
+        {
+            Console.WriteLine("Both instances are the same.");
+        }
+        else
+        {
+            Console.WriteLine("Different instances.");
+        }
+    }
+}
+```
+
 ## What is the Repository pattern?
+
+The Repository pattern is a design pattern that `mediates data access logic to business logic` by `encapsulating the set of objects stored` in a database and the 
+operations performed over them. It provides a more object-oriented approach to accessing data and abstracts the details of data access, allowing the business 
+logic to interact with a more meaningful domain model rather than directly with the database.
+
+### Step 1: Define the Entity
+
+```javascript
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+```
+
+### Step 2: Define the Repository Interface
+
+```javascript
+using System.Collections.Generic;
+
+public interface IProductRepository
+{
+    IEnumerable<Product> GetAll();
+    Product GetById(int id);
+    void Add(Product product);
+    void Update(Product product);
+    void Delete(int id);
+}
+```
+
+### Step 3: Implement the Repository
+
+```javascript
+using System.Collections.Generic;
+using System.Linq;
+
+public class ProductRepository : IProductRepository
+{
+    private readonly List<Product> _products = new List<Product>();
+
+    public IEnumerable<Product> GetAll()
+    {
+        return _products;
+    }
+
+    public Product GetById(int id)
+    {
+        return _products.FirstOrDefault(p => p.Id == id);
+    }
+
+    public void Add(Product product)
+    {
+        _products.Add(product);
+    }
+
+    public void Update(Product product)
+    {
+        var existingProduct = _products.FirstOrDefault(p => p.Id == product.Id);
+        if (existingProduct != null)
+        {
+            existingProduct.Name = product.Name;
+            existingProduct.Price = product.Price;
+        }
+    }
+
+    public void Delete(int id)
+    {
+        var product = _products.FirstOrDefault(p => p.Id == id);
+        if (product != null)
+        {
+            _products.Remove(product);
+        }
+    }
+}
+```
+
+### Step 4: Use the Repository in Business Logic
+
+```javascript
+class Program
+{
+    static void Main(string[] args)
+    {
+        IProductRepository productRepository = new ProductRepository();
+
+        // Add some products
+        productRepository.Add(new Product { Id = 1, Name = "Product 1", Price = 10.0m });
+        productRepository.Add(new Product { Id = 2, Name = "Product 2", Price = 20.0m });
+
+        // Retrieve and display all products
+        var products = productRepository.GetAll();
+        foreach (var product in products)
+        {
+            Console.WriteLine($"Id: {product.Id}, Name: {product.Name}, Price: {product.Price}");
+        }
+
+        // Update a product
+        var productToUpdate = productRepository.GetById(1);
+        if (productToUpdate != null)
+        {
+            productToUpdate.Name = "Updated Product 1";
+            productToUpdate.Price = 15.0m;
+            productRepository.Update(productToUpdate);
+        }
+
+        // Delete a product
+        productRepository.Delete(2);
+
+        // Retrieve and display all products again
+        products = productRepository.GetAll();
+        foreach (var product in products)
+        {
+            Console.WriteLine($"Id: {product.Id}, Name: {product.Name}, Price: {product.Price}");
+        }
+    }
+}
+```
+
 ## What are SOLID principles?
+
+The SOLID principles are a `set of five design principles in object-oriented` programming that help developers create more maintainable, understandable, and flexible software. 
+
+### 1. Single Responsibility Principle (SRP)
+
+- Definition: A class `should have only one reason to change`, meaning it should have only one responsibility or job.
+- Explanation: Each class should `focus on a single task or functionality`. This makes the class easier to maintain and test, as changes to one responsibility won't affect others.
+
+### 2. Open/Closed Principle (OCP)
+
+- Definition: Software entities (like classes, modules, functions, etc.) `should be open for extension but closed for modification.`
+- Explanation: You should be able to extend the behavior of a class without modifying its existing code`. This can be achieved through `inheritance, interfaces`, or other forms of polymorphism.
+
+### 3. Liskov Substitution Principle (LSP)
+
+- Definition: Objects of a superclass should be replaceable with objects of a subclass without affecting the correctness of the program.
+- Explanation: If a `subclass is used in place of a superclass, the program should still behave correctly`. This ensures that derived classes extend the base class without changing its fundamental behavior.
+
+### 4. Interface Segregation Principle (ISP)
+
+- Definition: Clients should not be forced to depend on interfaces they do not use.
+- Explanation: `Instead of having one large, complex interface, it's better to have multiple smaller, more specific interfaces`. This allows classes to implement only the methods they need, making the code more modular and easier to maintain.
+
+### 5. Dependency Inversion Principle (DIP)
+
+- Definition: High-level modules should not depend on low-level modules. Both should depend on abstractions. Additionally, abstractions should not depend on details. Details should depend on abstractions.
+- Explanation: This principle encourages the `decoupling of software components`. By depending on abstractions rather than concrete implementations, the code becomes more flexible and easier to change or extend.
+
 ## How do you ensure code quality and maintainability in C# projects?
+
+1. Adhere to SOLID Principles
+
+- Single Responsibility Principle: Ensure each class or method has a single responsibility.
+- Open/Closed Principle: Write code that can be extended without modifying existing code.
+- Liskov Substitution Principle: Ensure derived classes can be substituted for base classes without altering the correctness of the program.
+- Interface Segregation Principle: Break down large interfaces into smaller, more specific ones.
+- Dependency Inversion Principle: Rely on abstractions rather than concrete implementations.
+
+2. Use Design Patterns
+
+Implement design patterns such as Factory, Singleton, Repository, and Dependency Injection to solve common problems in a standardized way.
+Design patterns help in writing code that is more flexible, reusable, and easier to maintain.
+
+3. Automated Testing
+
+- Unit Testing: Write unit tests using frameworks like xUnit, NUnit, or MSTest to ensure individual components work as expected.
+- Integration Testing: Test how different components work together.
+- Continuous Integration (CI): Use CI tools like Azure DevOps, Jenkins, or GitHub Actions to run automated tests with each commit, ensuring new changes don’t break the existing code.
+
+4. Follow Clean Code Practices
+
+- Write readable and self-explanatory code by using meaningful names for variables, methods, and classes.
+- Keep methods short and focused on a single task.
+- Avoid magic numbers and hardcoded values; instead, use constants or configuration files.
+- Properly document the code with comments and XML documentation where necessary.
