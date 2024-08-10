@@ -9,7 +9,229 @@ featured: true
 ---
 
 ## What is reflection in C#?
+
+Reflection in C# is a `feature that allows a program to inspect and interact with its own metadata at runtime`. 
+This includes the ability to:
+
+- **Creating plugins or extensibility frameworks**: Where `types are loaded at runtime`.
+- **Developing object serializers**: Where types are examined to `generate XML or JSON`.
+- **Unit testing frameworks**: Which `discover and invoke tests based on reflection`.
+
+```javascript
+using System;
+using System.Reflection;
+using System.Text;
+
+public class SimpleJsonSerializer
+{
+    public static string SerializeObject(object obj)
+    {
+        Type type = obj.GetType();
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.Append("{");
+
+        PropertyInfo[] properties = type.GetProperties();
+        for (int i = 0; i < properties.Length; i++)
+        {
+            PropertyInfo property = properties[i];
+            string name = property.Name;
+            object value = property.GetValue(obj, null);
+
+            jsonBuilder.AppendFormat("\"{0}\": \"{1}\"", name, value);
+
+            if (i < properties.Length - 1)
+            {
+                jsonBuilder.Append(", ");
+            }
+        }
+
+        jsonBuilder.Append("}");
+        return jsonBuilder.ToString();
+    }
+}
+
+public class Person
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public int Age { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Person person = new Person
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Age = 30
+        };
+
+        string json = SimpleJsonSerializer.SerializeObject(person);
+        Console.WriteLine(json);
+    }
+}
+```
+
 ## Explain the concept of extension methods.
+
+Extension methods in C# allow you to `add new methods to existing types without modifying their source code` or creating 
+a new derived type. This is particularly useful when you want to add functionality to classes that you don’t control, such 
+as classes from the .NET Framework or third-party libraries.
+
+Many of the **LINQ** methods, like** Where, Select, OrderBy**, etc., are implemented as extension methods for IEnumerable.
+This allows you to use LINQ queries on any collection that implements IEnumerable.
+
+```javascript
+using System;
+
+public static class StringExtensions
+{
+    public static int WordCount(this string str)
+    {
+        if (string.IsNullOrWhiteSpace(str))
+            return 0;
+
+        string[] words = str.Split(new char[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        return words.Length;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        string sentence = "Hello world, this is an example sentence.";
+        int count = sentence.WordCount();  // Using the extension method
+        Console.WriteLine($"Word count: {count}");
+    }
+}
+```
+
 ## What is the difference between const and readonly?
+
+In C#, const and readonly are both used to define fields that are `intended to remain constant after their initial` 
+assignment. However, they differ in several key aspects:
+
+### const:
+
+- Must be `initialized at the time of declaration`.
+- `Implicitly static`, meaning it belongs to the type itself rather than an instance.
+- Can only be used with primitive types (like `int, char, float`, etc.), enums, or strings, or null for reference types.
+
+### readonly:
+
+- Can be initialized either at the time of declaration or in a constructor.
+- Can be instance-level (non-static) or static.
+- Can be used with any data type, including complex objects and arrays.
+
+```javascript
+public class Example
+{
+    public const int ConstValue = 10; // Known at compile time, can't change
+
+    public readonly int ReadOnlyValue;
+
+    public Example(int value)
+    {
+        ReadOnlyValue = value; // Can be set differently depending on how the constructor is called
+    }
+}
+```
+
 ## What is the purpose of the var keyword?
+
+The var keyword in C# is used for `implicitly typed local variables`. It allows the compiler to automatically 
+determine the type of a variable based on the value assigned to it at the time of declaration. This can make 
+code cleaner and easier to read, especially when dealing with complex types or when the exact type is evident 
+from the context.
+
+### Limitations:
+
+- Explicit Initialization: You `must initialize a var variable at the point of declaration`; otherwise, the compiler won't be able to infer the type.
+- Readability: Overuse of var can make the code `less readable`, especially when the inferred type is not immediately obvious. For example, it's better to use explicit typing when the type is not clear from the context.
+
+```javascript
+var number = 10;       // int
+var name = "John";     // string
+var list = new List<int>();  // List<int>
+```
+
 ## How do you serialize and deserialize objects in C#?
+
+In C#, serialization is the process of `converting an object into a format that can be stored or transmitted` 
+(e.g., to a file, a database, or over a network). Deserialization is the reverse process—converting the serialized 
+data back into an object. C# provides several ways to serialize and deserialize objects, with the most common methods 
+involving JSON, XML, and binary formats.
+
+### 1. Serialization with JSON
+
+The System.Text.Json and Newtonsoft.Json (Json.NET) libraries are commonly used for JSON serialization.
+
+Using System.Text.Json (built-in in .NET Core and later):
+
+```javascript
+using System;
+using System.Text.Json;
+
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Person person = new Person { Name = "John", Age = 30 };
+        
+        // Serialize to JSON
+        string jsonString = JsonSerializer.Serialize(person);
+        Console.WriteLine(jsonString);
+
+        // Deserialize from JSON
+        Person deserializedPerson = JsonSerializer.Deserialize<Person>(jsonString);
+        Console.WriteLine($"Name: {deserializedPerson.Name}, Age: {deserializedPerson.Age}");
+    }
+}
+```
+
+### 2. Serialization with XML
+
+The System.Xml.Serialization.XmlSerializer class is used for XML serialization.
+
+```javascript
+using System;
+using System.IO;
+using System.Xml.Serialization;
+
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Person person = new Person { Name = "John", Age = 30 };
+
+        XmlSerializer serializer = new XmlSerializer(typeof(Person));
+        using (StringWriter writer = new StringWriter())
+        {
+            serializer.Serialize(writer, person);
+            string xmlString = writer.ToString();
+            Console.WriteLine(xmlString);
+        }
+
+        using (StringReader reader = new StringReader(xmlString))
+        {
+            Person deserializedPerson = (Person)serializer.Deserialize(reader);
+            Console.WriteLine($"Name: {deserializedPerson.Name}, Age: {deserializedPerson.Age}");
+        }
+    }
+}
+```
