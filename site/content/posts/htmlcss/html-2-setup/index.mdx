@@ -1,0 +1,100 @@
+---
+title: "Basic HTML File with a Font Setup"
+category: HTML & CSS
+author: Daniel Nguyen
+tags: ['#HTML', '#CSS']
+date: 2024-12-17
+thumbnail: image.jpg
+featured: true
+---
+
+## Basic HTML File with a Font Setup
+
+Here’s a simple example:
+
+### 1. **HTML File**: 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Font Setup Example</title>
+  <!-- Link to Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Link to CSS File -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Welcome to My Website</h1>
+  <p>This is a paragraph using the Roboto font.</p>
+</body>
+</html>
+```
+
+---
+
+### 2. **CSS File (`styles.css`)**:
+```css
+/* Apply the font to the entire page */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Styling for headings */
+h1 {
+  font-size: 2.5em;
+  color: #4CAF50;
+  text-align: center;
+}
+
+/* Styling for paragraphs */
+p {
+  font-size: 1.2em;
+  line-height: 1.6;
+  margin: 20px;
+}
+```
+
+---
+
+## **Using Locally Hosted Fonts**
+
+If you have a font file (e.g., `.ttf` or `.woff2`), you can host it locally.
+
+### 1. Place the font file in your project folder:
+```
+project/
+│
+├── fonts/
+│   └── CustomFont-Regular.ttf
+├── styles.css
+└── index.html
+```
+
+### 2. Update the CSS:
+```css
+/* Load the custom font */
+@font-face {
+  font-family: 'CustomFont';
+  src: url('fonts/CustomFont-Regular.ttf') format('truetype');
+}
+
+/* Use the custom font */
+body {
+  font-family: 'CustomFont', sans-serif;
+}
+```
+
+---
+
+## **Where to Find Fonts?**
+- **Google Fonts**: Free and easy to use.
+- **Fontsquirrel**: Offers free fonts with web licenses.
+- **Adobe Fonts**: Premium fonts for Creative Cloud users.
+
+This setup is flexible and works for both simple and more advanced projects. Let me know if you’d like to include additional examples!
