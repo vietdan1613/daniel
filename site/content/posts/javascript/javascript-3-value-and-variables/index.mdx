@@ -1,0 +1,115 @@
+---
+title: "📘 Section 3: Values and Variables in JavaScript"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-07
+thumbnail: image.png
+featured: true
+---
+
+In programming, **values** are the data we work with, such as numbers, text, or boolean states, while **variables** act as containers for storing these values. Together, they form the building blocks of any JavaScript program.
+
+---
+
+## **Values**
+A **value** is the fundamental unit of data. Values in JavaScript can be of different types:  
+- **Primitive Types**: Directly represent data.
+  - `String`: Text data, e.g., `"Hello, world!"`
+  - `Number`: Numeric data, e.g., `42`, `3.14`
+  - `Boolean`: True/False values, e.g., `true`, `false`
+  - `Undefined`: A variable that has been declared but not assigned a value.
+  - `Null`: Represents an intentional absence of a value.
+  - `Symbol`: Unique identifiers (used less commonly).
+  - `BigInt`: For integers larger than the `Number` type can safely represent.
+
+- **Reference Types**: Point to objects or collections.
+  - **Objects**: Collections of key-value pairs.
+  - **Arrays**: Ordered collections of data.
+
+---
+
+## **Variables**
+A **variable** is a named placeholder that stores a value. You can think of it as a "box" labeled with a name, holding your data.
+
+### Declaring Variables
+JavaScript provides three ways to declare variables:
+1. **`var`** (old and less commonly used now)
+2. **`let`** (modern and preferred for block-scoped variables)
+3. **`const`** (for constants whose values shouldn’t change)
+
+### Syntax:
+```javascript
+let variableName = value; // using let
+const constantName = value; // using const
+```
+
+---
+
+## **Examples**
+### Using `let`:
+```javascript
+let age = 25; // Declare a variable named age with the value 25
+console.log(age); // Output: 25
+
+age = 30; // Reassign a new value to the variable
+console.log(age); // Output: 30
+```
+
+### Using `const`:
+```javascript
+const birthYear = 1995; // Declare a constant named birthYear
+console.log(birthYear); // Output: 1995
+
+// birthYear = 2000; // This would throw an error because you cannot reassign a const
+```
+
+### Declaring Multiple Variables:
+```javascript
+let name = "Alice", city = "Wonderland", age = 18;
+console.log(name, city, age); // Output: Alice Wonderland 18
+```
+
+---
+
+## **Rules for Variable Names**
+1. Names can contain letters, digits, underscores (`_`), and dollar signs (`$`).
+2. Must begin with a letter, underscore, or dollar sign.
+3. Cannot be a reserved keyword (e.g., `let`, `const`, `if`).
+4. Variable names are case-sensitive (`myVar` and `myvar` are different).
+
+---
+
+## **Dynamic Typing**
+JavaScript is a dynamically typed language, meaning variables can hold values of any type, and you can change the type of a value stored in a variable:
+
+```javascript
+let data = 42;         // Number
+console.log(typeof data); // Output: number
+
+data = "Hello!";       // Now a String
+console.log(typeof data); // Output: string
+```
+
+---
+
+## **Default Values**
+If you declare a variable but do not assign a value, it defaults to `undefined`:
+
+```javascript
+let name;
+console.log(name); // Output: undefined
+```
+
+---
+
+## **Best Practices**
+- Use `let` for variables that may change.
+- Use `const` for variables that should remain constant.
+- Name variables clearly and descriptively (`userName` instead of `x`).
+- Follow camelCase naming convention for variables.
+
+---
+
+## Final Thoughts
+Variables and values are the foundation of any JavaScript program. By mastering how to declare, use, and manage variables effectively, you’ll have a strong start in building dynamic and interactive web applications.
