@@ -1,0 +1,111 @@
+---
+title: "📘 50 JavaScript interview questions Beginner-Level"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#InterView']
+date: 2025-03-02
+thumbnail: image.png
+featured: true
+---
+
+1. **What are the different data types in JavaScript?**  
+   - **Primitive Types**: `String`, `Number`, `Boolean`, `Undefined`, `Null`, `BigInt`, `Symbol`
+   - **Non-Primitive Types**: `Object`, `Array`, `Function`
+
+2. **What is the difference between `var`, `let`, and `const`?**  
+   - `var`: Function-scoped, can be redeclared and updated.  
+   - `let`: Block-scoped, cannot be redeclared but can be updated.  
+   - `const`: Block-scoped, cannot be redeclared or updated.
+
+3. **Explain the difference between `==` and `===`.**  
+   - `==`: Compares values with type coercion.  
+   - `===`: Compares values and types without conversion.  
+
+   ```js
+   console.log(5 == "5");  // true
+   console.log(5 === "5"); // false
+   ```
+
+4. **What are truthy and falsy values in JavaScript?**  
+   - **Falsy values**: `false`, `0`, `""`, `null`, `undefined`, `NaN`
+   - Everything else is **truthy**.
+
+5. **What is the difference between `null` and `undefined`?**  
+   - `null`: Explicitly set to "no value".  
+   - `undefined`: A variable declared but not assigned a value.
+
+6. **What is type coercion in JavaScript?**  
+   - Automatic conversion of one data type to another.  
+
+   ```js
+   console.log("5" - 2); // 3 (string converted to number)
+   console.log("5" + 2); // "52" (number converted to string)
+   ```
+
+7. **Explain the difference between `typeof` and `instanceof`.**  
+   - `typeof`: Returns the type of a primitive or object.  
+   - `instanceof`: Checks if an object is an instance of a constructor.
+
+   ```js
+   console.log(typeof "Hello"); // "string"
+   console.log([] instanceof Array); // true
+   ```
+
+8. **What is the difference between primitive and reference data types?**  
+   - **Primitive**: Stored directly (`Number`, `String`, `Boolean`).  
+   - **Reference**: Stored as a reference (`Object`, `Array`, `Function`).
+
+9. **How do you convert a string to a number in JavaScript?**  
+   ```js
+   let num = Number("42"); // 42
+   let num2 = parseInt("42"); // 42
+   let num3 = +"42"; // 42
+   ```
+
+10. **What is the purpose of the `typeof` operator?**  
+    - Returns the type of a variable.  
+    ```js
+    console.log(typeof 42); // "number"
+    ```
+
+11. **What are JavaScript's basic arithmetic operators?**  
+    `+`, `-`, `*`, `/`, `%` (modulus), `**` (exponentiation).
+
+12. **Explain the difference between `&&`, `||`, and `!` (logical operators).**  
+    - `&&` (AND): Returns first falsy value or last truthy value.  
+    - `||` (OR): Returns first truthy value.  
+    - `!` (NOT): Negates a boolean value.
+
+13. **What is the difference between `for`, `while`, and `do...while` loops?**  
+    - `for`: Runs for a fixed number of iterations.  
+    - `while`: Runs while a condition is true.  
+    - `do...while`: Runs at least once before checking the condition.
+
+14. **What is the difference between `break` and `continue` statements?**  
+    - `break`: Exits the loop entirely.  
+    - `continue`: Skips the current iteration and moves to the next.
+
+15. **What is the ternary (conditional) operator, and how is it used?**  
+    ```js
+    let result = age >= 18 ? "Adult" : "Minor";
+    ```
+
+16. **What is the purpose of the `switch` statement?**  
+    - Executes different blocks of code based on a condition.
+
+17. **What is the difference between statements and expressions?**  
+    - **Statements**: Perform an action (`if`, `for`, `return`).  
+    - **Expressions**: Return a value (`5 + 5`).
+
+18. **Explain short-circuit evaluation in JavaScript.**  
+    - `&&`: Stops at the first falsy value.  
+    - `||`: Stops at the first truthy value.
+
+19. **How does the JavaScript event loop work?**  
+    - Handles asynchronous tasks by executing **callbacks** after the current execution stack is empty.
+
+20. **What is the difference between synchronous and asynchronous code?**  
+    - **Synchronous**: Code executes in order.  
+    - **Asynchronous**: Code executes **non-blocking**, using callbacks or Promises.
+
+---
