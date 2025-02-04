@@ -1,35 +1,196 @@
 ---
-title: "📘 javascript 20: Management Elements"
+title: "📘 Section 19: Activating Strict Mode in JavaScript"
 category: Javascript
 author: Daniel Nguyen
 tags: ['#Javascript']
-date: 2025-02-05
+date: 2025-02-19
 thumbnail: image.png
 featured: true
 ---
 
-# Basic Operators
-# Operator Precedence
-# Strings and Template Literals
-# Taking Decisions: if / else Statements
-# Type Conversion and Coercion
-# Truthy and Falsy Values
-# Equality Operators: == vs. ===
-# Boolean Logic
-# Logical Operators
-# The switch Statement
-# Statements and Expressions
-# The Conditional (Ternary) Operator
-# JavaScript Releases: ES5, ES6+ and ESNext
-# Activating Strict Mode
-# Functions
-# Function Declarations vs. Expressions
-# Arrow Functions
-# Functions Calling Other Functions
-# Basic Array Operations (Methods)
-# Introduction to Objects
-# Dot vs. Bracket Notation
-# Object Methods
-# Iteration: The for Loop
-# Looping Arrays, Breaking and Continuing
-# The while Loop
+**Strict mode** in JavaScript is a way to opt into a stricter set of parsing and error handling rules. It makes JavaScript behave in a more predictable manner, catches common mistakes, and prevents certain problematic actions. Enabling strict mode helps improve the overall quality of your code.
+
+---
+
+## **1. What is Strict Mode?**
+
+Strict mode is a feature introduced in **ECMAScript 5 (ES5)** that:
+- Prevents the use of undeclared variables.
+- Throws errors for unsafe actions.
+- Disables certain features that are considered bad practices.
+  
+By using strict mode, you make your code more secure and reliable.
+
+---
+
+## **2. How to Enable Strict Mode**
+
+There are two main ways to enable strict mode:
+
+### **A. Enabling Strict Mode for the Entire Script**  
+To enable strict mode for the entire script, just add the string `"use strict";` at the very top of your JavaScript file.
+
+```javascript
+"use strict";  // Strict mode enabled for the entire script
+
+x = 10;  // Error: x is not defined (in strict mode)
+console.log(x);
+```
+✔ **Note:** This will enforce strict mode for the entire script.
+
+---
+
+### **B. Enabling Strict Mode for a Function**
+You can also enable strict mode for individual functions by placing `"use strict";` inside the function.
+
+```javascript
+function myFunction() {
+    "use strict";  // Strict mode enabled for this function
+    y = 20;  // Error: y is not defined (in strict mode)
+    console.log(y);
+}
+
+myFunction();
+```
+✔ **Note:** In this case, strict mode only applies within the function, not the entire script.
+
+---
+
+## **3. Key Differences in Strict Mode**
+
+Strict mode changes the behavior of JavaScript in the following ways:
+
+### **A. No Implicit Global Variables**
+In strict mode, if you forget to declare a variable with `let`, `const`, or `var`, JavaScript will throw an error.
+
+```javascript
+"use strict";
+a = 10;  // Error: a is not defined
+```
+✔ **Without strict mode**, `a = 10;` would automatically create a global variable `a`.
+
+---
+
+### **B. Assignments to Read-Only Properties**
+Strict mode prevents assignments to **read-only** properties, **non-writable** properties, or **getter-only** properties.
+
+```javascript
+"use strict";
+const obj = {};
+Object.defineProperty(obj, 'name', { value: 'Alice', writable: false });
+obj.name = 'Bob';  // Error: Cannot assign to read-only property
+```
+✔ **Without strict mode**, JavaScript would silently fail and not throw an error.
+
+---
+
+### **C. Preventing Deletion of Variables**
+In strict mode, trying to delete a variable or function declaration results in an error.
+
+```javascript
+"use strict";
+var x = 10;
+delete x;  // Error: Cannot delete variable
+```
+✔ **Without strict mode**, `delete x;` would just return `false` and not affect `x`.
+
+---
+
+### **D. `this` Behaves Differently**
+In strict mode, `this` inside a function will be `undefined` when the function is called without a specific context.
+
+```javascript
+"use strict";
+function myFunction() {
+    console.log(this);  // undefined
+}
+
+myFunction();
+```
+✔ **Without strict mode**, `this` would refer to the global object (in browsers, this would be `window`).
+
+---
+
+### **E. No Duplicate Property Names or Parameters**
+Strict mode doesn't allow duplicate property names in an object literal or duplicate parameters in a function.
+
+```javascript
+"use strict";
+const obj = { name: "Alice", name: "Bob" };  // Error: Duplicate property name
+```
+
+```javascript
+function myFunction(a, a) {  // Error: Duplicate parameter name
+    console.log(a);
+}
+```
+
+---
+
+## **4. Benefits of Using Strict Mode**
+
+- **Catches Common Mistakes**: Helps identify common coding errors such as assigning to undeclared variables or using reserved keywords.
+- **Makes Code More Predictable**: Improves error handling, making your code more robust and secure.
+- **Improves Performance**: JavaScript engines can optimize strict mode code more easily, potentially improving performance.
+
+---
+
+## **5. Limitations of Strict Mode**
+
+- **Older Code Compatibility**: If you’re working with legacy code, enabling strict mode can break old JavaScript behavior. This is why it’s recommended to test code thoroughly before applying strict mode.
+- **Reserved Keywords**: Some identifiers (such as `eval`, `arguments`, etc.) are restricted or behave differently in strict mode.
+
+---
+
+## **6. When to Use Strict Mode**
+- **Always enable strict mode** in new projects to avoid common pitfalls.
+- For **legacy projects**, enabling strict mode may require refactoring, so proceed carefully.
+
+---
+
+## **7. Example of Strict Mode in Action**
+
+### **Without Strict Mode (Legacy Code)**
+```javascript
+// JavaScript without strict mode
+function myFunction() {
+    undeclaredVar = 10; // No error: undeclaredVar becomes global
+}
+
+myFunction();
+console.log(undeclaredVar); // 10
+```
+
+### **With Strict Mode**
+```javascript
+// JavaScript with strict mode
+"use strict";
+
+function myFunction() {
+    undeclaredVar = 10;  // Error: undeclaredVar is not defined
+}
+
+myFunction();
+```
+
+---
+
+## **8. Summary**
+
+| Feature                     | Strict Mode (Enabled)     | Normal Mode (Disabled)   |
+|-----------------------------|---------------------------|--------------------------|
+| **Implicit Global Variables** | Error                     | Allowed                  |
+| **Assign to Read-Only Props**| Error                     | Allowed                  |
+| **Delete Variables**         | Error                     | Allowed                  |
+| **`this` in functions**      | `undefined`               | Global object (window)   |
+| **Duplicate Parameters**     | Error                     | Allowed                  |
+
+---
+
+## **9. Final Thoughts**
+Strict mode helps write cleaner, more reliable JavaScript. By enforcing stricter rules, it helps avoid subtle bugs and makes your code easier to debug.
+
+✔ **Enable strict mode for all new projects.**  
+✔ **Use it selectively in legacy projects, testing for compatibility first.**
+
+🚀 **With strict mode, JavaScript becomes safer, cleaner, and more predictable!**

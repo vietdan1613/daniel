@@ -1,0 +1,252 @@
+---
+title: "📘 Section 27: Object Methods"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-27
+thumbnail: image.png
+featured: true
+---
+
+In JavaScript, objects are not just containers for data—they can also store functions, which are referred to as **methods**. A method is essentially a function that is a property of an object. These methods are used to define behavior or actions that the object can perform, making the object more functional.
+
+---
+
+## **1. Defining Methods in Objects**
+
+You can define methods inside objects using either the traditional function syntax or the shorthand method syntax introduced in **ES6**.
+
+### **A. Traditional Function Syntax**
+
+```javascript
+const person = {
+    name: "Alice",
+    greet: function() {
+        console.log(`Hello, my name is ${this.name}.`);
+    }
+};
+
+person.greet();  // Output: "Hello, my name is Alice."
+```
+
+In the above example, the `greet` method is defined using the `function` keyword. The `this` keyword refers to the current object, in this case, the `person` object.
+
+### **B. ES6 Shorthand Method Syntax**
+
+In **ES6**, you can define methods more concisely without using the `function` keyword.
+
+```javascript
+const person = {
+    name: "Bob",
+    greet() {
+        console.log(`Hello, my name is ${this.name}.`);
+    }
+};
+
+person.greet();  // Output: "Hello, my name is Bob."
+```
+
+The shorthand method syntax works the same way as the traditional syntax, but it’s cleaner and more readable.
+
+---
+
+## **2. Accessing Methods**
+
+Just like accessing object properties, you can access methods using **dot notation** or **bracket notation**.
+
+### **A. Dot Notation**
+
+```javascript
+const person = {
+    name: "Charlie",
+    greet() {
+        console.log(`Hello, my name is ${this.name}.`);
+    }
+};
+
+person.greet();  // Output: "Hello, my name is Charlie."
+```
+
+### **B. Bracket Notation**
+
+Bracket notation is useful if the method name is stored in a variable or if the method name contains special characters.
+
+```javascript
+const person = {
+    name: "David",
+    greet() {
+        console.log(`Hello, my name is ${this.name}.`);
+    }
+};
+
+const method = "greet";
+person[method]();  // Output: "Hello, my name is David."
+```
+
+---
+
+## **3. Using `this` Keyword in Methods**
+
+In JavaScript, the `this` keyword is used to refer to the object on which the method is called. It allows the method to access the object's properties and methods.
+
+### **Example:**
+
+```javascript
+const car = {
+    brand: "Tesla",
+    model: "Model S",
+    year: 2022,
+    getCarInfo: function() {
+        return `${this.brand} ${this.model} (${this.year})`;
+    }
+};
+
+console.log(car.getCarInfo());  // Output: "Tesla Model S (2022)"
+```
+
+Here, `this.brand`, `this.model`, and `this.year` refer to the `brand`, `model`, and `year` properties of the `car` object, respectively.
+
+---
+
+## **4. Method Borrowing**
+
+You can borrow methods from other objects and use them for your own objects. This is possible because methods are just functions, and you can assign them to another object’s property.
+
+### **Example:**
+
+```javascript
+const animal = {
+    sound() {
+        console.log("Roar!");
+    }
+};
+
+const tiger = {};
+tiger.sound = animal.sound;
+tiger.sound();  // Output: "Roar!"
+```
+
+In this case, the `sound` method is borrowed from the `animal` object and added to the `tiger` object.
+
+---
+
+## **5. Using Methods with Parameters**
+
+Just like functions, methods can also accept parameters, allowing you to customize their behavior based on the input provided.
+
+### **Example:**
+
+```javascript
+const rectangle = {
+    width: 5,
+    height: 10,
+    getArea: function() {
+        return this.width * this.height;
+    },
+    setDimensions: function(w, h) {
+        this.width = w;
+        this.height = h;
+    }
+};
+
+console.log(rectangle.getArea());  // Output: 50
+rectangle.setDimensions(7, 12);
+console.log(rectangle.getArea());  // Output: 84
+```
+
+In this example:
+- The `getArea` method calculates the area based on the `width` and `height` properties of the object.
+- The `setDimensions` method allows you to update the dimensions of the rectangle.
+
+---
+
+## **6. Methods Returning Values**
+
+Object methods can return values, which can be used later in your program. This is commonly used when you need to retrieve data or perform calculations.
+
+### **Example:**
+
+```javascript
+const car = {
+    brand: "Ford",
+    model: "Mustang",
+    year: 2021,
+    getCarDescription: function() {
+        return `${this.brand} ${this.model} (${this.year})`;
+    }
+};
+
+const description = car.getCarDescription();
+console.log(description);  // Output: "Ford Mustang (2021)"
+```
+
+Here, the `getCarDescription` method returns a string describing the car, and the returned value is stored in the `description` variable.
+
+---
+
+## **7. Getter and Setter Methods**
+
+JavaScript allows you to define **getter** and **setter** methods in objects, which are used to get or set the value of an object's property.
+
+### **A. Getter Method**
+
+A getter is a method that is used to retrieve the value of a property. It is defined using the `get` keyword.
+
+```javascript
+const person = {
+    firstName: "John",
+    lastName: "Doe",
+    get fullName() {
+        return `${this.firstName} ${this.lastName}`;
+    }
+};
+
+console.log(person.fullName);  // Output: "John Doe"
+```
+
+### **B. Setter Method**
+
+A setter is a method that is used to set the value of a property. It is defined using the `set` keyword.
+
+```javascript
+const person = {
+    firstName: "John",
+    lastName: "Doe",
+    set fullName(name) {
+        [this.firstName, this.lastName] = name.split(" ");
+    }
+};
+
+person.fullName = "Jane Smith";
+console.log(person.firstName);  // Output: "Jane"
+console.log(person.lastName);   // Output: "Smith"
+```
+
+The setter method allows you to modify the `firstName` and `lastName` properties based on a single string input.
+
+---
+
+## **8. `this` in Arrow Functions**
+
+One important thing to note is that the `this` keyword behaves differently in **arrow functions**. Arrow functions do not have their own `this` context; instead, they inherit the `this` value from the surrounding scope (i.e., lexical scoping).
+
+### **Example:**
+
+```javascript
+const person = {
+    name: "Jake",
+    greet: () => {
+        console.log(`Hello, my name is ${this.name}.`);
+    }
+};
+
+person.greet();  // Output: "Hello, my name is undefined."
+```
+
+In the example above, `this.name` does not work as expected inside the arrow function because `this` is not bound to the `person` object in an arrow function. The `this` inside the arrow function refers to the outer context, which is likely the global object or `undefined` in strict mode.
+
+---
+
+## **9. Conclusion**
+
+Object methods in JavaScript are powerful tools that help encapsulate behavior within an object, making your code more modular and reusable. You can define methods using traditional or shorthand syntax, use the `this` keyword to refer to the object itself, and create getter and setter methods to control property access. Understanding how and when to use methods in objects is key to mastering JavaScript’s object-oriented capabilities.

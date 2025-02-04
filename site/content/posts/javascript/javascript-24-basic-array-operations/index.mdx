@@ -1,0 +1,285 @@
+---
+title: "📘 Section 24: Basic Array Operations (Methods)"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-24
+thumbnail: image.png
+featured: true
+---
+
+Arrays are one of the most commonly used data structures in JavaScript. JavaScript provides a wide range of built-in methods to manipulate arrays, making it easier to perform operations like adding, removing, searching, and modifying elements.
+
+Here, we’ll cover the most commonly used **array methods** and their typical use cases.
+
+---
+
+## **1. Array Creation**
+
+You can create an array using two main methods:
+- **Array literal** syntax: `[]`
+- **Array constructor** syntax: `new Array()`
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];  // Using array literal
+const numbers = new Array(1, 2, 3);            // Using Array constructor
+```
+
+---
+
+## **2. Adding Elements to an Array**
+
+### **A. `push()`**
+
+The `push()` method adds one or more elements to the **end** of an array and returns the new array length.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana"];
+fruits.push("cherry");  // Adds "cherry" to the end
+console.log(fruits);  // Output: ["apple", "banana", "cherry"]
+```
+
+### **B. `unshift()`**
+
+The `unshift()` method adds one or more elements to the **beginning** of an array and returns the new array length.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana"];
+fruits.unshift("orange");  // Adds "orange" to the beginning
+console.log(fruits);  // Output: ["orange", "apple", "banana"]
+```
+
+---
+
+## **3. Removing Elements from an Array**
+
+### **A. `pop()`**
+
+The `pop()` method removes the last element from an array and returns the removed element.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+const lastFruit = fruits.pop();  // Removes "cherry"
+console.log(lastFruit);  // Output: "cherry"
+console.log(fruits);    // Output: ["apple", "banana"]
+```
+
+### **B. `shift()`**
+
+The `shift()` method removes the first element from an array and returns the removed element.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+const firstFruit = fruits.shift();  // Removes "apple"
+console.log(firstFruit);  // Output: "apple"
+console.log(fruits);     // Output: ["banana", "cherry"]
+```
+
+---
+
+## **4. Accessing Array Elements**
+
+Array elements can be accessed using their **index** (0-based).
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits[1]);  // Output: "banana"
+```
+
+---
+
+## **5. Iterating Over Arrays**
+
+### **A. `forEach()`**
+
+The `forEach()` method executes a provided function once for each array element.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+fruits.forEach((fruit) => {
+    console.log(fruit);
+});
+// Output:
+// apple
+// banana
+// cherry
+```
+
+### **B. `map()`**
+
+The `map()` method creates a new array by applying a function to each element of the original array.
+
+### **Example:**
+
+```javascript
+const numbers = [1, 2, 3];
+const squares = numbers.map(num => num * num);
+console.log(squares);  // Output: [1, 4, 9]
+```
+
+---
+
+## **6. Searching Arrays**
+
+### **A. `indexOf()`**
+
+The `indexOf()` method returns the first index of a specified element in an array, or `-1` if the element is not found.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits.indexOf("banana"));  // Output: 1
+console.log(fruits.indexOf("orange"));  // Output: -1
+```
+
+### **B. `includes()`**
+
+The `includes()` method checks if an array contains a specified element and returns `true` or `false`.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits.includes("banana"));  // Output: true
+console.log(fruits.includes("orange"));  // Output: false
+```
+
+---
+
+## **7. Modifying Arrays**
+
+### **A. `splice()`**
+
+The `splice()` method is used to add, remove, or replace elements in an array. It modifies the original array.
+
+#### **Syntax:**
+```javascript
+array.splice(start, deleteCount, item1, item2, ...);
+```
+
+- **start**: The index where to start changing the array.
+- **deleteCount**: The number of elements to remove.
+- **item1, item2, ...**: Elements to add to the array.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+fruits.splice(1, 1, "orange", "grape");  // Removes 1 element at index 1, and adds "orange" and "grape"
+console.log(fruits);  // Output: ["apple", "orange", "grape", "cherry"]
+```
+
+---
+
+## **8. Sorting Arrays**
+
+### **A. `sort()`**
+
+The `sort()` method sorts the elements of an array **in place** and returns the sorted array.
+
+By default, `sort()` sorts elements as **strings**, so you may need to pass a compare function if you're sorting numbers or objects.
+
+### **Example:**
+
+```javascript
+const fruits = ["banana", "apple", "cherry"];
+fruits.sort();
+console.log(fruits);  // Output: ["apple", "banana", "cherry"]
+```
+
+For sorting numbers:
+
+```javascript
+const numbers = [4, 2, 8, 1];
+numbers.sort((a, b) => a - b);  // Ascending order
+console.log(numbers);  // Output: [1, 2, 4, 8]
+```
+
+---
+
+## **9. Joining Array Elements**
+
+### **A. `join()`**
+
+The `join()` method combines all the elements of an array into a single string, separated by a specified delimiter (default is a comma).
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits.join(", "));  // Output: "apple, banana, cherry"
+```
+
+---
+
+## **10. Concatenating Arrays**
+
+### **A. `concat()`**
+
+The `concat()` method merges two or more arrays into one, returning a new array.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana"];
+const vegetables = ["carrot", "broccoli"];
+const food = fruits.concat(vegetables);
+console.log(food);  // Output: ["apple", "banana", "carrot", "broccoli"]
+```
+
+---
+
+## **11. Slicing Arrays**
+
+### **A. `slice()`**
+
+The `slice()` method returns a shallow copy of a portion of an array into a new array, without modifying the original array.
+
+#### **Syntax:**
+```javascript
+array.slice(startIndex, endIndex);
+```
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry", "date"];
+const slicedFruits = fruits.slice(1, 3);  // From index 1 to 3 (not including 3)
+console.log(slicedFruits);  // Output: ["banana", "cherry"]
+```
+
+---
+
+## **12. Array Length**
+
+The length property returns the number of elements in an array.
+
+### **Example:**
+
+```javascript
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits.length);  // Output: 3
+```
+
+---
+
+## **13. Final Thoughts**
+
+Understanding and mastering these basic array methods will enable you to handle most tasks that involve working with arrays in JavaScript. These methods are essential for performing common operations like adding/removing elements, modifying arrays, and iterating through them.
+
+As you become more comfortable with these operations, you’ll find that arrays become a powerful tool in your JavaScript toolkit for managing data efficiently and concisely.

@@ -1,0 +1,185 @@
+---
+title: "📘 Section 26: Dot vs. Bracket Notation"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-26
+thumbnail: image.png
+featured: true
+---
+
+In JavaScript, there are two common ways to access the properties of an object: **dot notation** and **bracket notation**. Both are widely used and perform the same basic task, but each has its own advantages and specific use cases.
+
+---
+
+## **1. Dot Notation**
+
+Dot notation is the most straightforward and commonly used method for accessing object properties. You simply reference the object followed by a period (`.`) and the property name.
+
+### **Syntax:**
+
+```javascript
+object.property
+```
+
+### **Example:**
+
+```javascript
+const person = {
+    name: "Alice",
+    age: 30,
+    job: "developer"
+};
+
+console.log(person.name);  // Output: "Alice"
+console.log(person.age);   // Output: 30
+```
+
+### **Advantages of Dot Notation:**
+- **Simple and readable:** Dot notation is clean and easy to read, making it the preferred method for most cases.
+- **Easier to write:** There's no need for quotes around property names.
+- **Intuitive:** It aligns with the way we naturally refer to properties of an object.
+
+---
+
+## **2. Bracket Notation**
+
+Bracket notation allows you to access an object’s properties by using square brackets (`[]`). The property name is placed inside the brackets as a string, or you can use an expression that resolves to a string (such as a variable).
+
+### **Syntax:**
+
+```javascript
+object["property"]
+```
+
+### **Example:**
+
+```javascript
+const person = {
+    name: "Alice",
+    age: 30,
+    job: "developer"
+};
+
+console.log(person["name"]);  // Output: "Alice"
+console.log(person["age"]);   // Output: 30
+```
+
+### **Advantages of Bracket Notation:**
+- **Flexible:** Bracket notation allows for dynamic access to properties, especially useful when the property name is stored in a variable or is computed dynamically.
+- **Works with any property name:** It can be used to access properties with names that are not valid identifiers for dot notation (e.g., property names with spaces, hyphens, or starting with numbers).
+  
+  ```javascript
+  const person = {
+      "full name": "Alice",
+      "job-title": "developer"
+  };
+
+  console.log(person["full name"]);    // Output: "Alice"
+  console.log(person["job-title"]);   // Output: "developer"
+  ```
+
+- **Using Variables:** You can use variables to access properties dynamically.
+  
+  ```javascript
+  const key = "age";
+  console.log(person[key]);  // Output: 30
+  ```
+
+---
+
+## **3. Key Differences**
+
+### **A. Property Names**
+- **Dot Notation:** The property name must be a valid JavaScript identifier (e.g., no spaces, no starting with a number, no special characters).
+  
+  ```javascript
+  const person = { "first-name": "Alice" };  // Invalid for dot notation
+  // console.log(person.first-name); // Syntax error
+  ```
+
+- **Bracket Notation:** You can use any string, including names with spaces, hyphens, or any special characters.
+  
+  ```javascript
+  const person = { "first-name": "Alice" };
+  console.log(person["first-name"]);  // Output: "Alice"
+  ```
+
+### **B. Dynamic Property Access**
+- **Dot Notation:** You cannot use variables or expressions with dot notation.
+
+  ```javascript
+  const property = "age";
+  // console.log(person.property);  // Undefined, not valid
+  ```
+
+- **Bracket Notation:** You can use variables, expressions, or computed keys with bracket notation.
+
+  ```javascript
+  const property = "age";
+  console.log(person[property]);  // Output: 30
+  ```
+
+### **C. Reserved Words**
+- **Dot Notation:** You cannot use reserved JavaScript keywords (e.g., `for`, `if`, `let`) as property names with dot notation.
+
+  ```javascript
+  const person = { for: "Alice" };
+  // console.log(person.for); // Syntax error: Unexpected token 'for'
+  ```
+
+- **Bracket Notation:** Bracket notation allows you to use reserved words as property names.
+
+  ```javascript
+  const person = { "for": "Alice" };
+  console.log(person["for"]);  // Output: "Alice"
+  ```
+
+---
+
+## **4. When to Use Dot vs. Bracket Notation**
+
+- **Dot Notation:** 
+  - Use it when you know the property name beforehand and the name follows standard naming rules (i.e., no spaces, no hyphens, not starting with a number).
+  - It is cleaner, more readable, and more concise for fixed property names.
+
+- **Bracket Notation:**
+  - Use it when the property name is dynamic or stored in a variable.
+  - Use it when the property name contains spaces, special characters, or starts with a number.
+  - It’s also necessary when working with computed property names or properties that are JavaScript reserved words.
+
+---
+
+## **Examples:**
+
+### **Dot Notation Example (Preferred for Static Property Names):**
+
+```javascript
+const car = {
+    brand: "Toyota",
+    model: "Corolla",
+    year: 2020
+};
+
+console.log(car.brand);  // Output: "Toyota"
+console.log(car.model);  // Output: "Corolla"
+```
+
+### **Bracket Notation Example (Preferred for Dynamic Property Names):**
+
+```javascript
+const car = {
+    "car-brand": "Toyota",
+    "car-model": "Corolla",
+    "car-year": 2020
+};
+
+const property = "car-model";
+console.log(car[property]);  // Output: "Corolla"
+```
+
+---
+
+## **5. Conclusion**
+
+Both **dot notation** and **bracket notation** are essential tools in JavaScript for interacting with objects. While dot notation is cleaner and easier to use for static property names, bracket notation provides greater flexibility and is necessary when working with dynamic keys or special cases. Understanding when to use each will make your code more efficient and readable.

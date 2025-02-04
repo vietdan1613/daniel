@@ -1,35 +1,148 @@
 ---
-title: "📘 javascript 20: Management Elements"
+title: "📘 Section 16: Statements and Expressions"
 category: Javascript
 author: Daniel Nguyen
 tags: ['#Javascript']
-date: 2025-02-05
+date: 2025-02-16
 thumbnail: image.png
 featured: true
 ---
 
-# Basic Operators
-# Operator Precedence
-# Strings and Template Literals
-# Taking Decisions: if / else Statements
-# Type Conversion and Coercion
-# Truthy and Falsy Values
-# Equality Operators: == vs. ===
-# Boolean Logic
-# Logical Operators
-# The switch Statement
-# Statements and Expressions
-# The Conditional (Ternary) Operator
-# JavaScript Releases: ES5, ES6+ and ESNext
-# Activating Strict Mode
-# Functions
-# Function Declarations vs. Expressions
-# Arrow Functions
-# Functions Calling Other Functions
-# Basic Array Operations (Methods)
-# Introduction to Objects
-# Dot vs. Bracket Notation
-# Object Methods
-# Iteration: The for Loop
-# Looping Arrays, Breaking and Continuing
-# The while Loop
+In JavaScript, **statements** and **expressions** are two fundamental concepts. Understanding their differences is crucial for writing clean and efficient code.
+
+---
+
+## **1. What is an Expression?**
+An **expression** is a piece of code that **produces a value**. It can be a simple value, a variable, an operation, or a function call.
+
+### **Examples of Expressions**
+```javascript
+10 + 5;         // Expression → evaluates to 15
+"Hello" + " World"; // Expression → evaluates to "Hello World"
+let x = 10;     // "10" is an expression
+```
+✔ **Expressions return a value and can be used inside other expressions.**  
+
+✅ **Example of using expressions inside another expression:**
+```javascript
+console.log(5 + 5); // 10 → 5 + 5 is an expression
+let result = 2 * (3 + 4); // 3 + 4 is an expression, 2 * 7 is also an expression
+```
+
+---
+
+## **2. What is a Statement?**
+A **statement** is an instruction that **performs an action** but does not produce a value that can be used in another statement.
+
+### **Examples of Statements**
+```javascript
+let age = 25; // Variable declaration (statement)
+if (age > 18) { // if statement
+    console.log("You are an adult."); 
+}
+```
+✔ **Statements do not return values that can be assigned to variables.**  
+
+🚫 **Incorrect Example:**
+```javascript
+let result = if (age > 18) { "Adult"; }; // ❌ ERROR: 'if' is a statement, not an expression
+```
+---
+
+## **3. Differences Between Expressions and Statements**
+| Feature | Expression | Statement |
+|---------|-----------|-----------|
+| **Definition** | Produces a value | Performs an action |
+| **Can be assigned to a variable?** | ✅ Yes | ❌ No |
+| **Can be used inside other expressions?** | ✅ Yes | ❌ No |
+| **Examples** | `2 + 2`, `"Hello" + " World"`, `x * 10` | `if`, `while`, `for`, `function` |
+
+---
+
+## **4. Expressions Inside Statements**
+Although statements **cannot be assigned** to variables, **expressions** can be **inside** statements.
+
+### **Example**
+```javascript
+let age = 20; // Expression inside a statement
+
+if (age > 18) { // (age > 18) is an expression
+    console.log("You are an adult."); // Statement
+}
+```
+
+✔ **Here, `age > 18` is an expression inside an `if` statement.**  
+
+---
+
+## **5. Function Expressions vs. Function Statements**
+In JavaScript, functions can be defined in two ways:  
+✅ **Function Expression (Produces a Value)**
+```javascript
+const add = function(a, b) {
+    return a + b;
+};
+
+console.log(add(5, 3)); // Output: 8
+```
+- `function(a, b) { return a + b; }` is an **expression** because it **produces a value**.
+
+🚫 **Function Declaration (Statement)**
+```javascript
+function multiply(a, b) {
+    return a * b;
+}
+```
+- `function multiply(a, b) {...}` is a **statement**, because it does not return a value directly.
+
+---
+
+## **6. Using Expressions in Template Literals**
+JavaScript allows **expressions** inside template literals.
+
+```javascript
+let name = "Alice";
+console.log(`Hello, ${name}`); // "Hello, Alice" (Expression inside template literal)
+```
+✔ **Only expressions (not statements) can be placed inside `${}`.**  
+
+🚫 **Incorrect Example:**
+```javascript
+console.log(`Hello, ${if (true) { "Alice" }}`); // ❌ ERROR: 'if' is a statement, not an expression
+```
+
+---
+
+## **7. The Role of Expressions in JavaScript**
+Expressions can be used in many places where values are needed:
+✔ Inside function arguments  
+✔ Inside mathematical operations  
+✔ Inside template literals  
+✔ Inside conditionals (`if`, `while`, `for`)  
+
+### **Example**
+```javascript
+let result = (10 > 5) ? "Bigger" : "Smaller"; // (10 > 5) is an expression
+console.log(result); // Output: Bigger
+```
+✔ **The ternary operator uses an expression (`10 > 5`).**  
+
+---
+
+## **8. Summary**
+| Feature | Expression | Statement |
+|---------|-----------|-----------|
+| Produces a value? | ✅ Yes | ❌ No |
+| Can be assigned to a variable? | ✅ Yes | ❌ No |
+| Can be used inside another expression? | ✅ Yes | ❌ No |
+| Example | `5 + 5`, `"Hello"`, `x * 2` | `if`, `while`, `function declaration` |
+
+---
+
+## **9. Final Thoughts**
+✔ **Expressions evaluate to values.**  
+✔ **Statements perform actions.**  
+✔ **Use expressions when you need a value.**  
+✔ **Use statements to control the flow of your program.**  
+
+🚀 **Mastering expressions and statements will make your JavaScript code cleaner and more efficient!**

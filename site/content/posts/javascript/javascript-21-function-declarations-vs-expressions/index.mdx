@@ -1,0 +1,149 @@
+---
+title: "📘 Section 21: Function Declarations vs. Expressions"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-21
+thumbnail: image.png
+featured: true
+---
+
+In JavaScript, there are two primary ways to define a function: **function declarations** and **function expressions**. While both can achieve the same result, they behave differently in terms of **hoisting**, **scope**, and **how they are invoked**. Understanding the distinction between them is key to writing effective JavaScript.
+
+---
+
+## **1. Function Declaration**
+
+A **function declaration** is the traditional way of defining a function in JavaScript. It follows the syntax:
+
+```javascript
+function functionName(parameters) {
+    // Function body
+    return result;
+}
+```
+
+### **Key Characteristics:**
+- **Hoisting**: Function declarations are hoisted to the top of their scope. This means you can call the function before it’s defined in the code.
+- **Named Function**: It always has a name.
+- **Scope**: The function is available in the scope in which it is declared.
+
+### **Example:**
+
+```javascript
+// Function declaration
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+
+console.log(greet("Alice")); // Output: Hello, Alice!
+```
+
+Here, the function `greet` is hoisted, so you can call it **before** its definition.
+
+---
+
+### **Hoisting Example:**
+```javascript
+console.log(add(3, 4));  // Output: 7
+
+function add(a, b) {
+    return a + b;
+}
+```
+
+In this case, the function is hoisted, so calling `add(3, 4)` works even though the function is defined later in the code.
+
+---
+
+## **2. Function Expression**
+
+A **function expression** involves assigning a function to a variable. The function can be anonymous (without a name) or named.
+
+### **Syntax:**
+```javascript
+const functionName = function(parameters) {
+    // Function body
+    return result;
+};
+```
+
+### **Key Characteristics:**
+- **No Hoisting**: Function expressions are **not hoisted**. This means you can only call the function after it’s defined.
+- **Anonymous or Named Function**: It can be an **anonymous** function (without a name) or a **named** function.
+- **Assigned to a Variable**: Function expressions are often stored in variables, so the variable becomes the reference to the function.
+
+### **Example:**
+
+```javascript
+// Function expression
+const greet = function(name) {
+    return `Hello, ${name}!`;
+};
+
+console.log(greet("Bob")); // Output: Hello, Bob!
+```
+
+Here, `greet` is a function expression assigned to the variable `greet`. You cannot call `greet` before the assignment.
+
+---
+
+### **No Hoisting Example:**
+```javascript
+console.log(add(3, 4));  // Error: add is not a function
+
+const add = function(a, b) {
+    return a + b;
+};
+```
+
+In this example, calling `add(3, 4)` before the function is assigned causes an error because function expressions are **not hoisted**.
+
+---
+
+## **3. Named Function Expressions**
+
+You can also create **named function expressions**. These functions are given a name at the time of assignment, which can be useful for debugging purposes.
+
+### **Example:**
+
+```javascript
+const greet = function sayHello(name) {
+    return `Hello, ${name}!`;
+};
+
+console.log(greet("Charlie"));  // Output: Hello, Charlie!
+```
+
+In this case, the function is assigned to the variable `greet`, but it also has a name `sayHello`. This name is helpful for stack traces and debugging, but it’s not accessible outside the function itself.
+
+---
+
+## **4. Function Declarations vs. Function Expressions: Key Differences**
+
+| Feature                     | Function Declaration            | Function Expression               |
+|-----------------------------|----------------------------------|-----------------------------------|
+| **Hoisting**                | Hoisted to the top of the scope | Not hoisted (undefined until assigned) |
+| **Function Name**           | Always has a name               | Can be anonymous or named         |
+| **Invocation**              | Can be called before definition | Can only be called after definition |
+| **Assignment to Variable**  | Not required                    | Assigned to a variable            |
+
+---
+
+## **5. When to Use Which?**
+
+### **A. Use Function Declarations when:**
+- You need a function to be available throughout your code and want to call it before its definition.
+- You’re working in a codebase that requires clear and easily discoverable function names.
+- You’re writing traditional JavaScript code that relies on hoisting.
+
+### **B. Use Function Expressions when:**
+- You want to define a function at runtime or assign it to a variable.
+- You’re working with **callback functions**, **event handlers**, or **functional programming** where the function is used as a value.
+- You don’t need to call the function before its definition.
+
+---
+
+## **6. Final Thoughts**
+
+Both function declarations and expressions have their place in JavaScript. **Function declarations** are great for defining reusable functions that you want to access globally in the scope. **Function expressions** are perfect for defining functions that are used locally or as arguments to other functions. Choosing the right approach will depend on your use case and the specific behavior you require, especially when considering hoisting and scope.

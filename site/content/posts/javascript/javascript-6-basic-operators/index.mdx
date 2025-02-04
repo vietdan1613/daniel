@@ -1,35 +1,165 @@
 ---
-title: "📘 javascript 20: Management Elements"
+title: "📘 Section 6: *Basic Operators"
 category: Javascript
 author: Daniel Nguyen
 tags: ['#Javascript']
-date: 2025-02-05
+date: 2025-02-06
 thumbnail: image.png
 featured: true
 ---
 
-# Basic Operators
-# Operator Precedence
-# Strings and Template Literals
-# Taking Decisions: if / else Statements
-# Type Conversion and Coercion
-# Truthy and Falsy Values
-# Equality Operators: == vs. ===
-# Boolean Logic
-# Logical Operators
-# The switch Statement
-# Statements and Expressions
-# The Conditional (Ternary) Operator
-# JavaScript Releases: ES5, ES6+ and ESNext
-# Activating Strict Mode
-# Functions
-# Function Declarations vs. Expressions
-# Arrow Functions
-# Functions Calling Other Functions
-# Basic Array Operations (Methods)
-# Introduction to Objects
-# Dot vs. Bracket Notation
-# Object Methods
-# Iteration: The for Loop
-# Looping Arrays, Breaking and Continuing
-# The while Loop
+
+Operators in JavaScript allow you to perform calculations, comparisons, and logical operations on values. They are the building blocks of JavaScript programs.  
+
+---
+
+## **1. Arithmetic Operators**  
+Used for mathematical calculations.  
+
+| Operator | Description | Example | Result |
+|----------|------------|---------|--------|
+| `+` | Addition | `5 + 3` | `8` |
+| `-` | Subtraction | `10 - 6` | `4` |
+| `*` | Multiplication | `4 * 3` | `12` |
+| `/` | Division | `20 / 5` | `4` |
+| `%` | Modulus (Remainder) | `10 % 3` | `1` |
+| `**` | Exponentiation | `2 ** 3` | `8` |
+
+### **Example:**
+```javascript
+let a = 10, b = 3;
+console.log(a + b);  // Output: 13
+console.log(a - b);  // Output: 7
+console.log(a * b);  // Output: 30
+console.log(a / b);  // Output: 3.333...
+console.log(a % b);  // Output: 1
+console.log(a ** b); // Output: 1000
+```
+
+---
+
+## **2. Assignment Operators**  
+Used to assign values to variables.  
+
+| Operator | Example | Equivalent To |
+|----------|---------|--------------|
+| `=` | `x = 10` | `x = 10` |
+| `+=` | `x += 5` | `x = x + 5` |
+| `-=` | `x -= 2` | `x = x - 2` |
+| `*=` | `x *= 3` | `x = x * 3` |
+| `/=` | `x /= 2` | `x = x / 2` |
+| `%=` | `x %= 4` | `x = x % 4` |
+| `**=` | `x **= 2` | `x = x ** 2` |
+
+### **Example:**
+```javascript
+let x = 10;
+x += 5;  // Equivalent to x = x + 5
+console.log(x); // Output: 15
+```
+
+---
+
+## **3. Comparison Operators**  
+Used to compare two values and return `true` or `false`.  
+
+| Operator | Description | Example | Result |
+|----------|------------|---------|--------|
+| `==` | Equal to (loose equality) | `5 == "5"` | `true` |
+| `===` | Strictly equal (checks type too) | `5 === "5"` | `false` |
+| `!=` | Not equal | `10 != 5` | `true` |
+| `!==` | Strictly not equal | `10 !== "10"` | `true` |
+| `>` | Greater than | `10 > 5` | `true` |
+| `<` | Less than | `3 < 7` | `true` |
+| `>=` | Greater than or equal to | `6 >= 6` | `true` |
+| `<=` | Less than or equal to | `4 <= 2` | `false` |
+
+### **Example:**
+```javascript
+console.log(10 > 5);  // Output: true
+console.log(5 == "5"); // Output: true (loose equality)
+console.log(5 === "5"); // Output: false (strict equality)
+console.log(10 !== "10"); // Output: true
+```
+
+---
+
+## **4. Logical Operators**  
+Used to combine multiple conditions.  
+
+| Operator | Description | Example | Result |
+|----------|------------|---------|--------|
+| `&&` | Logical AND | `true && false` | `false` |
+| `||` | Logical OR | `true || false` | `true` |
+| `!` | Logical NOT | `!true` | `false` |
+
+### **Example:**
+```javascript
+let isAdult = true;
+let hasID = false;
+
+console.log(isAdult && hasID); // Output: false (Both must be true)
+console.log(isAdult || hasID); // Output: true (At least one is true)
+console.log(!isAdult); // Output: false (Negates the value)
+```
+
+---
+
+## **5. Increment and Decrement Operators**  
+Used to increase or decrease values by 1.  
+
+| Operator | Description | Example | Result |
+|----------|------------|---------|--------|
+| `++` | Increment | `x++` | `x + 1` |
+| `--` | Decrement | `y--` | `y - 1` |
+
+### **Example:**
+```javascript
+let count = 5;
+count++;
+console.log(count); // Output: 6
+
+count--;
+console.log(count); // Output: 5
+```
+
+---
+
+## **6. Ternary Operator**  
+A shorthand for `if-else` statements.  
+
+**Syntax:**  
+```javascript
+condition ? value_if_true : value_if_false;
+```
+
+### **Example:**
+```javascript
+let age = 18;
+let canVote = (age >= 18) ? "Yes" : "No";
+console.log(canVote); // Output: Yes
+```
+
+---
+
+## **7. Type Operators**  
+Used to check data types.  
+
+| Operator | Description | Example | Result |
+|----------|------------|---------|--------|
+| `typeof` | Returns the type of a variable | `typeof 42` | `"number"` |
+| `instanceof` | Checks if an object belongs to a class | `arr instanceof Array` | `true` |
+
+### **Example:**
+```javascript
+console.log(typeof "Hello"); // Output: string
+console.log(typeof 42); // Output: number
+
+let arr = [1, 2, 3];
+console.log(arr instanceof Array); // Output: true
+```
+
+---
+
+### **Final Thoughts**
+JavaScript operators are essential for performing calculations, making decisions, and handling logic in your code. Mastering them will improve your ability to write clean and efficient programs. 🚀

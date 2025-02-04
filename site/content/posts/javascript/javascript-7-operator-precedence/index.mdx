@@ -1,35 +1,78 @@
 ---
-title: "📘 javascript 20: Management Elements"
+title: "📘 Section 7: Operator Precedence"
 category: Javascript
 author: Daniel Nguyen
 tags: ['#Javascript']
-date: 2025-02-05
+date: 2025-02-07
 thumbnail: image.png
 featured: true
 ---
 
-# Basic Operators
-# Operator Precedence
-# Strings and Template Literals
-# Taking Decisions: if / else Statements
-# Type Conversion and Coercion
-# Truthy and Falsy Values
-# Equality Operators: == vs. ===
-# Boolean Logic
-# Logical Operators
-# The switch Statement
-# Statements and Expressions
-# The Conditional (Ternary) Operator
-# JavaScript Releases: ES5, ES6+ and ESNext
-# Activating Strict Mode
-# Functions
-# Function Declarations vs. Expressions
-# Arrow Functions
-# Functions Calling Other Functions
-# Basic Array Operations (Methods)
-# Introduction to Objects
-# Dot vs. Bracket Notation
-# Object Methods
-# Iteration: The for Loop
-# Looping Arrays, Breaking and Continuing
-# The while Loop
+Operator **precedence** determines the order in which JavaScript executes different operators in an expression. Operators with **higher precedence** are executed before those with **lower precedence**.  
+
+---
+
+## **Operator Precedence Table**  
+
+| Precedence | Operator | Type | Description | Example |
+|------------|---------|------|-------------|---------|
+| **19** | `()` | Grouping | Parentheses | `(3 + 5) * 2` → `16` |
+| **18** | `.` `[]` `()` | Member access | Property access, function calls | `obj.prop`, `arr[0]`, `myFunc()` |
+| **17** | `new` | Object creation | Creates a new instance | `new Date()` |
+| **16** | `++` `--` | Postfix Increment/Decrement | Increases or decreases after execution | `x++`, `y--` |
+| **15** | `++` `--` `+` `-` `!` `~` `typeof` `void` `delete` | Unary | Increments, negation, logical NOT, etc. | `++x`, `-y`, `!true` |
+| **14** | `**` | Exponentiation | Power of a number | `2 ** 3 → 8` |
+| **13** | `*` `/` `%` | Multiplicative | Multiplication, division, remainder | `10 / 2 * 5 → 25` |
+| **12** | `+` `-` | Additive | Addition and subtraction | `10 + 5 - 2 → 13` |
+| **11** | `<<` `>>` `>>>` | Bitwise Shift | Left, right, unsigned right shift | `5 << 2 → 20` |
+| **10** | `<` `<=` `>` `>=` `instanceof` `in` | Comparison | Relational operations | `5 < 10 → true` |
+| **9** | `==` `!=` `===` `!==` | Equality | Loose and strict equality checks | `5 === "5" → false` |
+| **8** | `&` | Bitwise AND | Bitwise comparison | `5 & 1 → 1` |
+| **7** | `^` | Bitwise XOR | Bitwise exclusive OR | `5 ^ 2 → 7` |
+| **6** | `|` | Bitwise OR | Bitwise inclusive OR | `5 | 2 → 7` |
+| **5** | `&&` | Logical AND | Returns first `false` or last `true` | `true && false → false` |
+| **4** | `||` | Logical OR | Returns first `true` or last `false` | `false || true → true` |
+| **3** | `?:` | Ternary Operator | Conditional expressions | `age >= 18 ? "Adult" : "Minor"` |
+| **2** | `=` `+=` `-=` `*=` `/=` `%=` `**=` | Assignment | Assigns values | `x = 5`, `x += 2` |
+| **1** | `,` | Comma | Evaluates multiple expressions | `(a = 5, b = 10, c = a + b)` |
+
+---
+
+## **Examples of Operator Precedence**  
+
+### **1. Parentheses Override Precedence**
+```javascript
+console.log(10 + 5 * 2);   // Output: 20  (Multiplication first)
+console.log((10 + 5) * 2); // Output: 30  (Parentheses override)
+```
+
+### **2. Exponentiation Before Multiplication**
+```javascript
+console.log(2 ** 3 * 4);   // Output: 32 (2³ = 8, then 8 * 4)
+```
+
+### **3. Logical AND (`&&`) Before OR (`||`)**
+```javascript
+console.log(true || false && false);  // Output: true (AND executes first)
+console.log((true || false) && false); // Output: false (Parentheses change order)
+```
+
+### **4. Assignment Operator (`=`) Has Low Precedence**
+```javascript
+let x = 10;
+let y = x += 5 * 2;  
+console.log(y); // Output: 20 (Multiplication happens first, then assignment)
+```
+
+---
+
+## **Best Practices**
+1. **Use parentheses `()`** when combining different operators to make the order of execution clear.
+2. **Be mindful of automatic type conversion** when using comparison operators (`==` vs `===`).
+3. **Use strict equality (`===`)** to avoid unexpected type coercion.
+4. **Remember logical operator behavior** (`&&` stops at first `false`, `||` stops at first `true`).
+
+---
+
+## **Final Thoughts**
+Understanding operator precedence helps avoid unexpected results and makes your code more readable. When in doubt, use **parentheses** to explicitly control execution order. 🚀
