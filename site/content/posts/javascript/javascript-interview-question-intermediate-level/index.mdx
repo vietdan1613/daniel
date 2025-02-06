@@ -64,22 +64,22 @@ featured: true
     - `filter`: Returns elements that meet a condition.  
     - `reduce`: Accumulates values.
 
-33. **How to remove duplicate elements from an array?**  
+## 33. **How to remove duplicate elements from an array?**  
     ```js
     let unique = [...new Set([1, 2, 2, 3])];
     ```
 
-34. **Shallow copy vs. Deep copy?**  
+## 34. **Shallow copy vs. Deep copy?**  
     - `Object.assign()` creates a **shallow copy**.  
     - `JSON.parse(JSON.stringify(obj))` creates a **deep copy**.
 
-35. **What is destructuring?**  
+## 35. **What is destructuring?**  
     ```js
     let [a, b] = [10, 20]; // Array Destructuring
     let {x, y} = {x: 5, y: 10}; // Object Destructuring
     ```
 
-36. **What is object destructuring, and why is it useful?**  
+## 36. **What is object destructuring, and why is it useful?**  
     - It extracts properties from an object into variables.  
 
     ```js
@@ -88,11 +88,11 @@ featured: true
     console.log(name, age); // John 30
     ```
 
-37. **Difference between dot notation and bracket notation in JavaScript?**  
+## 37. **Difference between dot notation and bracket notation in JavaScript?**  
     - **Dot Notation**: `obj.property` (for known property names).  
     - **Bracket Notation**: `obj["property"]` (for dynamic keys).
 
-38. **What are getters and setters in JavaScript objects?**  
+## 38. **What are getters and setters in JavaScript objects?**  
     - They allow defining custom logic when getting/setting properties.  
 
     ```js
@@ -108,12 +108,12 @@ featured: true
     };
     ```
 
-39. **How do you check if an object has a specific property?**  
+## 39. **How do you check if an object has a specific property?**  
     ```js
     console.log("name" in person); // true
     console.log(person.hasOwnProperty("age")); // true
     ```
 
-40. **Difference between `Object.freeze()` and `Object.seal()`?**  
+## 40. **Difference between `Object.freeze()` and `Object.seal()`?**  
     - `Object.freeze()`: Prevents adding, removing, or modifying properties.  
     - `Object.seal()`: Prevents adding/removing properties but allows modification.
