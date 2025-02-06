@@ -17,7 +17,7 @@ featured: true
     setInterval(() => console.log("World"), 1000); // Runs every 1s
     ```
 
-42. **What is a Promise, and how does it work?**  
+## 42. **What is a Promise, and how does it work?**  
     - A Promise represents a value that may be available in the future.  
     - It can be **pending, fulfilled, or rejected**.
 
@@ -28,7 +28,7 @@ featured: true
     promise.then(console.log); // Prints "Done!" after 1 second
     ```
 
-43. **What is async/await, and how does it simplify working with Promises?**  
+## 43. **What is async/await, and how does it simplify working with Promises?**  
     - It makes asynchronous code look synchronous.  
     - `await` pauses execution until the Promise resolves.
 
@@ -39,7 +39,7 @@ featured: true
     }
     ```
 
-44. **How do you handle errors in async/await functions?**  
+## 44. **How do you handle errors in async/await functions?**  
     - Use `try...catch`:
 
     ```js
@@ -53,13 +53,13 @@ featured: true
     }
     ```
 
-45. **What is the difference between microtasks and macrotasks in JavaScript?**  
+## 45. **What is the difference between microtasks and macrotasks in JavaScript?**  
     - **Microtasks**: Executed immediately after the current task (`Promises`).  
     - **Macrotasks**: Scheduled for the next event loop cycle (`setTimeout`).
 
 ---
 
-46. **What are prototypes in JavaScript, and how do they enable inheritance?**  
+## 46. **What are prototypes in JavaScript, and how do they enable inheritance?**  
     - Every JavaScript object has a `prototype` that allows property inheritance.
 
     ```js
@@ -73,11 +73,11 @@ featured: true
     john.sayHello(); // Hello, John
     ```
 
-47. **Difference between prototypal inheritance and classical inheritance?**  
+## 47. **Difference between prototypal inheritance and classical inheritance?**  
     - **Classical (OOP)**: Uses `class` and `extends`.  
     - **Prototypal**: Objects inherit directly from other objects.
 
-48. **Explain the concept of "hoisting" in JavaScript.**  
+## 48. **Explain the concept of "hoisting" in JavaScript.**  
     - Variables and functions are moved to the top of their scope before execution.
 
     ```js
@@ -90,7 +90,7 @@ featured: true
     }
     ```
 
-49. **What are JavaScript generators (`function*`), and when should you use them?**  
+## 49. **What are JavaScript generators (`function*`), and when should you use them?**  
     - Generators return values lazily using `yield`.
 
     ```js
@@ -103,6 +103,6 @@ featured: true
     console.log(gen.next().value); // "World"
     ```
 
-50. **How does JavaScript handle memory management and garbage collection?**  
+## 50. **How does JavaScript handle memory management and garbage collection?**  
     - JavaScript uses **automatic garbage collection**, removing unused objects.  
     - Uses **Reference Counting** and **Mark-and-Sweep Algorithm**.

@@ -1,0 +1,112 @@
+---
+title: "📘 Section 31: Closures"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-30
+thumbnail: image.png
+featured: true
+---
+
+A **closure** in JavaScript is a function that remembers the variables from its **lexical scope** even when the function is executed outside that scope.  
+
+Closures are created when a function is defined inside another function and has access to the outer function’s variables.  
+
+---
+
+## **Example of a Closure**
+```javascript
+function outerFunction(outerVariable) {
+    return function innerFunction(innerVariable) {
+        console.log(`Outer: ${outerVariable}, Inner: ${innerVariable}`);
+    };
+}
+
+const closureFunc = outerFunction("Hello");
+closureFunc("World"); // Output: Outer: Hello, Inner: World
+```
+✅ The `innerFunction` retains access to `outerVariable` even after `outerFunction` has executed.
+
+---
+
+## **Why Use Closures?**
+1. **Data Privacy (Encapsulation)**  
+   - Closures allow us to create **private variables**.  
+   - Variables inside a closure cannot be accessed directly from outside the function.
+
+2. **Function Factories**  
+   - Closures can be used to create functions with preset values.
+
+3. **Maintaining State**  
+   - Useful in event listeners, timers, or when working with loops.
+
+---
+
+## **Practical Examples**  
+
+### **1. Data Privacy with Closures**
+```javascript
+function counter() {
+    let count = 0;
+    return function() {
+        count++;
+        console.log(`Count: ${count}`);
+    };
+}
+
+const increment = counter();
+increment(); // Count: 1
+increment(); // Count: 2
+increment(); // Count: 3
+```
+✅ Here, `count` is **private** and cannot be modified directly.
+
+---
+
+### **2. Function Factory (Pre-configured Functions)**
+```javascript
+function multiplyBy(factor) {
+    return function(num) {
+        return num * factor;
+    };
+}
+
+const double = multiplyBy(2);
+console.log(double(5)); // Output: 10
+
+const triple = multiplyBy(3);
+console.log(triple(5)); // Output: 15
+```
+✅ We created **customized multiplication functions** using closures.
+
+---
+
+### **3. Closures in Loops (Using `let` or IIFE)**
+```javascript
+for (let i = 1; i <= 3; i++) {
+    setTimeout(() => {
+        console.log(`Number: ${i}`);
+    }, i * 1000);
+}
+```
+✅ Since `let` has **block scope**, each iteration gets its own `i`.
+
+If using `var`, we must wrap it inside an **IIFE (Immediately Invoked Function Expression)**:
+```javascript
+for (var i = 1; i <= 3; i++) {
+    (function(i) {
+        setTimeout(() => {
+            console.log(`Number: ${i}`);
+        }, i * 1000);
+    })(i);
+}
+```
+
+---
+
+## **Key Takeaways**
+- **Closures allow functions to "remember" variables even after their outer function has executed.**
+- **Useful for data privacy, function factories, and handling asynchronous operations.**
+- **Be mindful of memory leaks (closures can keep variables in memory longer than needed).**
+
+Would you like examples in a specific use case, like React or event handling? 🚀

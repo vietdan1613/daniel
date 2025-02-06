@@ -1,0 +1,104 @@
+---
+title: "📘 Section 32: default parameters and rest parameters"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-30
+thumbnail: image.png
+featured: true
+---
+
+## **1. Default Parameters**  
+Default parameters allow you to **set default values** for function arguments if no value or `undefined` is provided.  
+
+### ✅ **Example: Default Parameters**  
+```javascript
+function greet(name = "Guest") {
+    console.log(`Hello, ${name}!`);
+}
+
+greet("Alice");  // Output: Hello, Alice!
+greet();         // Output: Hello, Guest!
+```
+✅ If `name` is not provided, it defaults to `"Guest"`.
+
+### 🔹 **Default Parameter with Expression**
+You can use expressions as default values:
+```javascript
+function multiply(a, b = a) {
+    return a * b;
+}
+
+console.log(multiply(3, 4));  // Output: 12
+console.log(multiply(3));     // Output: 9  (b defaults to `a`, so 3 * 3)
+```
+
+### 🔹 **Using Functions as Default Parameters**
+```javascript
+function getDefaultName() {
+    return "User";
+}
+
+function greet(name = getDefaultName()) {
+    console.log(`Hello, ${name}!`);
+}
+
+greet(); // Output: Hello, User!
+```
+
+---
+
+## **2. Rest Parameters (`...`)**  
+Rest parameters allow a function to accept **an indefinite number of arguments** as an array.
+
+### ✅ **Example: Rest Parameters**
+```javascript
+function sum(...numbers) {
+    return numbers.reduce((total, num) => total + num, 0);
+}
+
+console.log(sum(1, 2, 3, 4));   // Output: 10
+console.log(sum(5, 10, 15));    // Output: 30
+```
+✅ `...numbers` collects all arguments into an **array**.
+
+### 🔹 **Mixing Named & Rest Parameters**
+```javascript
+function introduce(firstName, lastName, ...hobbies) {
+    console.log(`Hi, I'm ${firstName} ${lastName}.`);
+    console.log(`I enjoy: ${hobbies.join(", ")}`);
+}
+
+introduce("John", "Doe", "Reading", "Cycling", "Coding");
+// Output:
+// Hi, I'm John Doe.
+// I enjoy: Reading, Cycling, Coding
+```
+✅ The first two parameters get assigned normally, while **the rest go into an array**.
+
+---
+
+## **Key Differences**
+| Feature         | Default Parameters | Rest Parameters |
+|----------------|------------------|------------------|
+| Purpose       | Provide default values | Collect multiple arguments |
+| Syntax        | `param = value` | `...param` |
+| Type         | Single value | Array |
+| Position     | Anywhere | Must be **last** parameter |
+
+---
+
+## **Use Case: Default & Rest Together**
+```javascript
+function createUser(name = "Guest", age = 18, ...hobbies) {
+    return { name, age, hobbies };
+}
+
+console.log(createUser("Alice", 25, "Reading", "Gaming"));
+// Output: { name: 'Alice', age: 25, hobbies: [ 'Reading', 'Gaming' ] }
+
+console.log(createUser());
+// Output: { name: 'Guest', age: 18, hobbies: [] }
+```
+
+Would you like practical examples for React or WPF apps? 🚀

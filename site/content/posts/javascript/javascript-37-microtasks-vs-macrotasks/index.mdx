@@ -1,0 +1,141 @@
+---
+title: "📘 Section 37: Microtasks vs. Macrotasks"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-30
+thumbnail: image.png
+featured: true
+---
+
+In JavaScript, the **event loop** processes tasks in two separate queues:  
+1. **Microtasks** queue  
+2. **Macrotasks** queue  
+
+Understanding how these work helps in writing more efficient asynchronous code.  
+
+---
+
+## **1️⃣ Microtasks vs. Macrotasks – Key Differences**
+| Feature        | **Microtasks** | **Macrotasks** |
+|---------------|---------------|---------------|
+| **Examples** | `Promise.then()`, `MutationObserver`, `queueMicrotask()` | `setTimeout()`, `setInterval()`, `setImmediate()` (Node.js), `MessageChannel` |
+| **Priority** | Higher | Lower |
+| **Execution Timing** | Runs **immediately** after the current script finishes | Runs **after all microtasks** are done |
+| **Performance** | Faster | Slightly slower |
+| **Queue Type** | Microtask Queue | Macrotask Queue |
+
+---
+
+## **2️⃣ The Event Loop Execution Order**
+1. Run **synchronous** code (top-down execution).  
+2. Process all **microtasks** (resolve promises, etc.).  
+3. Execute the first **macrotask** (e.g., `setTimeout`).  
+4. Repeat from step 1.  
+
+---
+
+## **3️⃣ Code Example: Microtasks vs. Macrotasks**
+```javascript
+console.log("1️⃣ Start");
+
+// Macrotask (setTimeout)
+setTimeout(() => console.log("5️⃣ setTimeout"), 0);
+
+// Microtask (Promise)
+Promise.resolve().then(() => console.log("3️⃣ Promise"));
+
+// Microtask (queueMicrotask)
+queueMicrotask(() => console.log("4️⃣ queueMicrotask"));
+
+console.log("2️⃣ End");
+```
+### **🔹 Output:**
+```
+1️⃣ Start
+2️⃣ End
+3️⃣ Promise
+4️⃣ queueMicrotask
+5️⃣ setTimeout
+```
+### **Explanation:**
+1. **Synchronous code runs first:**  
+   - `console.log("1️⃣ Start");`  
+   - `console.log("2️⃣ End");`  
+2. **Microtasks execute next:**  
+   - `Promise.then()` → `3️⃣ Promise`  
+   - `queueMicrotask()` → `4️⃣ queueMicrotask`  
+3. **Macrotask executes last:**  
+   - `setTimeout()` → `5️⃣ setTimeout`
+
+---
+
+## **4️⃣ Why Microtasks Run Before Macrotasks**
+**Microtasks always run before the event loop moves to macrotasks.**  
+Even if `setTimeout()` is set to `0ms`, microtasks **still** execute first.
+
+```javascript
+setTimeout(() => console.log("Macrotask 1"), 0);
+
+Promise.resolve().then(() => console.log("Microtask 1"));
+Promise.resolve().then(() => console.log("Microtask 2"));
+
+setTimeout(() => console.log("Macrotask 2"), 0);
+```
+### **🔹 Output:**
+```
+Microtask 1
+Microtask 2
+Macrotask 1
+Macrotask 2
+```
+✅ **All microtasks run before any macrotasks execute.**
+
+---
+
+## **5️⃣ Real-World Use Cases**
+### ✅ **1. Ensuring Execution Order (`queueMicrotask`)**
+If you want something to run **after the current execution**, but before `setTimeout()`:
+```javascript
+console.log("Synchronous");
+
+queueMicrotask(() => console.log("Microtask"));
+
+setTimeout(() => console.log("Macrotask"), 0);
+```
+### **🔹 Output:**
+```
+Synchronous
+Microtask
+Macrotask
+```
+
+---
+
+### ✅ **2. Prioritizing Updates in React (`Promise.then()`)**
+In React, state updates are batched **as microtasks**, making them faster than `setTimeout()`.
+
+```javascript
+setTimeout(() => console.log("setTimeout"), 0);
+
+Promise.resolve().then(() => console.log("Promise.then()"));
+
+console.log("Synchronous");
+```
+### **🔹 Output:**
+```
+Synchronous
+Promise.then()
+setTimeout
+```
+✅ **State updates in React’s `useState()` leverage microtasks to improve performance.**
+
+---
+
+## **🎯 Summary**
+- **Microtasks** (`Promise.then()`, `queueMicrotask()`) **execute first**.  
+- **Macrotasks** (`setTimeout()`, `setInterval()`) run **after microtasks**.  
+- **Use microtasks for high-priority tasks** like UI updates.  
+- **Macrotasks handle deferred execution** like animations or background tasks.
+
+Would you like a **React-specific example** using `useEffect` and async tasks? 🚀
