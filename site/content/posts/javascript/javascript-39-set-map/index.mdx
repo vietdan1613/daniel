@@ -1,0 +1,172 @@
+---
+title: "📘 Section 39: Advanced Methods in `Set` and `Map`"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-02-30
+thumbnail: image.png
+featured: true
+---
+
+JavaScript's `Set` and `Map` have several powerful methods beyond the basics. Let's explore **complex operations** like filtering, merging, and performance optimizations.
+
+---
+
+## **1️⃣ Advanced `Set` Methods**
+A **`Set`** stores **unique values** and has useful methods for operations like intersections and differences.
+
+### **🔹 Intersection of Two Sets** (Common Elements)
+```javascript
+function intersection(setA, setB) {
+    return new Set([...setA].filter(item => setB.has(item)));
+}
+
+const set1 = new Set([1, 2, 3, 4]);
+const set2 = new Set([3, 4, 5, 6]);
+
+console.log(intersection(set1, set2)); // ✅ Output: Set {3, 4}
+```
+
+---
+
+### **🔹 Union of Two Sets** (Combine Unique Elements)
+```javascript
+function union(setA, setB) {
+    return new Set([...setA, ...setB]);
+}
+
+console.log(union(set1, set2)); // ✅ Output: Set {1, 2, 3, 4, 5, 6}
+```
+
+---
+
+### **🔹 Difference of Sets** (Elements in One Set But Not the Other)
+```javascript
+function difference(setA, setB) {
+    return new Set([...setA].filter(item => !setB.has(item)));
+}
+
+console.log(difference(set1, set2)); // ✅ Output: Set {1, 2}
+console.log(difference(set2, set1)); // ✅ Output: Set {5, 6}
+```
+
+---
+
+### **🔹 Checking for Subsets**
+```javascript
+function isSubset(setA, setB) {
+    return [...setA].every(item => setB.has(item));
+}
+
+const smallSet = new Set([3, 4]);
+console.log(isSubset(smallSet, set1)); // ✅ true
+console.log(isSubset(set1, set2)); // ❌ false
+```
+
+---
+
+### **🔹 Converting `Set` to Other Data Structures**
+```javascript
+const arrFromSet = [...set1]; // Convert Set to Array
+const objFromSet = Object.fromEntries([...set1].map(value => [value, true]));
+console.log(objFromSet); // ✅ {1: true, 2: true, 3: true, 4: true}
+```
+
+---
+
+## **2️⃣ Advanced `Map` Methods**
+A **`Map`** allows **key-value pairs** where keys can be **any type** (including objects and functions).
+
+### **🔹 Merging Two Maps**
+```javascript
+const map1 = new Map([
+    ["a", 1],
+    ["b", 2],
+]);
+
+const map2 = new Map([
+    ["b", 3], // Overwrites the value from map1
+    ["c", 4],
+]);
+
+const mergedMap = new Map([...map1, ...map2]);
+console.log(mergedMap); // ✅ Output: Map { 'a' => 1, 'b' => 3, 'c' => 4 }
+```
+
+---
+
+### **🔹 Filtering a Map**
+```javascript
+const filteredMap = new Map([...mergedMap].filter(([key, value]) => value > 2));
+console.log(filteredMap); // ✅ Output: Map { 'b' => 3, 'c' => 4 }
+```
+
+---
+
+### **🔹 Converting Map to Object and Vice Versa**
+```javascript
+const objFromMap = Object.fromEntries(mergedMap);
+console.log(objFromMap); // ✅ { a: 1, b: 3, c: 4 }
+
+const mapFromObj = new Map(Object.entries(objFromMap));
+console.log(mapFromObj); // ✅ Map { 'a' => 1, 'b' => 3, 'c' => 4 }
+```
+
+---
+
+### **🔹 Sorting a Map**
+```javascript
+const sortedMap = new Map([...mergedMap.entries()].sort((a, b) => a[1] - b[1]));
+console.log(sortedMap); // ✅ Map { 'a' => 1, 'b' => 3, 'c' => 4 }
+```
+
+---
+
+### **🔹 Using Objects as Keys in Map**
+Unlike objects, `Map` allows **objects as keys**.
+
+```javascript
+const objKey = { id: 1 };
+const userMap = new Map();
+userMap.set(objKey, { name: "Alice" });
+
+console.log(userMap.get(objKey)); // ✅ { name: "Alice" }
+```
+
+---
+
+### **🔹 WeakMap for Memory Optimization**
+A **`WeakMap`** allows objects as keys but doesn't prevent garbage collection.
+
+```javascript
+let user = { name: "John" };
+const weakMap = new WeakMap();
+weakMap.set(user, "Session Active");
+
+user = null; // ✅ Object is garbage collected, WeakMap automatically removes reference
+```
+✅ **Best Use Case:** Storing metadata related to DOM elements without memory leaks.
+
+---
+
+## **3️⃣ Performance Considerations**
+| Feature | `Set` | `Map` |
+|---------|------|------|
+| Insert/Remove/Search | **O(1)** | **O(1)** |
+| Iteration Speed | **Faster than Arrays** | **Faster than Objects** |
+| Unique Values | ✅ Yes | ❌ No |
+| Object Keys | ❌ No | ✅ Yes |
+
+---
+
+## **🎯 Summary**
+| Operation | `Set` | `Map` |
+|-----------|------|------|
+| Store unique values | ✅ | ❌ |
+| Store key-value pairs | ❌ | ✅ |
+| Remove duplicates | ✅ | ❌ |
+| Supports objects as keys | ❌ | ✅ |
+| Fast lookup (`O(1)`) | ✅ | ✅ |
+| Memory-efficient variant | WeakSet | WeakMap |
+
+Would you like a **React example using `Set` or `Map`?** 🚀
