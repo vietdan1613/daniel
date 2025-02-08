@@ -1,0 +1,97 @@
+---
+title: "React Interview Questions - Testing"
+category: React JS - JavaScript
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-03-05
+thumbnail: image.jpg
+featured: true
+---
+
+## 81. What is Jest?
+Jest is a JavaScript testing framework commonly used for testing React applications. It includes features like test runners, mocking, and snapshot testing.
+
+## 82. What is React Testing Library (RTL)?
+React Testing Library is a lightweight testing utility that helps test React components by simulating user interactions rather than testing implementation details.
+
+## 83. How do you test a React component using Jest and React Testing Library?
+Use `render` from RTL and Jest's `expect` function.
+```js
+import { render, screen } from '@testing-library/react';
+import MyComponent from './MyComponent';
+
+test('renders a component', () => {
+  render(<MyComponent />);
+  expect(screen.getByText(/hello/i)).toBeInTheDocument();
+});
+```
+
+## 84. What is the difference between shallow and deep rendering in testing?
+- **Shallow Rendering**: Renders only the component itself, not its children (used in Enzyme).
+- **Deep Rendering**: Fully renders the component and its children (RTL does this by default).
+
+## 85. How do you mock API calls in Jest?
+Use `jest.mock()` to mock API modules and return mock responses.
+```js
+jest.mock('./api');
+import { fetchData } from './api';
+
+test('mocks API call', async () => {
+  fetchData.mockResolvedValue({ data: 'Mocked Data' });
+  const result = await fetchData();
+  expect(result.data).toBe('Mocked Data');
+});
+```
+
+## 86. What are snapshots in Jest?
+Snapshot testing captures a rendered component’s output and compares it with previous snapshots to detect UI changes.
+```js
+import { render } from '@testing-library/react';
+import MyComponent from './MyComponent';
+
+test('matches snapshot', () => {
+  const { asFragment } = render(<MyComponent />);
+  expect(asFragment()).toMatchSnapshot();
+});
+```
+
+## 87. How do you simulate user events in React Testing Library?
+Use `fireEvent` or `userEvent` to simulate user interactions.
+```js
+import { render, screen, fireEvent } from '@testing-library/react';
+import Button from './Button';
+
+test('handles button click', () => {
+  render(<Button />);
+  const button = screen.getByRole('button');
+  fireEvent.click(button);
+  expect(screen.getByText(/clicked/i)).toBeInTheDocument();
+});
+```
+
+## 88. What is the difference between `getBy`, `queryBy`, and `findBy` in RTL?
+- **`getBy`**: Throws an error if the element is not found.
+- **`queryBy`**: Returns `null` if the element is not found.
+- **`findBy`**: Asynchronous, waits for the element to appear.
+
+## 89. How do you test asynchronous code in Jest?
+Use `async/await` or `.then()` with Jest’s `waitFor` utility.
+```js
+import { render, screen, waitFor } from '@testing-library/react';
+import FetchComponent from './FetchComponent';
+
+test('fetches and displays data', async () => {
+  render(<FetchComponent />);
+  await waitFor(() => expect(screen.getByText(/fetched data/i)).toBeInTheDocument());
+});
+```
+
+## 90. What is coverage in Jest, and how do you generate it?
+Jest provides test coverage reports to track untested code.
+Run tests with coverage using:
+```sh
+jest --coverage
+```
+
+Would you like additional testing topics, such as Cypress or E2E testing? 🚀
+
