@@ -1,0 +1,177 @@
+---
+title: "React Fundamental Section 2: Raw React APIs"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-02
+thumbnail: image.jpg
+featured: true
+---
+
+## Raw React APIs
+
+React is the most widely used frontend framework in the world and it's using the
+same APIs that you're using when it creates DOM nodes.
+
+React abstracts away the imperative browser API from you to give you a much more
+declarative API to work with.
+
+One important thing to know about React is that it supports multiple platforms
+(for example, native mobile, native desktop, web, and even terminal and VR).
+Each of these platforms has its own code necessary for interacting with that
+platform, and then there's shared code between the platforms.
+
+With that in mind, you need two JavaScript files to write React applications for
+the web:
+
+- React: responsible for creating React elements (kinda like
+  `document.createElement()`)
+- ReactDOM: responsible for rendering React elements to the DOM (kinda like
+  `rootElement.append()`)
+
+You can learn more about this in
+[the react docs](https://react.dev/reference/react).
+
+We'll also be loading these files into our application from the `./public`
+directory. This works great for our purposes of keeping this as simple as
+possible so you can learn React and not get distracted by a bunch of tools
+(don't worry, those will come later).
+
+Finally, from now on, as you save your work, the browser will reload
+automatically thanks to the `epic_ws.js` file we'll be including at the top of
+the `index.html` file. You're welcome 😊.
+
+## Create React Elements
+
+In modern applications, you typically get React and React DOM files from a "package registry",
+like [npm](https://npmjs.com) where packages we use are ([react](https://npm.im/react) and
+[react-dom](https://npm.im/react-dom)).
+
+<callout-info class="aside">
+	A package registry is a centralized repository where developers can publish
+	and share reusable code packages. 
+</callout-info>
+
+We'll import React from slightly different locations:
+
+- `public/react.js` (accessed at `/react.js`)
+- `public/react-dom/client.js` (accessed at `/react-dom/client.js`)
+
+These files use a service called [esm.sh](https://esm.sh) to provide the React packages.
+ 
+Here's a simple example of how to use the React createElement API:
+
+```typescript
+import { createElement } from '/react.js'
+import { createRoot } from '/react-dom/client.js'
+
+const elementProps = { id: 'element-id', children: 'Hello world!' }
+const elementType = 'h1'
+const reactElement = createElement(elementType, elementProps)
+
+const root = createRoot(rootElement)
+root.render(reactElement)
+```
+
+The "props" in `elementProps` above is short for "properties". Props are a key concept
+in React - they're the way we pass data into our elements. You can think of the element
+type as a blueprint for the kind of React component to create, and the props are the
+inputs that customize that element.
+
+`children` is a special prop in React. It represents the content inside an element.
+You have a few ways to specify children:
+
+1. As a prop (like in the first example above)
+2. As multiple arguments to `createElement`
+3. As an array
+
+Here's an example showing the last two methods:
+
+```typescript
+const elementProps = { id: 'element-id' }
+const elementType = 'h1'
+
+// Method 2: Multiple arguments
+const reactElement1 = createElement(
+	elementType,
+	elementProps,
+	'Hello',
+	' ',
+	'world!',
+)
+
+// Method 3: Array of children
+const children = ['Hello', ' ', 'world!']
+const reactElement2 = createElement(elementType, elementProps, children)
+
+createRoot(rootElement).render(reactElement1) // or reactElement2
+```
+
+## Nesting Elements
+
+```html
+<html>
+	<body>
+		<div id="root"></div>
+
+		<script type="module">
+			import { createElement } from '/react.js'
+			import { createRoot } from '/react-dom/client.js'
+
+			const rootElement = document.getElementById('root')
+			const element = createElement(
+				'div',
+				{ className: 'container' },
+				createElement('span', null, 'Hello'),
+				' ',
+				createElement('span', null, 'World'),
+			)
+
+			createRoot(rootElement).render(element)
+		</script>
+
+		<!-- this is here to add automatic browser reloading as you save your work -->
+		<script type="module" src="epic_ws.js"></script>
+	</body>
+</html>
+```
+
+Hint: You can either use the `children` prop or additional arguments after the
+props. If you use the `children` prop, you will get a warning in the developer
+console about needing a "key" prop. We'll get to that later.
+
+## Deep Nesting Elements
+
+👨‍💼 Just to make sure we really understand how to nest this stuff. Try to create
+this using React's APIs:
+
+```html
+<html>
+	<body>
+		<div id="root"></div>
+
+		<script type="module">
+			import { createElement } from '/react.js'
+			import { createRoot } from '/react-dom/client.js'
+
+			const rootElement = document.getElementById('root')
+			const element = createElement(
+				'div',
+				{ className: 'container' },
+				createElement('p', null, `Here's Sam's favorite food:`),
+				createElement(
+					'ul',
+					{ className: 'sams-food' },
+					createElement('li', null, 'Green eggs'),
+					createElement('li', null, 'Ham'),
+				),
+			)
+
+			createRoot(rootElement).render(element)
+		</script>
+
+		<!-- this is here to add automatic browser reloading as you save your work -->
+		<script type="module" src="epic_ws.js"></script>
+	</body>
+</html>
+```

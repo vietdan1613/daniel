@@ -1,0 +1,142 @@
+---
+title: "React Interview Questions - React with Redux"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-03-04
+thumbnail: image.jpg
+featured: true
+---
+
+### 61. What is Redux?
+Redux is a state management library for JavaScript applications, commonly used with React to manage application-wide state.
+
+### 62. What are the core principles of Redux?
+- **Single source of truth**: The state is stored in a single JavaScript object.
+- **State is read-only**: The only way to modify state is through actions.
+- **Changes are made with pure functions**: Reducers update the state in an immutable way.
+
+### 63. What is the Redux store?
+The Redux store holds the application's state and provides methods to access it, dispatch actions, and subscribe to state changes.
+
+### 64. What are actions in Redux?
+Actions are plain JavaScript objects that describe changes in state. They have a `type` field and optionally a `payload`.
+```js
+const increment = { type: 'INCREMENT' };
+```
+
+### 65. What are reducers in Redux?
+Reducers are pure functions that take the current state and an action as arguments, then return a new state.
+```js
+function counter(state = 0, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return state + 1;
+    case 'DECREMENT':
+      return state - 1;
+    default:
+      return state;
+  }
+}
+```
+
+### 66. How do you create a Redux store?
+Using `createStore` from Redux:
+```js
+import { createStore } from 'redux';
+const store = createStore(reducer);
+```
+
+### 67. What is the role of the `dispatch` function in Redux?
+`dispatch` is used to send actions to the Redux store, triggering state changes.
+```js
+store.dispatch({ type: 'INCREMENT' });
+```
+
+### 68. What are middleware functions in Redux?
+Middleware functions intercept actions before they reach the reducer, allowing for logging, async operations, etc.
+```js
+const logger = store => next => action => {
+  console.log('dispatching', action);
+  return next(action);
+};
+```
+
+### 69. What is Redux Thunk?
+Redux Thunk is a middleware that allows action creators to return functions instead of action objects, enabling asynchronous logic.
+```js
+const fetchData = () => dispatch => {
+  fetch('/api/data')
+    .then(response => response.json())
+    .then(data => dispatch({ type: 'DATA_LOADED', payload: data }));
+};
+```
+
+### 70. What is Redux Saga?
+Redux Saga is a middleware that handles side effects using generator functions.
+```js
+function* fetchDataSaga() {
+  const data = yield call(fetch, '/api/data');
+  yield put({ type: 'DATA_LOADED', payload: data });
+}
+```
+
+### 71. What is the difference between Redux Thunk and Redux Saga?
+- **Redux Thunk**: Uses functions for async actions (simpler, easier to learn).
+- **Redux Saga**: Uses generator functions (more powerful for complex async flows).
+
+### 72. What is the connect function in React Redux?
+`connect` links React components to the Redux store.
+```js
+import { connect } from 'react-redux';
+const mapStateToProps = state => ({ count: state.count });
+export default connect(mapStateToProps)(CounterComponent);
+```
+
+### 73. What is the Provider component in Redux?
+`Provider` makes the Redux store available to the entire React application.
+```js
+import { Provider } from 'react-redux';
+<Provider store={store}>
+  <App />
+</Provider>
+```
+
+### 74. What is useSelector and useDispatch in React Redux?
+- `useSelector`: Selects values from the Redux store.
+- `useDispatch`: Dispatches actions to the store.
+```js
+const count = useSelector(state => state.count);
+const dispatch = useDispatch();
+```
+
+### 75. How do you persist Redux state?
+Using libraries like `redux-persist` to save and rehydrate state across sessions.
+```js
+import { persistStore } from 'redux-persist';
+const persistor = persistStore(store);
+```
+
+### 76. What are some best practices for using Redux?
+- Keep reducers pure.
+- Normalize state shape.
+- Use middleware for async actions.
+- Use Redux DevTools for debugging.
+
+### 77. What is the difference between local state and Redux state?
+- **Local state**: Managed within a React component.
+- **Redux state**: Managed globally across the entire app.
+
+### 78. Can you use Redux with React Hooks?
+Yes, using `useSelector` and `useDispatch` hooks from `react-redux`.
+
+### 79. How do you handle side effects in Redux?
+Using middleware like **Redux Thunk**, **Redux Saga**, or **Redux Observable**.
+
+### 80. When should you NOT use Redux?
+Avoid Redux for small applications or when local component state is sufficient.
+
+---
+
+Would you like me to cover more topics on Redux? 🚀
+

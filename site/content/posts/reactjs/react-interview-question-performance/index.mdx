@@ -1,0 +1,67 @@
+---
+title: "React Interview Questions - Performance"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-03-06
+thumbnail: image.jpg
+featured: true
+---
+
+## 91. How can you improve the performance of a React application?
+- Use **React.memo** for functional components to prevent unnecessary re-renders.
+- Utilize **useCallback** and **useMemo** for optimizing function and value references.
+- Implement **code-splitting** using React.lazy and Suspense.
+- Optimize rendering with **shouldComponentUpdate** or **React.PureComponent**.
+- Use **virtualization** for rendering large lists (e.g., react-window, react-virtualized).
+
+## 92. What is React.memo, and how does it help performance?
+`React.memo` is a higher-order component that prevents functional components from re-rendering if their props haven’t changed.
+```js
+const MemoizedComponent = React.memo(MyComponent);
+```
+
+## 93. How does useCallback improve performance in React?
+`useCallback` memoizes a function, ensuring it doesn’t get recreated on every render.
+```js
+const handleClick = useCallback(() => {
+  console.log('Clicked');
+}, []);
+```
+
+## 94. What is useMemo, and when should you use it?
+`useMemo` caches expensive calculations and prevents unnecessary recomputations.
+```js
+const computedValue = useMemo(() => expensiveFunction(data), [data]);
+```
+
+## 95. How can you optimize rendering performance for large lists?
+- Use **windowing/virtualization** with libraries like `react-window`.
+- Avoid rendering unnecessary items by splitting large lists into smaller chunks.
+
+## 96. What are the benefits of lazy loading in React?
+Lazy loading reduces initial load time by loading components only when they’re needed.
+```js
+const LazyComponent = React.lazy(() => import('./LazyComponent'));
+```
+
+## 97. How does React’s reconciliation process work?
+React compares the Virtual DOM with the previous version and updates only the changed parts, optimizing performance.
+
+## 98. What is the significance of the key prop in lists?
+The `key` prop helps React identify which items have changed, preventing unnecessary re-renders.
+```js
+{items.map(item => <Item key={item.id} data={item} />)}
+```
+
+## 99. How can you optimize CSS and styles in React?
+- Use **CSS modules** or **styled-components** to scope styles efficiently.
+- Minimize unnecessary inline styles, which can cause re-renders.
+
+## 100. How do you measure and analyze performance in a React app?
+- Use the **React DevTools Profiler**.
+- Monitor rendering behavior with `console.log` or **why-did-you-render**.
+- Use **Lighthouse** for performance audits.
+
+Would you like me to expand on any specific optimization techniques? 🚀
+
