@@ -1,0 +1,247 @@
+---
+title: "React Fundamental Section 6: Styling"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-06
+thumbnail: image.jpg
+featured: true
+---
+
+# Styling
+
+There are two primary ways to style React components
+
+1. Inline styles with the `style` prop
+2. Regular CSS with the `className` prop
+
+Before we get into those, you need to know something about element properties
+and HTML attributes.
+
+## Element properties and HTML attributes
+
+In HTML, you have elements and attributes. For example, the `div` element has a
+`class` attribute:
+
+```html
+<div class="my-class"></div>
+```
+
+In the DOM, the `div` element has a `className` property:
+
+```html
+<div id="my-div" class="my-class"></div>
+<script>
+	const myDiv = document.getElementById('my-div')
+	console.log(myDiv.class) // undefined
+	console.log(myDiv.className) // "my-class"
+</script>
+```
+
+In JSX, you use the property name rather than the attribute name:
+
+```tsx
+<div className="my-class" />
+```
+
+This applies to a number of other attributes as well. For example, `for` in HTML
+is `htmlFor` in DOM (and JSX). Others include `tabindex` and `readonly` (which
+are, respectively, `tabIndex` and `readOnly` in JSX).
+
+Most differences between HTML attributes and JSX props are due to the fact that
+props are a reference to "properties" not "attributes", so understanding the
+difference is handy!
+
+## Inline styles
+
+Inline styles are set differently in JSX from HTML as a result of how they are
+applied to the DOM. In HTML, you'd pass a string of CSS, but you access it as an
+object in the DOM:
+
+```html
+<div id="my-div" style="margin-top: 20px; background-color: blue;"></div>
+<script>
+	const myDiv = document.getElementById('my-div')
+	console.log(myDiv.style.marginTop) // "20px"
+	console.log(myDiv.style.backgroundColor) // "blue"
+</script>
+```
+
+As a result, in JSX, you pass an object of CSS rather than a string:
+
+```tsx
+<div style={{ marginTop: 20, backgroundColor: 'blue' }} />
+```
+
+This actually makes them much easier to work with. Though the style prop has
+some significant limitations (like lack of media queries and pseudo-selectors),
+so it's not always the best choice.
+
+Note also that the property names are `camelCased` rather than `kebab-cased`.
+This matches the `style` property of DOM nodes (which is a
+[`CSSStyleDeclaration`](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration)
+object).
+
+## Class names
+
+The most common mechanism for styling web applications is through the use of CSS
+and class names.
+
+As mentioned earlier, in HTML, you apply a class name to an element with the
+`class` attribute. In JSX, you use the `className` prop:
+
+```tsx
+<div className="my-class" />
+```
+
+Then you'll load a CSS file onto the page:
+
+```html
+<link rel="stylesheet" href="styles.css" />
+```
+
+And that can contain the styles for `.my-class`:
+
+```css
+.my-class {
+	margin-top: 20px;
+	background-color: blue;
+}
+```
+# Custom Component
+
+👨‍💼 We want to reduce duplication here by making a custom `<Box />` component
+that renders a div, accepts all the props and merges the given `style` and
+`className` props with the shared values.
+
+I should be able to use it like so:
+
+```tsx
+<Box className="box--small" style={{ backgroundColor: 'lightblue' }}>
+	small lightblue box
+</Box>
+```
+
+The `box` className and `fontStyle: 'italic'` style should be applied
+automatically by the `<Box />` component which should then merge that default
+with the values that come from props.
+
+How you go about implementing it is part of the fun (aka "learning" 😉). You may
+come up with something completely different from how I do it and that's great
+for your learning. When you're done, these two ultimately render _exactly_ the
+same thing:
+
+```tsx
+// before:
+<div
+  className="box box--small"
+  style={{fontStyle: 'italic', backgroundColor: 'lightblue'}}
+>
+  small lightblue box
+</div>
+
+// after:
+<Box className="box--small" style={{backgroundColor: 'lightblue'}}>
+  small lightblue box
+</Box>
+```
+
+And I should be able to switch the `div` for a `Box` for the medium and large
+boxes as well.
+
+💰 Here's a quick tip for the TypeScript part of this. When you want to wrap an
+element to basically simulate that element + a little functionality (like in our
+case), you'll want to borrow the type definition for that element from React.
+Here's how you do that (for a `span` element rather than `div`):
+
+```tsx
+function MySpan(props: React.ComponentProps<'span'>) {
+	return <span {...props} />
+}
+```
+
+And now you'll get type safety and autocomplete for all the HTML attributes
+accepted by a span element.
+# Size Prop
+
+👨‍💼 It's great that we're composing the `className`s and `style`s properly, but
+wouldn't it be better if the users of our components didn't have to worry about
+which class name to apply for a given effect? Or that a class name is involved
+at all? I think it would be better if users of our component had a `size` prop
+and our component took care of making the box that size.
+
+In this step, try to make this API work:
+
+```tsx
+<Box size="small" style={{ backgroundColor: 'lightblue' }}>
+	small lightblue box
+</Box>
+```
+
+- You'll need 📜
+  [TypeScript's intersection (&) operator](https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types)
+
+```tsx
+import { createRoot } from 'react-dom/client'
+
+export function Box({
+	size,
+	...otherProps
+}: {
+	size?: 'small' | 'medium' | 'large'
+} & React.ComponentProps<'div'>) {
+	const sizeClassName = size ? `box--${size}` : ''
+	return (
+		<div
+			{...otherProps}
+			className={['box', otherProps.className, sizeClassName]
+				.filter(Boolean)
+				.join(' ')}
+			style={{ fontStyle: 'italic', ...otherProps.style }}
+		/>
+	)
+}
+
+function App() {
+	return (
+		<div>
+			<Box size="small" style={{ backgroundColor: 'lightblue' }}>
+				small lightblue box
+			</Box>
+			<Box size="medium" style={{ backgroundColor: 'pink' }}>
+				medium pink box
+			</Box>
+			<Box size="large" style={{ backgroundColor: 'orange' }}>
+				large orange box
+			</Box>
+			<Box>sizeless colorless box</Box>
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+createRoot(rootEl).render(<App />)
+```
+
+```css
+.box {
+	border: 1px solid #333;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	text-align: center;
+}
+.box--large {
+	width: 270px;
+	height: 270px;
+}
+.box--medium {
+	width: 180px;
+	height: 180px;
+}
+.box--small {
+	width: 90px;
+	height: 90px;
+}
+```
