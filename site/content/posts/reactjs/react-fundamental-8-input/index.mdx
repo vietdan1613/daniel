@@ -1,0 +1,249 @@
+---
+title: "React Fundamental Section 8: Inputs"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-08
+thumbnail: image.jpg
+featured: true
+---
+
+# Inputs
+
+There are lots of different types of form elements built-into the browser you
+can use (of varying degrees of usefulness because of the way they are designed).
+[Find a list of standard input types here](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input).
+
+In general, you use these form elements in React the same way you use them in
+regular HTML, but there are a few exceptions (especially regarding default
+values). So we're going to explore all the types of form elements in this
+exercise.
+
+There are a number of ways you can be notified of changes to form elements.
+We'll not be covering them in this workshop (we'll get into it more in a future
+workshop when we talk about managing state), but if you just can't wait, play
+around with `onChange` (which behaves like
+[the browser's `input` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/input_event)).
+
+# Checkbox
+
+👨‍💼 We need to add a checkbox for whether the user has already signed a waiver.
+
+For checkboxes, typically they appear on the left side of the label and in this
+case we can even have the checkbox be _inside_ the label which means we don't
+need to worry about the `for` and `id` attributes which is nice.
+
+Please add the checkbox to the form.
+
+Once you've done that, make sure to submit the form with the checkbox checked
+and without it checked so you can familiarize yourself with the difference in
+form data because it's kinda funny.
+# Select
+
+👨‍💼 We have four different account types:
+
+- Admin
+- Teacher
+- Parent
+- Student
+
+Please add a `<select>` with `<option>`s for each account type.
+
+📜 Learn more about this input type via
+[`<select>` on MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select).
+# Radios
+
+👨‍💼 We need to allow the user to select the visibility of the account. It can be
+either Public or Private. We could use a `<select>` here, but I don't think
+that's the best option. Instead, let's use a radio group.
+
+📜 You can [learn about radio groups on MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio)
+
+What's interesting about radio groups is that each radio group can contain
+multiple inputs that share the same name. Only one of them can be selected at
+a time. Each radio input needs its own `label`. To label the entire group, you
+can use a `<fieldset>` and a `<legend>`.
+
+<callout-info>
+	Note: Similar to checkboxes, to set the default value, you can set the
+	`checked` attribute to the input you want to be selected by default... but
+	in React, that will make your input read-only! We'll learn more about how
+	to set default values in React in a future lesson.
+</callout-info>
+
+Similar to a select `option`, you need to set the `value` on the input to
+determine what value will be sent to the server when the form is submitted.
+
+# Hidden Inputs
+
+👨‍💼 Our backend needs to know what organization to associate this new account to.
+We don't need to ask the user this information because we know that it's just
+`123`. So we can add
+[a hidden input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/hidden)
+to make sure the submission includes this value, but not require the user to
+provide it.
+
+# Default Value
+
+🦉 You may have noticed in the previous step we used a `value` prop. This is how
+you set the value in an HTML document. React however is a little special and
+supports what's called
+["controlled inputs"](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable)
+meaning you can programmatically control the value of the input.
+
+For this reason, when you set the `value` prop on an input like this, it means
+that React will expect you keep that value up-to-date and will not allow the
+user to change the value to anything other than what you have specified in the
+`value` prop. Effectively, this means that if we set the `value` on one of our
+fields, the user can't change it unless we do a little extra work. This is a
+very useful feature we'll discuss more later on, but it has implications for our
+form now, so let's address this.
+
+The thing is, we want to default several of these fields to a value, but we
+want the user to be able to change them. With the exception of the hidden input,
+we can't do that with the `value` prop. So we need to use a different prop.
+
+In React, you use the `defaultValue` prop to set the default value of an input
+and the `defaultChecked` prop to set the default value of a checkbox or radio.
+The `defaultValue` should be a string (or it will be coerced to a string) that
+matches the format of the input.
+
+```tsx
+<input type="text" defaultValue="Hello World" />
+// these give the same result:
+<input type="number" defaultValue="42" />
+<input type="number" defaultValue={42} />
+```
+
+If it's a date, you need to use a string, but it needs to be in the format
+`YYYY-MM-DD` (because that's the format of the value when the user selects a
+date). You can use the `toISOString` method on a `Date` object which gives a
+string with the format `YYYY-MM-DDTHH:mm:ss.sssZ`, so we can use `slice` to get
+the first 10 characters:
+
+```tsx
+<input type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+```
+
+This applies to `select` as well. Set it the the value of the option you want to
+have selected, and that one will be selected by default:
+
+```tsx
+<select defaultValue="pineapple">
+	<option value="apple">Apple</option>
+	<option value="banana">Banana</option>
+	<option value="pineapple">Pineapple</option>
+</select>
+```
+
+Checkboxes and Radios are special cases. For these, you set the `defaultChecked`
+prop:
+
+```tsx
+<input type="checkbox" defaultChecked />
+// and for the radio, just set defaultChecked on the one you want selected:
+<input type="radio" name="fruit" value="apple" defaultChecked />
+<input type="radio" name="fruit" value="banana" />
+<input type="radio" name="fruit" value="pineapple" />
+```
+
+👨‍💼 So with that, please set some defaults on these form fields:
+
+- Account Type: "Student"
+- Age: 18
+- Favorite Color: #002E5D
+- Visibility: Public
+- Waiver Signed: Checked
+- Start Date: Today's date
+
+```tsx
+import { createRoot } from 'react-dom/client'
+
+function App() {
+	function logFormData(formData: FormData) {
+		console.log(Object.fromEntries(formData))
+	}
+	return (
+		<form action={logFormData}>
+			<input type="hidden" name="orgId" value="123" />
+			<div>
+				<label htmlFor="accountTypeSelection">Account Type:</label>
+				<select
+					id="accountTypeSelection"
+					name="accountType"
+					defaultValue="student"
+				>
+					<option value="">--Please select an option--</option>
+					<option value="admin">Admin</option>
+					<option value="teacher">Teacher</option>
+					<option value="parent">Parent</option>
+					<option value="student">Student</option>
+				</select>
+			</div>
+			<div>
+				<label htmlFor="usernameInput">Username:</label>
+				<input id="usernameInput" name="username" />
+			</div>
+			<div>
+				<label htmlFor="passwordInput">Password:</label>
+				<input id="passwordInput" name="password" type="password" />
+			</div>
+			<div>
+				<label htmlFor="ageInput">Age:</label>
+				<input
+					id="ageInput"
+					name="age"
+					type="number"
+					min="0"
+					max="200"
+					defaultValue={18}
+				/>
+			</div>
+			<div>
+				<label htmlFor="photoInput">Photo:</label>
+				<input id="photoInput" name="photo" type="file" accept="image/*" />
+			</div>
+			<div>
+				<label htmlFor="colorInput">Favorite Color:</label>
+				<input
+					id="colorInput"
+					name="color"
+					type="color"
+					defaultValue="#002E5D"
+				/>
+			</div>
+			<fieldset>
+				<legend>Visibility:</legend>
+				<label>
+					<input name="visibility" type="radio" value="public" defaultChecked />
+					Public
+				</label>
+				<label>
+					<input name="visibility" type="radio" value="private" />
+					Private
+				</label>
+			</fieldset>
+			<div>
+				<label>
+					<input name="waiver" type="checkbox" defaultChecked />
+					Waiver Signed
+				</label>
+			</div>
+			<div>
+				<label htmlFor="startDateInput">Start Date:</label>
+				<input
+					id="startDateInput"
+					name="startDate"
+					type="date"
+					defaultValue={new Date().toISOString().slice(0, 10)}
+				/>
+			</div>
+			<button type="submit">Submit</button>
+		</form>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+createRoot(rootEl).render(<App />)
+```
