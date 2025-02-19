@@ -1,0 +1,274 @@
+---
+title: "Advanced React APIs 9: Sync External State"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-11
+thumbnail: image.jpg
+featured: true
+---
+
+# Sync External State
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-sync-external-state" />
+
+Not everything we build on the web is built with React. There are libraries and
+platform APIs that are external to React. Bringing those things into React's
+component model and state management lifecycle is necessary for building
+full-featured applications.
+
+The task is to synchronize the external world with the internal state of a
+React component. To do this, we use the `useSyncExternalStore` hook.
+
+Let's take the example of a component that displays your current location via
+the geolocation API. The geolocation API is not a part of React, so we need to
+synchronize the external state of the geolocation API with the internal state of
+our component.
+
+```tsx lines=25-28
+import { useSyncExternalStore } from 'react'
+
+type LocationData =
+	| { status: 'unavailable'; geo?: never }
+	| { status: 'available'; geo: GeolocationPosition }
+// this variable is our external store!
+let location: LocationData = { status: 'unavailable' }
+
+function subscribeToGeolocation(callback: () => void) {
+	const watchId = navigator.geolocation.watchPosition((position) => {
+		location = { status: 'available', geo: position }
+		callback()
+	})
+	return () => {
+		location = { status: 'unavailable' }
+		return navigator.geolocation.clearWatch(watchId)
+	}
+}
+
+function getGeolocationSnapshot() {
+	return location
+}
+
+function MyLocation() {
+	const location = useSyncExternalStore(
+		subscribeToGeolocation,
+		getGeolocationSnapshot,
+	)
+	return (
+		<div>
+			{location.status === 'unavailable' ? (
+				'Your location is unavailable'
+			) : (
+				<>
+					Your location is {location.geo.coords.latitude.toFixed(2)}
+					{'°, '}
+					{location.geo.coords.longitude.toFixed(2)}
+					{'°'}
+				</>
+			)}
+		</div>
+	)
+}
+```
+
+Here's the basic API:
+
+```tsx
+const snapshot = useSyncExternalStore(
+	subscribe,
+	getSnapshot,
+	getServerSnapshot, // optional
+)
+```
+
+- `subscribe` is a function that takes a callback and returns a cleanup function.
+  The callback is called whenever the external store changes to let React know
+  it should call `getSnapshot` to get the new value.
+- `getSnapshot` is a function that returns the current value of the external
+  store.
+- `getServerSnapshot` is an optional function that returns the current value of
+  the external store from the server. This is useful for server-side rendering
+  and rehydration. If you don't provide this function, then React will render
+  the nearest `Suspense` boundary `fallback` on the server and then when the
+  client hydrates, it will call `getSnapshot` to get the current value.
+
+<callout-success class="aside">
+	To learn more about server rendering React, check [the
+	docs](https://react.dev/reference/react-dom/server).
+</callout-success>
+
+The `Suspense` Component is something we'll get to in a future workshop. For
+now, think of it as a way to declaratively handle loading states in React
+(because that's what it is and that's all you need to know for now).
+
+Learn more about `useSyncExternalStore` in the
+[API documentation](https://react.dev/reference/react/useSyncExternalStore).
+# useSyncExternalStore
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/usesyncexternalstore" />
+
+🦉 When you have a design that needs to be responsive, you use
+[media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries)
+to change the layout of the page based on the size of the screen. Media queries
+can tell you a lot more than just the width of the page and sometimes you need
+to know whether a media query matches even outside of a CSS context.
+
+The browser supports a JavaScript API called `matchMedia` that allows you to
+query the current state of a media query:
+
+```tsx
+const prefersDarkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+console.log(prefersDarkModeQuery.matches) // true if the user prefers dark mode
+```
+
+👨‍💼 Thanks for that Olivia. So yes, our users want a component that displays
+whether they're on a narrow screen. We're going to build this into a more
+generic hook that will allow us to determine any media query's match and also
+keep the state in sync with the media query. And you're going to need to use
+`useSyncExternalStore` to do it.
+
+Go ahead and follow the emoji instructions. You'll know you got it right when
+you resize your screen and the text changes.
+
+<callout-info class="aside">
+	🦉 If we really were just trying to display some different text based on the
+	screen size, we could use CSS media queries and not have to write any
+	JavaScript at all. But sometimes we need to know the state of a media query in
+	JavaScript for more complex interactions, so we're going to use a simple
+	example to demonstrate how to do this to handle those cases and we'll be using
+	`useSyncExternalStore` for that.
+</callout-info>
+# Make Store Utility
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/make-store-utility" />
+
+👨‍💼 We want to make this utility generally useful so we can use it for any media
+query. So please stick most of our logic in a `makeMediaQueryStore` function
+and have that return a custom hook people can use to keep track of the current
+media query's matching state.
+
+It'll be something like this:
+
+```tsx
+export function makeMediaQueryStore(mediaQuery: string) {
+	// ...
+}
+
+const useNarrowMediaQuery = makeMediaQueryStore('(max-width: 600px)')
+
+function App() {
+	const isNarrow = useNarrowMediaQuery()
+	// ...
+}
+```
+# Handling Server Rendering
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/handling-server-rendering" />
+
+👨‍💼 We don't currently do any server rendering, but in the future we may want to
+and this requires some special handling with `useSyncExternalStore`.
+
+🧝‍♂️ <PrevDiffLink>I've simulated a server rendering environment</PrevDiffLink> by
+adding some code to the bottom of our file. First, we render the `<App />` to a
+string, then we set that to the `innerHTML` of our `rootEl`. Then we call
+`hydrateRoot` to rehydrate our application.
+
+```tsx
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+// simulate server rendering
+rootEl.innerHTML = (await import('react-dom/server')).renderToString(<App />)
+
+// simulate taking a while for the JS to load...
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+ReactDOM.hydrateRoot(rootEl, <App />)
+```
+
+👨‍💼 This is a bit of a hack, but it's a good way to simulate server rendering
+and ensure that our application works in a server rendering situation.
+
+Because the server won't know whether a media query matches, we can't use the
+`getServerSnapshot()` argument of `useSyncExternalStore`. Instead, we'll leave
+that argument off, and wrap our `<NarrowScreenNotifier />` in a
+[`<Suspense />`](https://react.dev/reference/react/Suspense) component with a
+fallback of `""` (we won't show anything until the client hydrates).
+
+With this, you'll notice there's an error in the console. Nothing's technically
+wrong, but React logs this in this situation (I honestly personally disagree
+that they should do this, but 🤷‍♂️). So as extra credit, you can add an
+`onRecoverableError` function to the `hydrateRoot` call and if the given error
+includes the string `'Missing getServerSnapshot'` then you can return,
+otherwise, log the error.
+
+Good luck!
+
+```tsx
+import { hydrateRoot } from 'react-dom/client'
+
+const root = hydrateRoot(document.getElementById('root'), <App />, {
+	onRecoverableError: (error, errorInfo) => {
+		console.error('Caught error', error, error.cause, errorInfo.componentStack)
+	},
+})
+```
+
+```tsx
+import { Suspense, useSyncExternalStore } from 'react'
+import * as ReactDOM from 'react-dom/client'
+
+export function makeMediaQueryStore(mediaQuery: string) {
+	function getSnapshot() {
+		return window.matchMedia(mediaQuery).matches
+	}
+
+	function subscribe(callback: () => void) {
+		const mediaQueryList = window.matchMedia(mediaQuery)
+		mediaQueryList.addEventListener('change', callback)
+		return () => {
+			mediaQueryList.removeEventListener('change', callback)
+		}
+	}
+
+	return function useMediaQuery() {
+		return useSyncExternalStore(subscribe, getSnapshot)
+	}
+}
+
+const useNarrowMediaQuery = makeMediaQueryStore('(max-width: 600px)')
+
+function NarrowScreenNotifier() {
+	const isNarrow = useNarrowMediaQuery()
+	return isNarrow ? 'You are on a narrow screen' : 'You are on a wide screen'
+}
+
+function App() {
+	return (
+		<div>
+			<div>This is your narrow screen state:</div>
+			<Suspense fallback="">
+				<NarrowScreenNotifier />
+			</Suspense>
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+// 🦉 here's how we pretend we're server-rendering
+rootEl.innerHTML = (await import('react-dom/server')).renderToString(<App />)
+
+// 🦉 here's how we simulate a delay in hydrating with client-side js
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+const root = ReactDOM.hydrateRoot(rootEl, <App />, {
+	onRecoverableError(error) {
+		if (String(error).includes('Missing getServerSnapshot')) return
+
+		console.error(error)
+	},
+})
+
+// @ts-expect-error 🚨 this is for the test
+window.__epicReactRoot = root
+```

@@ -1,0 +1,342 @@
+---
+title: "React Hooks 2: Side-Effects"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-12
+thumbnail: image.jpg
+featured: true
+---
+
+# Side-Effects
+
+`useEffect` is a built-in hook that allows you to run some custom code
+after React renders (and re-renders) your component to the DOM. It accepts a
+callback function which React will call after the DOM has been updated:
+
+```tsx
+useEffect(() => {
+	// your side-effect code here.
+	// this is where you can interact with browser APIs for example
+	doSomeThing()
+	return function cleanup() {
+		// if you need to clean up after your side-effect (like unsubscribe from an
+		// event), you can do it here
+		doSomeCleanup()
+	}
+}, [
+	// this is where dependencies of your useEffect callback go
+	// we'll talk about this in depth in a future exercise.
+	// In this exercise, we'll just leave it as an empty array
+	dep1,
+	dep2,
+])
+```
+
+`useState` is for managing our React component state and `useEffect` is for
+managing side-effects. Side-effects are things that happen outside our React
+components.
+
+For example, things outside our React components include:
+
+- Browser APIs like local storage, geolocation, media devices, etc.
+- Integrations with third-party libraries like D3, Chart.js, etc.
+
+Check out [the React Flow diagram](https://github.com/donavon/hook-flow) below:
+
+![React Flow diagram showing mount, update, unmount](/hook-flow.png)
+
+The graphic illustrates the lifecycle of a React component, focusing on how
+hooks behave during different phases: Mount, Update, and Unmount. It's
+structured into different sections, each representing a stage in the component
+lifecycle, and provides a visual flow of the order in which React hooks and
+other operations are executed. Here's a breakdown:
+
+1. **Mount Phase**:
+   - **Run lazy initializers**: This step involves executing any lazy
+     initialization functions provided to hooks like `useState` or `useReducer`.
+     These functions are only run during the initial render.
+2. **Update Phase** (triggered by a parent re-render, state change, or context
+   change):
+   - **Render**: The component re-renders, evaluating its function body.
+   - **React updates DOM**: React applies any changes from the render phase to
+     the DOM.
+   - **Cleanup LayoutEffects**: Before running any new layout effects, React
+     cleans up the previous ones defined in `useLayoutEffect`.
+   - **Run LayoutEffects**: Runs the effects defined in `useLayoutEffect`
+     immediately after DOM updates, blocking the browser painting until
+     complete.
+   - **Browser paints screen**: The browser updates the visual representation of
+     the page.
+   - **Cleanup Effects**: Cleans up any effects defined in `useEffect` from the
+     previous render.
+   - **Run Effects**: Runs the effects defined in `useEffect`. These are
+     scheduled to run after the paint, so they don't block the browser from
+     updating the screen.
+3. **Unmount Phase**:
+   - React performs cleanup for both `useEffect` and `useLayoutEffect` hooks,
+     preventing memory leaks by removing event listeners, canceling network
+     requests, or invalidating timers set up by the component.
+
+**Notes** at the bottom highlight key concepts:
+
+- **Updates** are triggered by re-renders from parent components, state changes,
+  or context changes.
+- **Lazy initializers** are functions that initialize state lazily, meaning the
+  initial state is computed only on the initial render, potentially optimizing
+  performance.
+
+The different colors in the graphic signify various stages and types of
+operations within the React component lifecycle, specifically relating to the
+execution of hooks and rendering processes. Each color represents a distinct
+group of operations:
+
+1. **Green (Top section)**: This color is associated with the initial setup
+   phase of a component, including running lazy initializers which are functions
+   provided to hooks like `useState` and `useReducer` for setting the initial
+   state.
+2. **Red (Middle section)**: Represents operations related to the
+   DOM updates and the pre-paint phase. This includes the rendering process,
+   where React evaluates the component and updates the DOM, followed by the
+   cleanup and execution of layout effects (`useLayoutEffect`). These operations
+   are crucial for ensuring that any DOM manipulations or measurements happen
+   synchronously before the browser paints.
+3. **Yellow (Bottom section)**: Focuses on post-paint effects, encapsulating the
+   cleanup and execution of side effects (`useEffect`). These operations are
+   scheduled after painting, allowing for non-blocking operations like data
+   fetching, subscriptions, or manually triggering DOM updates. These effects
+   run asynchronously to avoid delaying the visual update of the page.
+
+This diagram is a helpful reference for understanding the sequence and timing of
+React's hook-based lifecycle methods, which is crucial for correctly managing
+side effects, subscriptions, and manual DOM manipulations in functional
+components.
+
+This will make more sense after finishing the exercise. So come back!
+
+<callout-success>
+	To dive into this deeper, check out [React Hooks
+	Flow](https://www.bharathikannan.com/blog/react-useeffect-flow) by [Bharathi
+	Kannan](https://www.bharathikannan.com/).
+</callout-success>
+
+# Effect Cleanup
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/effect-cleanup" />
+
+👨‍💼 We've got an issue with our `useEffect` callback here that needs some
+attention. You won't be able to tell without a little bit extra in the app, so
+Kellie (🧝‍♂️) has put together a demo.
+
+🧝‍♂️ Yep, so now we have a checkbox that says "show form." When you check it,
+it'll show the form and the results, when you uncheck it, those will be removed.
+In dynamic applications we have components that are added and removed from the
+page all the time, so you definitelly will have situations like this.
+
+👨‍💼 Thanks Kellie. Olivia (🦉) would like to talk to you about memory leaks.
+
+🦉 Thanks Peter. So, let's review what's going on. When our component is
+rendered, we subscribe to the `popstate` event. The callback we pass to the
+`addEventListener` method creates a closure over all the variables in the
+function's scope. This means that when the callback is called, it has access to
+those values. What that means is that as long as that function exists and is
+referenced by something else in the application, those values will be kept in
+memory as well just in case the callback is called again.
+
+As a result, when the component is removed from the page, the callback is still
+referenced by the `popstate` event, and so the values are kept in memory. So
+imagine if you have a component that is added and removed from the page many
+times, and each time it's added, it subscribes to an event and adds more to the
+memory, but that memory is never released because even when the component is
+removed from the page the event still has a reference to the callback which is
+hanging on to all the values!
+
+This is called a memory leak and will make your application slower and use more
+memory than it needs to (leading to a bad user experience). Whether you're using
+React or anything else, you should always be aware of memory leaks and how to
+avoid them. In general, whenever you find yourself adding an event listener or
+subscribing to something, you should always make sure to remove that listener or
+subscription when you're finished with it.
+
+So in a React context, this means that you should always clean up your effects
+when the component is removed from the page. The way to do this is to return a
+function from the effect that removes the listener or subscription:
+
+```tsx
+useEffect(() => {
+	function handleEvent() {
+		// some-event happened!
+	}
+	window.addEventListener('some-event', handleEvent)
+	return () => {
+		window.removeEventListener('some-event', handleEvent)
+	}
+}, [])
+```
+
+This way, when the component is removed from the page, React will call the
+cleanup function and remove the listener or subscription.
+
+👨‍💼 Great. Now that we've got that out of the way, let's handle this in our app.
+
+You can add `console.log` statements to make sure things are being called (unless
+you want to open up the memory profiling tab in your dev tools and click the
+checkbox a bunch of times to see the memory usage go up 😅).
+
+🚨 To test this, I've added a couple lines to allocate huge amounts of memory to
+huge arrays. Watch the quick climb of the memory in the
+[Memory tab of dev tools](https://developer.chrome.com/docs/devtools/memory) or
+[Browser Task manager](https://developer.chrome.com/docs/devtools/memory-problems#monitor_memory_use_in_realtime_with_the_chrome_task_manager)
+every time you check and uncheck the box. The test toggles the checkbox many
+times and then checks that the memory usage is a reasonable increase of the
+initial memory usage.
+
+<callout-warning>
+	Testing memory leaks is tricky. It's possible the memory usage starts out
+	higher than it should leading to a test that passes but should not. Try
+	running the test a few times to be certain you've got it right.
+</callout-warning>
+
+```tsx
+import { useEffect, useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
+import { setGlobalSearchParams } from '#shared/utils'
+
+function getQueryParam() {
+	const params = new URLSearchParams(window.location.search)
+	return params.get('query') ?? ''
+}
+
+function App() {
+	const [query, setQuery] = useState(getQueryParam)
+
+	const words = query.split(' ')
+
+	const dogChecked = words.includes('dog')
+	const catChecked = words.includes('cat')
+	const caterpillarChecked = words.includes('caterpillar')
+
+	useEffect(() => {
+		// 🚨 we use this to test whether your cleanup is working
+		const hugeData = new Array(1_000_000).fill(
+			new Array(1_000_000).fill('🐶🐱🐛'),
+		)
+		function updateQuery() {
+			// 🚨 this console.log forces the hugeData to hang around as long as the event listener is active
+			console.log(hugeData)
+			console.log('popstate event listener called')
+			setQuery(getQueryParam())
+		}
+		window.addEventListener('popstate', updateQuery)
+		return () => {
+			window.removeEventListener('popstate', updateQuery)
+		}
+	}, [])
+
+	function handleCheck(tag: string, checked: boolean) {
+		const newWords = checked ? [...words, tag] : words.filter(w => w !== tag)
+		setQuery(newWords.filter(Boolean).join(' ').trim())
+	}
+
+	return (
+		<div className="app">
+			<form
+				action={() => {
+					setGlobalSearchParams({ query })
+				}}
+			>
+				<div>
+					<label htmlFor="searchInput">Search:</label>
+					<input
+						id="searchInput"
+						name="query"
+						type="search"
+						value={query}
+						onChange={e => setQuery(e.currentTarget.value)}
+					/>
+				</div>
+				<div>
+					<label>
+						<input
+							type="checkbox"
+							checked={dogChecked}
+							onChange={e => handleCheck('dog', e.currentTarget.checked)}
+						/>{' '}
+						🐶 dog
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							checked={catChecked}
+							onChange={e => handleCheck('cat', e.currentTarget.checked)}
+						/>{' '}
+						🐱 cat
+					</label>
+					<label>
+						<input
+							type="checkbox"
+							checked={caterpillarChecked}
+							onChange={e =>
+								handleCheck('caterpillar', e.currentTarget.checked)
+							}
+						/>{' '}
+						🐛 caterpillar
+					</label>
+				</div>
+				<button type="submit">Submit</button>
+			</form>
+			<MatchingPosts query={query} />
+		</div>
+	)
+}
+
+function MatchingPosts({ query }: { query: string }) {
+	const matchingPosts = getMatchingPosts(query)
+
+	return (
+		<ul className="post-list">
+			{matchingPosts.map(post => (
+				<li key={post.id}>
+					<div
+						className="post-image"
+						style={{ background: generateGradient(post.id) }}
+					/>
+					<a
+						href={post.id}
+						onClick={event => {
+							event.preventDefault()
+							alert(`Great! Let's go to ${post.id}!`)
+						}}
+					>
+						<h2>{post.title}</h2>
+						<p>{post.description}</p>
+					</a>
+				</li>
+			))}
+		</ul>
+	)
+}
+
+function DemoApp() {
+	const [showForm, setShowForm] = useState(true)
+
+	return (
+		<div>
+			<label>
+				<input
+					type="checkbox"
+					checked={showForm}
+					onChange={e => setShowForm(e.currentTarget.checked)}
+				/>{' '}
+				show form
+			</label>
+			{showForm ? <App /> : null}
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+createRoot(rootEl).render(<DemoApp />)
+```

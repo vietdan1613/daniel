@@ -1,0 +1,554 @@
+---
+title: "Advanced React APIs 5: Portals"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-11
+thumbnail: image.jpg
+featured: true
+---
+
+# Portals
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-portals" />
+
+There are a variety of UI patterns that require a component render some part of
+its UI that appears outside of the component's normal DOM hierarchy. For
+example, a modal dialog might need to render its contents at the root of the
+document, or a tooltip might need to render its contents at the end of the
+`body` element. Typically this is for the purpose of layering or positioning
+content above other content.
+
+You could imperatively add a `useEffect` that creates a DOM node yourself,
+appends it to the document, and then removes it when the component unmounts.
+However, this is a common enough pattern that React provides a built-in way to
+do this with the `ReactDOM.createPortal` method.
+
+```tsx lines=1,12-18
+import { createPortal } from 'react-dom'
+
+function Modal({
+	title,
+	content,
+	handleClose,
+}: {
+	title: string
+	content: string
+	handleClose: () => void
+}) {
+	return createPortal(
+		<div className="modal">
+			<h1>{title}</h1>
+			<p>{content}</p>
+		</div>,
+		document.body,
+	)
+}
+
+function App() {
+	const [showModal, setShowModal] = React.useState(false)
+
+	return (
+		<div>
+			<button onClick={() => setShowModal(true)}>Show Modal</button>
+			{showModal && (
+				<Modal
+					title="My Modal"
+					content="This is the content of the modal"
+					handleClose={() => setShowModal(false)}
+				/>
+			)}
+		</div>
+	)
+}
+```
+
+The first argument is the UI you want rendered (which has access to props,
+state, whatever) and the second argument is the DOM node you want to render it
+to. In this case, we're rendering the modal to the `body` element.
+
+📜 Learn more from [the `createPortal` docs](https://react.dev/reference/react-dom/createPortal)
+# createPortal
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/createportal" />
+
+👨‍💼 Some of our users find the heart icon to be unclear and would like to have a
+tooltip that explains what it's for.
+
+🧝‍♂️ I've <PrevDiffLink>moved things around a little bit</PrevDiffLink> to reduce
+the amount of code you need to work in. I've also added a simple tooltip
+component that's not working quite yet. The positioning is all funny because the
+tooltip is being rendered within the context of the card instead of at the root
+of the document.
+
+👨‍💼 Thanks Kellie. Now, let's see if you can make the tooltip component work
+properly with a portal.
+
+Note, the change you're making is pretty minimal. You'll also need to change
+some of the CSS to make the tooltip look a little better.
+
+Additionally, check the Elements panel in the DevTools to see where the tooltip
+is being rendered (next to the button vs `document.body`).
+
+🦉 Don't forget about the "Files" button in the bottom of this screen. It will
+show you which files are changed in this exercise step and allow you to click
+to open the relevant files.
+
+📜 Parts of this exercise was lifted from [the React docs](https://react.dev/reference/react/useLayoutEffect#measuring-layout-before-the-browser-repaints-the-screen)
+
+<callout-info>
+	Typically you'll want to use a library for tooltips which have been tested for
+	accessibility best practices. But they're likely using `createPortal` under
+	the hood and you'll very likely find yourself needing to use this API at some
+	point.
+</callout-info>
+
+## form.tsx
+
+```tsx
+import { getQueryParam, useSearchParams } from './params'
+
+export function Form() {
+	const [searchParams, setSearchParams] = useSearchParams()
+	const query = getQueryParam(searchParams)
+
+	const words = query.split(' ').map((w) => w.trim())
+
+	const dogChecked = words.includes('dog')
+	const catChecked = words.includes('cat')
+	const caterpillarChecked = words.includes('caterpillar')
+
+	function handleCheck(tag: string, checked: boolean) {
+		const newWords = checked ? [...words, tag] : words.filter((w) => w !== tag)
+		setSearchParams(
+			{ query: newWords.filter(Boolean).join(' ').trim() },
+			{ replace: true },
+		)
+	}
+
+	return (
+		<form onSubmit={(e) => e.preventDefault()}>
+			<div>
+				<label htmlFor="searchInput">Search:</label>
+				<input
+					id="searchInput"
+					name="query"
+					type="search"
+					value={query}
+					onChange={(e) =>
+						setSearchParams({ query: e.currentTarget.value }, { replace: true })
+					}
+				/>
+			</div>
+			<div>
+				<label>
+					<input
+						type="checkbox"
+						checked={dogChecked}
+						onChange={(e) => handleCheck('dog', e.currentTarget.checked)}
+					/>{' '}
+					🐶 dog
+				</label>
+				<label>
+					<input
+						type="checkbox"
+						checked={catChecked}
+						onChange={(e) => handleCheck('cat', e.currentTarget.checked)}
+					/>{' '}
+					🐱 cat
+				</label>
+				<label>
+					<input
+						type="checkbox"
+						checked={caterpillarChecked}
+						onChange={(e) =>
+							handleCheck('caterpillar', e.currentTarget.checked)
+						}
+					/>{' '}
+					🐛 caterpillar
+				</label>
+			</div>
+		</form>
+	)
+}
+```
+
+## index.css
+
+```css
+html,
+body {
+	margin: 0;
+}
+
+.app {
+	margin: 40px auto;
+	max-width: 1024px;
+	form {
+		text-align: center;
+	}
+}
+
+.post-list {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	justify-content: center;
+	li {
+		position: relative;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		border: 1px solid #ddd;
+		width: 320px;
+		transition: transform 0.2s ease-in-out;
+		a {
+			text-decoration: none;
+			color: unset;
+		}
+
+		&:hover,
+		&:has(*:focus),
+		&:has(*:active) {
+			transform: translate(0px, -6px);
+		}
+
+		.post-image {
+			display: block;
+			width: 100%;
+			height: 200px;
+		}
+
+		button {
+			position: absolute;
+			font-size: 1.5rem;
+			top: 20px;
+			right: 20px;
+			background: transparent;
+			border: none;
+			outline: none;
+			&:hover,
+			&:focus,
+			&:active {
+				animation: pulse 1.5s infinite;
+			}
+		}
+
+		a {
+			padding: 10px 10px;
+			display: flex;
+			gap: 8px;
+			flex-direction: column;
+			h2 {
+				margin: 0;
+				font-size: 1.5rem;
+				font-weight: bold;
+			}
+			p {
+				margin: 0;
+				font-size: 1rem;
+				color: #666;
+			}
+		}
+	}
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.3);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.tooltip-container {
+	position: absolute;
+	pointer-events: none;
+	left: 0;
+	top: 0;
+	transform: translate3d(var(--x), var(--y), 0);
+	z-index: 10;
+}
+
+.tooltip {
+	color: white;
+	background: #222;
+	border-radius: 4px;
+	padding: 4px;
+}
+```
+
+## index.tsx
+
+```tsx
+import * as ReactDOM from 'react-dom/client'
+import { Form } from './form'
+import { SearchParamsProvider } from './params'
+import { MatchingPosts } from './posts'
+
+export function App() {
+	return (
+		<SearchParamsProvider>
+			<div className="app">
+				<Form />
+				<MatchingPosts />
+			</div>
+		</SearchParamsProvider>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
+
+## params.tsx
+
+```tsx
+import { createContext, useCallback, use, useEffect, useState } from 'react'
+import { setGlobalSearchParams } from '#shared/utils'
+
+type SearchParamsTuple = readonly [
+	URLSearchParams,
+	typeof setGlobalSearchParams,
+]
+const SearchParamsContext = createContext<SearchParamsTuple | null>(null)
+
+export function SearchParamsProvider({
+	children,
+}: {
+	children: React.ReactNode
+}) {
+	const [searchParams, setSearchParamsState] = useState(
+		() => new URLSearchParams(window.location.search),
+	)
+
+	useEffect(() => {
+		function updateSearchParams() {
+			setSearchParamsState((prevParams) => {
+				const newParams = new URLSearchParams(window.location.search)
+				return prevParams.toString() === newParams.toString()
+					? prevParams
+					: newParams
+			})
+		}
+		window.addEventListener('popstate', updateSearchParams)
+		return () => window.removeEventListener('popstate', updateSearchParams)
+	}, [])
+
+	const setSearchParams = useCallback(
+		(...args: Parameters<typeof setGlobalSearchParams>) => {
+			const searchParams = setGlobalSearchParams(...args)
+			setSearchParamsState((prevParams) => {
+				return prevParams.toString() === searchParams.toString()
+					? prevParams
+					: searchParams
+			})
+			return searchParams
+		},
+		[],
+	)
+
+	const searchParamsTuple = [searchParams, setSearchParams] as const
+
+	return (
+		<SearchParamsContext value={searchParamsTuple}>
+			{children}
+		</SearchParamsContext>
+	)
+}
+
+export function useSearchParams() {
+	const context = use(SearchParamsContext)
+	if (!context) {
+		throw new Error(
+			'useSearchParams must be used within a SearchParamsProvider',
+		)
+	}
+	return context
+}
+
+export const getQueryParam = (params: URLSearchParams) =>
+	params.get('query') ?? ''
+```
+
+## posts.tsx
+
+```tsx
+import { useState } from 'react'
+import {
+	type BlogPost,
+	generateGradient,
+	getMatchingPosts,
+} from '#shared/blog-posts'
+import { getQueryParam, useSearchParams } from './params'
+import { ButtonWithTooltip } from './tooltip'
+
+export function MatchingPosts() {
+	const [searchParams] = useSearchParams()
+	const query = getQueryParam(searchParams)
+	const matchingPosts = getMatchingPosts(query)
+
+	return (
+		<ul className="post-list">
+			{matchingPosts.map((post) => (
+				<Card key={post.id} post={post} />
+			))}
+		</ul>
+	)
+}
+
+function Card({ post }: { post: BlogPost }) {
+	const [isFavorited, setIsFavorited] = useState(false)
+	return (
+		<li>
+			{isFavorited ? (
+				<ButtonWithTooltip
+					tooltipContent="Remove favorite"
+					onClick={() => setIsFavorited(false)}
+				>
+					❤️
+				</ButtonWithTooltip>
+			) : (
+				<ButtonWithTooltip
+					tooltipContent="Add favorite"
+					onClick={() => setIsFavorited(true)}
+				>
+					🤍
+				</ButtonWithTooltip>
+			)}
+			<div
+				className="post-image"
+				style={{ background: generateGradient(post.id) }}
+			/>
+			<a
+				href={post.id}
+				onClick={(event) => {
+					event.preventDefault()
+					alert(`Great! Let's go to ${post.id}!`)
+				}}
+			>
+				<h2>{post.title}</h2>
+				<p>{post.description}</p>
+			</a>
+		</li>
+	)
+}
+```
+
+## tooltip.tsx
+
+```tsx
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+
+type Position = {
+	left: number
+	top: number
+	right: number
+	bottom: number
+}
+
+export default function Tooltip({
+	children,
+	targetRect,
+}: {
+	children: React.ReactNode
+	targetRect: Position | null
+}) {
+	const ref = useRef<HTMLDivElement | null>(null)
+	const [tooltipHeight, setTooltipHeight] = useState(0)
+
+	useEffect(() => {
+		const rect = ref.current?.getBoundingClientRect()
+		if (!rect) return
+		const { height } = rect
+		setTooltipHeight(height)
+	}, [])
+
+	let tooltipX = 0
+	let tooltipY = 0
+	if (targetRect !== null) {
+		tooltipX = targetRect.left
+		tooltipY = targetRect.top - tooltipHeight
+		if (tooltipY < 0) {
+			tooltipY = targetRect.bottom
+		}
+
+		tooltipX += window.scrollX
+		tooltipY += window.scrollY
+	}
+
+	return createPortal(
+		<TooltipContainer x={tooltipX} y={tooltipY} contentRef={ref}>
+			{children}
+		</TooltipContainer>,
+		document.body,
+	)
+}
+
+function TooltipContainer({
+	children,
+	x,
+	y,
+	contentRef,
+}: {
+	children: React.ReactNode
+	x: number
+	y: number
+	contentRef: React.RefObject<HTMLDivElement | null>
+}) {
+	return (
+		<div
+			className="tooltip-container"
+			style={{ '--x': `${x}px`, '--y': `${y}px` }}
+		>
+			<div ref={contentRef} className="tooltip">
+				{children}
+			</div>
+		</div>
+	)
+}
+
+export function ButtonWithTooltip({
+	tooltipContent,
+	...rest
+}: React.DetailedHTMLProps<
+	React.ButtonHTMLAttributes<HTMLButtonElement>,
+	HTMLButtonElement
+> & { tooltipContent: React.ReactNode }) {
+	const [targetRect, setTargetRect] = useState<Position | null>(null)
+	const buttonRef = useRef<HTMLButtonElement | null>(null)
+	function displayTooltip() {
+		const rect = buttonRef.current?.getBoundingClientRect()
+		if (!rect) return
+		setTargetRect({
+			left: rect.left,
+			top: rect.top,
+			right: rect.right,
+			bottom: rect.bottom,
+		})
+	}
+	const hideTooltip = () => setTargetRect(null)
+	return (
+		<>
+			<button
+				{...rest}
+				ref={buttonRef}
+				onPointerEnter={displayTooltip}
+				onPointerLeave={hideTooltip}
+				onFocus={displayTooltip}
+				onBlur={hideTooltip}
+			/>
+			{targetRect ? (
+				<Tooltip targetRect={targetRect}>{tooltipContent}</Tooltip>
+			) : null}
+		</>
+	)
+}
+```

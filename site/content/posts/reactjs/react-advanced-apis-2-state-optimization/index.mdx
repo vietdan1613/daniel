@@ -1,0 +1,324 @@
+---
+title: "Advanced React APIs 2: State Optimization"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-22
+thumbnail: image.jpg
+featured: true
+---
+
+# State Optimization
+
+If you set state to the exact value it already is set to, React will not bother
+triggering a re-render of your components because it knows nothing has changed.
+
+```tsx
+const [count, setCount] = useState(0)
+
+// ...
+setCount(0) // <-- will not trigger a rerender if the state is still 0
+```
+
+With objects, this is a little more tricky because you need to make certain you
+return the exact same object:
+
+```tsx
+const [state, setState] = useState({ count: 0 })
+
+// ...
+setState({ count: 0 }) // <-- will trigger a rerender
+setState((previousState) => ({
+	count: previousState.count,
+})) // <-- will trigger a rerender
+setState((previousState) => previousState) // <-- will not trigger a rerender
+```
+
+So, with a little forethought, you can optimize your state updates by
+determining yourself whether state has changed and returning the original state
+if it has not. This applies both in a reducer for `useReducer` as well as the
+callback for `useState`.
+# Optimize state updates
+
+👨‍💼 We're bringing back our search and card page. Now we are storing the entire
+`URLSearchParams` in state (not just the `query` param) and we want to make sure
+we don't rerender the page if the params are unchanged.
+
+If you want to test this out, you'll notice we have added a `console.log` in the
+function body for the `App` component so you can know each time the component
+rerenders, and also put one in the `setSearchParams` callback so you know
+each time we call `setSearchParams`. Submit the form multiple times observe the
+logs. Alternate between changing the search params and not changing them.
+
+When you're all finished, it should log whenever you set the search params, but
+it should not log the rerender when you submit the form without changing the
+query.
+
+```tsx
+import { useEffect, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
+import {
+	type BlogPost,
+	generateGradient,
+	getMatchingPosts,
+} from '#shared/blog-posts'
+import { setGlobalSearchParams } from '#shared/utils'
+
+const getQueryParam = (params: URLSearchParams) => params.get('query') ?? ''
+
+function App() {
+	const [searchParams, setSearchParamsState] = useState(
+		() => new URLSearchParams(window.location.search),
+	)
+
+	useEffect(() => {
+		function updateSearchParams() {
+			console.log('updating search params')
+			setSearchParamsState((prevParams) => {
+				const newParams = new URLSearchParams(window.location.search)
+				return prevParams.toString() === newParams.toString()
+					? prevParams
+					: newParams
+			})
+		}
+		window.addEventListener('popstate', updateSearchParams)
+		return () => window.removeEventListener('popstate', updateSearchParams)
+	}, [])
+
+	function setSearchParams(...args: Parameters<typeof setGlobalSearchParams>) {
+		console.log('setting search params')
+		const searchParams = setGlobalSearchParams(...args)
+		setSearchParamsState((prevParams) => {
+			return prevParams.toString() === searchParams.toString()
+				? prevParams
+				: searchParams
+		})
+		return searchParams
+	}
+
+	const query = getQueryParam(searchParams)
+	console.log('rerendering component for new query', query)
+
+	return (
+		<div className="app">
+			<Form query={query} setSearchParams={setSearchParams} />
+			<MatchingPosts query={query} />
+		</div>
+	)
+}
+
+function Form({
+	query,
+	setSearchParams,
+}: {
+	query: string
+	setSearchParams: typeof setGlobalSearchParams
+}) {
+	const words = query.split(' ').map((w) => w.trim())
+
+	const dogChecked = words.includes('dog')
+	const catChecked = words.includes('cat')
+	const caterpillarChecked = words.includes('caterpillar')
+
+	function handleCheck(tag: string, checked: boolean) {
+		const newWords = checked ? [...words, tag] : words.filter((w) => w !== tag)
+		setSearchParams(
+			{ query: newWords.filter(Boolean).join(' ').trim() },
+			{ replace: true },
+		)
+	}
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault()
+				setSearchParams({ query })
+			}}
+		>
+			<div>
+				<label htmlFor="searchInput">Search:</label>
+				<input
+					id="searchInput"
+					name="query"
+					type="search"
+					value={query}
+					onChange={(e) =>
+						setSearchParams({ query: e.currentTarget.value }, { replace: true })
+					}
+				/>
+			</div>
+			<div>
+				<label>
+					<input
+						type="checkbox"
+						checked={dogChecked}
+						onChange={(e) => handleCheck('dog', e.currentTarget.checked)}
+					/>{' '}
+					🐶 dog
+				</label>
+				<label>
+					<input
+						type="checkbox"
+						checked={catChecked}
+						onChange={(e) => handleCheck('cat', e.currentTarget.checked)}
+					/>{' '}
+					🐱 cat
+				</label>
+				<label>
+					<input
+						type="checkbox"
+						checked={caterpillarChecked}
+						onChange={(e) =>
+							handleCheck('caterpillar', e.currentTarget.checked)
+						}
+					/>{' '}
+					🐛 caterpillar
+				</label>
+			</div>
+			<button type="submit">Submit</button>
+		</form>
+	)
+}
+
+function MatchingPosts({ query }: { query: string }) {
+	const matchingPosts = getMatchingPosts(query)
+
+	return (
+		<ul className="post-list">
+			{matchingPosts.map((post) => (
+				<Card key={post.id} post={post} />
+			))}
+		</ul>
+	)
+}
+
+function Card({ post }: { post: BlogPost }) {
+	const [isFavorited, setIsFavorited] = useState(false)
+	return (
+		<li>
+			{isFavorited ? (
+				<button
+					aria-label="Remove favorite"
+					onClick={() => setIsFavorited(false)}
+				>
+					❤️
+				</button>
+			) : (
+				<button aria-label="Add favorite" onClick={() => setIsFavorited(true)}>
+					🤍
+				</button>
+			)}
+			<div
+				className="post-image"
+				style={{ background: generateGradient(post.id) }}
+			/>
+			<a
+				href={post.id}
+				onClick={(event) => {
+					event.preventDefault()
+					alert(`Great! Let's go to ${post.id}!`)
+				}}
+			>
+				<h2>{post.title}</h2>
+				<p>{post.description}</p>
+			</a>
+		</li>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
+
+```css
+html,
+body {
+	margin: 0;
+}
+
+.app {
+	margin: 40px auto;
+	max-width: 1024px;
+	form {
+		text-align: center;
+	}
+}
+
+.post-list {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	justify-content: center;
+	li {
+		position: relative;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		border: 1px solid #ddd;
+		width: 320px;
+		transition: transform 0.2s ease-in-out;
+		a {
+			text-decoration: none;
+			color: unset;
+		}
+
+		&:hover,
+		&:has(*:focus),
+		&:has(*:active) {
+			transform: translate(0px, -6px);
+		}
+
+		.post-image {
+			display: block;
+			width: 100%;
+			height: 200px;
+		}
+
+		button {
+			position: absolute;
+			font-size: 1.5rem;
+			top: 20px;
+			right: 20px;
+			background: transparent;
+			border: none;
+			outline: none;
+			&:hover,
+			&:focus,
+			&:active {
+				animation: pulse 1.5s infinite;
+			}
+		}
+
+		a {
+			padding: 10px 10px;
+			display: flex;
+			gap: 8px;
+			flex-direction: column;
+			h2 {
+				margin: 0;
+				font-size: 1.5rem;
+				font-weight: bold;
+			}
+			p {
+				margin: 0;
+				font-size: 1rem;
+				color: #666;
+			}
+		}
+	}
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.3);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+```
