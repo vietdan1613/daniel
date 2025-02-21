@@ -1,0 +1,653 @@
+---
+title: "React Suspense 4: Suspense img"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-05
+thumbnail: image.jpg
+featured: true
+---
+
+# Suspense img
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/intro-to-suspense-img" />
+
+You can suspend more than just `fetch` requests with Suspense and the `use`
+hook. Anything async can be suspended, including images.
+
+But, why would you want to suspend on images? Well, let's look at an example:
+
+```html
+<img src="/some/image.jpg" />
+```
+
+If we were to change the `src` of the image, the browser would start loading the
+new image and only replace the old image when the new one has finished
+downloading. This is probably what you want (you wouldn't want to get a flicker
+of no image at all while the new image is loading).
+
+The trouble is, what if in addition to rendering an updated image, there's
+updated content as well? The user would see the old image displayed alongside
+the new content until the new image is loaded. This is easier to visualize, so
+take this for example:
+
+<video controls autoplay loop muted>
+	<source
+		src="https://www.dropbox.com/scl/fi/k8dnd1u92kd9obf348uq6/bad-img-loading.mp4?rlkey=aois484ivmdjne5n7diorc7xy&raw=1"
+		type="video/mp4"
+	/>
+</video>
+
+In the video above, the network speed has been artificially slowed down to a 3G
+network speed and the cache has also been cleared. As a result, once a different
+space ship is selected, the data request for the new ship takes about 2 seconds.
+Once the data has loaded, React re-renders the UI with the new data, including
+the `img` `src` attribute. However, the browser leaves the old `src` attribute
+in place to avoid a flicker of no image at all while the new image is loading.
+
+The new image takes almost 10 seconds to download, all the while, the old image
+is still being displayed. This could be confusing to users and not a great user
+experience. It would be better for us to have more control over that experience.
+
+All you need to do to make this work with suspense is have some mechanism to
+load the image in an async function. When the promise resolves, you know the
+image is ready to be resolved. We can actually take advantage of the browser's
+built-in caching mechanism to make this work by assuming that if we request the
+image twice, the second request will be faster because the image is cached.
+
+So all we need to do is create an image, set it's `src`, and set the `onload`
+and `onerror` event handlers to resolve or reject a promise. Here's an example:
+
+```tsx
+function preloadImage(src: string) {
+	return new Promise<string>(async (resolve, reject) => {
+		const img = new Image()
+		img.src = src
+		img.onload = () => resolve(src)
+		img.onerror = reject
+	})
+}
+```
+
+Now, you can call that function to get a promise that resolves when the image
+has been loaded (and presumably is in the browser cache assuming cache headers
+are set properly). So you can use that for a custom `Img` component to suspend
+on the image.
+
+There are other things to consider here because now you're preventing the data
+from being displayed until the image is ready which may not be what you want
+either. But React gives us the ability to control this as well, by adding a
+`Suspense` boundary around the `Img` component and adding a `key` prop to the
+`Suspense` boundary (or a parent) to force it to render the `fallback` for just
+the image which will allow us to display the data while the image is loading.
+
+Ultimately leading us to this improved experience:
+
+<video controls autoplay loop muted>
+	<source
+		src="https://www.dropbox.com/scl/fi/bur28nw0s3tgl7qy39vpm/better-img-loading.mp4?rlkey=y6rq0crkfirf6zd29e2hpb77o&raw=1"
+		type="video/mp4"
+	/>
+</video>
+
+In the video above, all the same network conditions are in effect, but now once
+the data finishes loading, the old image is replaced by a fallback image (which
+was already loaded earlier on the initial page load and is in the cache) and the
+new image is displayed once it's ready.
+
+This resolves the confusion and leads to a better user experience.
+
+And it's all thanks to React's ability to suspend on any kind of async operation.
+# Img Component
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/img-component" />
+
+👨‍💼 Our users have noticed this annoying behavior. Here's how you reproduce it:
+
+{/* prettier-ignore */}
+- Set the playground to this exercise
+- <LinkToApp to="/">Open the playground</LinkToApp> (in a separate tab)
+- Open the dev tools
+- Notice that we've added a version query parameter to the images to simulate
+  initial loading. This is why you see a different versions in the URL for
+  each image.
+- [Throttle your network](https://developer.chrome.com/docs/devtools/network/reference#throttling) speed in the dev tools to "Slow 3G"
+- Click a separate ship
+
+<callout-warning>
+	🚨 While you're here, make sure you have `Disable cache` *unchecked* in the
+	Network tab of dev tools. Otherwise, the browser will ignore your preloaded
+	image and try to re-fetch it, bypassing your solution.
+</callout-warning>
+
+You should notice the network loads the data for the ship. While that happens,
+our pending state is shown (great job on that again). Once the data is loaded,
+the component re-renders with the new data (even the `img` `src` gets updated
+properly). However, the `img` is still loading. This is because the browser
+waits for the new image `src` to be loaded before switching to the new image.
+
+Our users are confused by this, and that's what we need you to solve using
+Suspense, the `use` hook, and a `preloadImage` utility.
+
+The emoji will guide you through this one.
+Best to start in <InlineFile file="utils.tsx" />. Lots of this will feel similar
+to what we were doing with the `getShip` regarding the caching stuff!
+
+<callout-warning>
+	🚨 Note, this is extremely difficult to test, so the test may be unreliable.
+	However, if you do throttle the network, then the test will be much more
+	reliable.
+</callout-warning>
+# Img Error Boundary
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/img-error-boundary" />
+
+👨‍💼 Sometimes images fail to load for one reason or another. Maybe the URL had
+a typo in it or maybe the user has a spotty network connection. Right now, when
+the image fails to load, we don't show anything to the user at all. We just go
+to the nearest error boundary and show that.
+
+🧝‍♂️ <PrevDiffLink>I've added</PrevDiffLink> a bit of code to make the image fail
+to load and you'll notice that when that happens, we just fallback to the error
+boundary for the entire component, even though we have some useful information
+that we could show the user.
+
+👨‍💼 What I'd like you to do is create a `ShipImg` component which renders an
+`ErrorBoundary` around an `Img` component. For the fallback, you can simply
+render a regular `<img />` tag and forward the regular props. This will cause
+the browser to display what it normally does when an image fails to load. Maybe
+one day we'll circle back on this and make a special image to display in this
+case, but for now that will do.
+# Key prop
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/key-prop-suspense" />
+
+👨‍💼 Alrighty, we've got a problem that I've been pushing off, but it's time we
+resolve it. We removed confusion for our users by waiting until the image is
+ready before we display the ship's data, but that means our users have to wait
+until the ship's image loads before they can see the ship's data! Ugh, that's
+annoying. Wouldn't it be cool if we could have the best of all worlds:
+
+- Show the ship's data as soon as it's ready
+- Show the ship's image as soon as it's ready
+- Not show the old ship's image while we're waiting for the new one
+
+Well, we can! But it requires a little extra thought. I'm going to have Olivia
+explain something to you about how suspense boundaries work with
+`useTransition`.
+
+🦉 Thanks Peter. Ok, so here's the deal with Suspense boundaries. When one of
+their children suspends, they render the fallback until the suspended child is
+ready to render. That much should be clear from what we've done so far.
+
+When you add `useTransition` and trigger a "suspending state change" from within
+that transition, this will prevent the Suspense boundary from rendering and
+instead will keep the old UI around and give you a pending state to work with so
+you can show a more contextual pending state. That's what we did in the last
+exercise.
+
+To add to this, even when you're using `useTransition`, the suspense fallback
+will show up on the initial render of the Suspense component. This is why you'll
+see the fallback when you load the page initially.
+
+So here's the deal, we need a way to get both a suspense boundary (for the
+image) and a pending state (for the data) at the same time. We can do this by
+adding a Suspense boundary around the image. But that's not quite enough. We
+also need to have React treat the Suspense boundary around the image as if it's
+brand new for every image we render so it doesn't participate in the transition.
+
+To do this, we need to give the Suspense boundary a unique key. This will make
+React treat it as a new boundary every time the key changes and will keep it out
+of the transition.
+
+To make this more clear, here's a walkthrough of what's happening with our
+app right now:
+
+**Initial Render**
+
+1. We render the app
+2. `ShipDetails` calls `use(getShip(shipName))` which suspends
+3. React renders the suspense boundary
+4. The `getShip` promise resolves and React attempts to render the `ShipDetails`
+   again.
+5. `ShipImg` renders `Img` which calls `use(imgSrc(src))` which suspends
+6. React keeps the suspense boundary around
+7. The `imgSrc` promise resolves and React attempts to render the `Img` again
+8. Everything settles.
+
+This all is operating as we'd like for now. It's the transition we want to
+improve:
+
+**Transition**
+
+1. We call `startTransition` to change the `shipName`
+2. React tries to re-render and `ShipDetails` calls `use(getShip(shipName))`
+   which suspends
+3. React keeps the previous state around and gives us the `isPending` state as
+   `true` so we can show a more contextual pending UI (opacity `0.6`).
+4. The `getShip` promise resolves and React attempts to render the `ShipDetails`
+   again.
+5. `ShipImg` renders `Img` which calls `use(imgSrc(src))` which suspends
+6. React keeps the `isPending` state as-is
+7. The `imgSrc` promise resolves and React attempts to render the `Img` again
+8. Everything settles.
+
+Here's how things will work when you're finished with this exercise:
+
+**Improved Transition**
+
+1. We call `startTransition` to change the `shipName`
+2. React tries to re-render and `ShipDetails` calls `use(getShip(shipName))`
+   which suspends
+3. React keeps the previous state around and gives us the `isPending` state as
+   `true` so we can show a more contextual pending UI (opacity `0.6`).
+4. The `getShip` promise resolves and React attempts to render the `ShipDetails`
+   again.
+5. `ShipImg` renders `Img` which calls `use(imgSrc(src))` which suspends
+6. React finds **a brand new suspense boundary** and renders the fallback
+7. The `ShipDetails` renders fine while `ShipImg` shows the fallback
+8. The `imgSrc` promise resolves and React attempts to render the `Img` again
+9. Everything settles.
+
+The key is the step where react finds **a brand new suspense boundary**. This is
+accomplished by using the `key` prop!
+
+👨‍💼 Thank you Olivia!
+
+Great, so now we need you to add a suspense boundary with a `key` prop. It
+generally makes sense to put the `Suspense` boundary inside the `ErrorBoundary`
+(in case the fallback fails the error boundary can handle that as well). In
+addition we can put the `key` prop on the `ErrorBoundary` instead of the
+Suspense boundary as well (since the `ErrorBoundary` is the parent of the
+`Suspense` boundary).
+
+So let's give that a shot!
+
+## index.css  
+
+```css
+body {
+	margin: 0;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+.app-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.ship-buttons {
+	display: flex;
+	justify-content: space-between;
+	width: 300px;
+	padding-bottom: 10px;
+}
+
+.ship-buttons button {
+	border-radius: 2px;
+	padding: 2px 4px;
+	font-size: 0.75rem;
+	background-color: white;
+	color: black;
+	&:not(.active) {
+		box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+	&.active {
+		box-shadow: inset 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+}
+
+.app {
+	display: flex;
+	max-width: 1024px;
+	border: 1px solid #000;
+	border-start-end-radius: 0.5rem;
+	border-start-start-radius: 0.5rem;
+	border-end-start-radius: 50% 8%;
+	border-end-end-radius: 50% 8%;
+	overflow: hidden;
+}
+
+.search {
+	width: 150px;
+	max-height: 400px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+
+	input {
+		width: 100%;
+		border: 0;
+		border-bottom: 1px solid #000;
+		padding: 8px;
+		line-height: 1.5;
+		border-top-left-radius: 0.5rem;
+	}
+
+	ul {
+		flex: 1;
+		list-style: none;
+		padding: 4px;
+		padding-bottom: 30px;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		overflow-y: auto;
+		li {
+			button {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				border: none;
+				background-color: transparent;
+				&:hover {
+					text-decoration: underline;
+				}
+				img {
+					width: 20px;
+					height: 20px;
+					object-fit: contain;
+					border-radius: 50%;
+				}
+			}
+		}
+	}
+}
+
+.details {
+	flex: 1;
+	height: 400px;
+	position: relative;
+	overflow: hidden;
+}
+
+.ship-info {
+	height: 100%;
+	width: 300px;
+	margin: auto;
+	overflow: auto;
+	background-color: #eee;
+	border-radius: 4px;
+	padding: 20px;
+	position: relative;
+}
+
+.ship-info.ship-loading {
+	opacity: 0.6;
+}
+
+.ship-info h2 {
+	font-weight: bold;
+	text-align: center;
+	margin-top: 0.3em;
+}
+
+.ship-info img {
+	width: 100%;
+	height: 100%;
+	aspect-ratio: 1;
+	object-fit: contain;
+}
+
+.ship-info .ship-info__img-wrapper {
+	margin-top: 20px;
+	width: 100%;
+	height: 200px;
+}
+
+.ship-info .ship-info__fetch-time {
+	position: absolute;
+	top: 6px;
+	right: 10px;
+}
+
+.app-error {
+	position: relative;
+	background-image: url('/img/broken-ship.webp');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 400px;
+	height: 400px;
+	p {
+		position: absolute;
+		top: 30%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: white;
+		padding: 6px 12px;
+		border-radius: 1rem;
+		font-size: 1.5rem;
+		font-weight: bold;
+		width: 300px;
+		text-align: center;
+	}
+}
+```
+
+## index.tsx
+
+```tsx
+import { Suspense, use, useState, useTransition } from 'react'
+import * as ReactDOM from 'react-dom/client'
+import { ErrorBoundary } from 'react-error-boundary'
+import { useSpinDelay } from 'spin-delay'
+import { getImageUrlForShip, getShip, imgSrc } from './utils.tsx'
+
+function App() {
+	const [shipName, setShipName] = useState('Dreadnought')
+	const [isTransitionPending, startTransition] = useTransition()
+	const isPending = useSpinDelay(isTransitionPending, {
+		delay: 300,
+		minDuration: 350,
+	})
+
+	function handleShipSelection(newShipName: string) {
+		startTransition(() => {
+			setShipName(newShipName)
+		})
+	}
+
+	return (
+		<div className="app-wrapper">
+			<ShipButtons shipName={shipName} onShipSelect={handleShipSelection} />
+			<div className="app">
+				<div className="details" style={{ opacity: isPending ? 0.6 : 1 }}>
+					<ErrorBoundary fallback={<ShipError shipName={shipName} />}>
+						<Suspense fallback={<ShipFallback shipName={shipName} />}>
+							<ShipDetails shipName={shipName} />
+						</Suspense>
+					</ErrorBoundary>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+function ShipButtons({
+	shipName,
+	onShipSelect,
+}: {
+	shipName: string
+	onShipSelect: (shipName: string) => void
+}) {
+	const ships = ['Dreadnought', 'Interceptor', 'Galaxy Cruiser']
+
+	return (
+		<div className="ship-buttons">
+			{ships.map((ship) => (
+				<button
+					key={ship}
+					onClick={() => onShipSelect(ship)}
+					className={shipName === ship ? 'active' : ''}
+				>
+					{ship}
+				</button>
+			))}
+		</div>
+	)
+}
+
+function ShipDetails({ shipName }: { shipName: string }) {
+	const ship = use(getShip(shipName))
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<ShipImg
+					src={getImageUrlForShip(ship.name, { size: 200 })}
+					alt={ship.name}
+				/>
+			</div>
+			<section>
+				<h2>
+					{ship.name}
+					<sup>
+						{ship.topSpeed} <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				{ship.weapons.length ? (
+					<ul>
+						{ship.weapons.map((weapon) => (
+							<li key={weapon.name}>
+								<label>{weapon.name}</label>:{' '}
+								<span>
+									{weapon.damage} <small>({weapon.type})</small>
+								</span>
+							</li>
+						))}
+					</ul>
+				) : (
+					<p>NOTE: This ship is not equipped with any weapons.</p>
+				)}
+			</section>
+			<small className="ship-info__fetch-time">{ship.fetchedAt}</small>
+		</div>
+	)
+}
+
+function ShipFallback({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<img src="/img/fallback-ship.png" alt={shipName} />
+			</div>
+			<section>
+				<h2>
+					{shipName}
+					<sup>
+						XX <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				<ul>
+					{Array.from({ length: 3 }).map((_, i) => (
+						<li key={i}>
+							<label>loading</label>:{' '}
+							<span>
+								XX <small>(loading)</small>
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		</div>
+	)
+}
+
+function ShipError({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<img src="/img/broken-ship.webp" alt="broken ship" />
+			</div>
+			<section>
+				<h2>There was an error</h2>
+			</section>
+			<section>There was an error loading "{shipName}"</section>
+		</div>
+	)
+}
+
+function ShipImg(props: React.ComponentProps<'img'>) {
+	return (
+		<ErrorBoundary fallback={<img {...props} />} key={props.src}>
+			<Suspense fallback={<img {...props} src="/img/fallback-ship.png" />}>
+				<Img {...props} />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+
+function Img({ src = '', ...props }: React.ComponentProps<'img'>) {
+	src = use(imgSrc(src))
+	return <img src={src} {...props} />
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
+
+## utils.tsx
+
+```tsx
+import { type Ship } from './api.server.ts'
+
+export type { Ship }
+
+const shipCache = new Map<string, Promise<Ship>>()
+
+export function getShip(name: string, delay?: number) {
+	const shipPromise = shipCache.get(name) ?? getShipImpl(name, delay)
+	shipCache.set(name, shipPromise)
+	return shipPromise
+}
+
+async function getShipImpl(name: string, delay?: number) {
+	const searchParams = new URLSearchParams({ name })
+	if (delay) searchParams.set('delay', String(delay))
+	const response = await fetch(`api/get-ship?${searchParams.toString()}`)
+	if (!response.ok) {
+		return Promise.reject(new Error(await response.text()))
+	}
+	const ship = await response.json()
+	return ship as Ship
+}
+
+const imgCache = new Map<string, Promise<string>>()
+
+export function imgSrc(src: string) {
+	const imgPromise = imgCache.get(src) ?? preloadImage(src)
+	imgCache.set(src, imgPromise)
+	return imgPromise
+}
+
+function preloadImage(src: string) {
+	return new Promise<string>(async (resolve, reject) => {
+		const img = new Image()
+		img.src = src
+		img.onload = () => resolve(src)
+		img.onerror = reject
+	})
+}
+
+// added the version to prevent caching to make testing easier
+const version = Date.now()
+
+export function getImageUrlForShip(
+	shipName: string,
+	{ size }: { size: number },
+) {
+	return `/img/ships/${shipName.toLowerCase().replaceAll(' ', '-')}.webp?size=${size}&version=${version}`
+}
+```

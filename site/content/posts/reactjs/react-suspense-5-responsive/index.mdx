@@ -1,0 +1,555 @@
+---
+title: "React Suspense 5: Responsive"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-06
+thumbnail: image.jpg
+featured: true
+---
+
+# Responsive
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/intro-to-responsive" />
+
+Something you'll remember from previous exercises is that when you suspend with
+a `useTransition`, React hangs on to the previous state and gives you a pending
+boolean so you can display the pending state. The problem with this is if you
+want to display the state that triggered the transition. For example, if the
+user is typing in a search box which you're controlling with state, you want to
+keep the `<input />`'s `value` up-to-date with what they're typing, not with
+the previous state while React is waiting for the transition to complete.
+
+So we need a way that allows us to both display some pending state while also
+allowing us to display the state that triggered a component to suspend. This is
+where `useDeferredValue` comes in:
+
+```tsx
+const deferredValue = useDeferredValue(value)
+const isPending = deferredValue !== value
+```
+
+`useDeferredValue` makes React do something kind of funny. It makes React render
+your component twice. Once with the `deferredValue` set to the previous `value`
+and second with the `deferredValue` set to the current `value`. This allows
+React to handle components that suspend and you can know whether to display
+pending UI based on whether the `deferredValue` and `value` differ.
+
+The React docs do a good job explaining how this works, so
+[📜 check the `useDeferredValue` docs](https://react.dev/reference/react/useDeferredValue)
+for details.
+
+This may feel pretty similar to `useTransition`. Both give you the ability to
+handle pending UI for suspending components. `useDeferredValue` is what you'll
+use more often for typical user interactions. `useTransition` will normally be
+handled when the user is navigating or refreshing a whole UI.
+
+It should be noted that this can also be used to keep things snappy if you have
+a component that's particularly slow. You can pass the `deferredValue` to the
+slow component and the rest of the application will be highly responsive to user
+interaction. The slow component will only update when it manages to finish
+rendering with the latest `deferredValue`. This works because the background
+renders can be thrown away whenever the `deferredValue` changes.
+
+# useDeferredValue
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/usedeferredvalue" />
+
+🧝‍♂️ I've made a number of changes (<PrevDiffLink>check my work</PrevDiffLink>)
+because we want people to be able to search through a list of ships and select
+the ones they're most interested in.
+
+👨‍💼 Thanks Kellie! So, here's the thing, we have a search endpoint for the filter
+on the left side, and Kellie applied the same pattern for handling that async
+interaction as we did with the ship details, including the `useTransition` for
+showing a pending UI.
+
+But the problem is, during the transition, the input isn't responsive to user
+input. It's really annoying to use as a result. We need the UI to be responsive.
+
+So could you please remove the transition and switch to `useDeferredValue`
+instead? Make sure to keep the pending UI experience, we just want the user to
+be able to interrupt the pending state by typing more into the input.
+
+🦉 Something you might try in this exercise is adding a `console.log` of the
+`search` and the `deferredSearch` and see how React renders your component twice
+when you type in the input (once with the old value and once with the new
+value). You'll actually see quite a few render calls as you type, but this
+should be instructive. If you wish, you might add a delay argument to the
+`searchShips` call (`searchShips(search, 1000)`) to simulate a slow network
+response to more easily see which sets of logs are associated with which
+renders.
+
+### index.css
+
+```css
+body {
+	margin: 0;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+.app-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.ship-buttons {
+	display: flex;
+	justify-content: space-between;
+	width: 300px;
+	padding-bottom: 10px;
+}
+
+.ship-buttons button {
+	border-radius: 2px;
+	padding: 2px 4px;
+	font-size: 0.75rem;
+	background-color: white;
+	color: black;
+	&:not(.active) {
+		box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+	&.active {
+		box-shadow: inset 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+}
+
+.app {
+	display: flex;
+	max-width: 1024px;
+	border: 1px solid #000;
+	border-start-end-radius: 0.5rem;
+	border-start-start-radius: 0.5rem;
+	border-end-start-radius: 50% 8%;
+	border-end-end-radius: 50% 8%;
+	overflow: hidden;
+}
+
+.search {
+	width: 150px;
+	max-height: 400px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+
+	input {
+		width: 100%;
+		border: 0;
+		border-bottom: 1px solid #000;
+		padding: 8px;
+		line-height: 1.5;
+		border-top-left-radius: 0.5rem;
+	}
+
+	ul {
+		flex: 1;
+		list-style: none;
+		padding: 4px;
+		padding-bottom: 30px;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		overflow-y: auto;
+		li {
+			button {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				border: none;
+				background-color: transparent;
+				&:hover {
+					text-decoration: underline;
+				}
+				img {
+					width: 20px;
+					height: 20px;
+					object-fit: contain;
+					border-radius: 50%;
+				}
+			}
+		}
+	}
+}
+
+.details {
+	flex: 1;
+	border-left: 1px solid #000;
+	height: 400px;
+	position: relative;
+	overflow: hidden;
+}
+
+.ship-info {
+	height: 100%;
+	width: 300px;
+	margin: auto;
+	overflow: auto;
+	background-color: #eee;
+	border-radius: 4px;
+	padding: 20px;
+	position: relative;
+}
+
+.ship-info.ship-loading {
+	opacity: 0.6;
+}
+
+.ship-info h2 {
+	font-weight: bold;
+	text-align: center;
+	margin-top: 0.3em;
+}
+
+.ship-info img {
+	width: 100%;
+	height: 100%;
+	aspect-ratio: 1;
+	object-fit: contain;
+}
+
+.ship-info .ship-info__img-wrapper {
+	margin-top: 20px;
+	width: 100%;
+	height: 200px;
+}
+
+.ship-info .ship-info__fetch-time {
+	position: absolute;
+	top: 6px;
+	right: 10px;
+}
+
+.app-error {
+	position: relative;
+	background-image: url('/img/broken-ship.webp');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 400px;
+	height: 400px;
+	p {
+		position: absolute;
+		top: 30%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: white;
+		padding: 6px 12px;
+		border-radius: 1rem;
+		font-size: 1.5rem;
+		font-weight: bold;
+		width: 300px;
+		text-align: center;
+	}
+}
+```
+
+## index.tsx
+
+```tsx
+import { Suspense, use, useDeferredValue, useState, useTransition } from 'react'
+import * as ReactDOM from 'react-dom/client'
+import { ErrorBoundary } from 'react-error-boundary'
+import { useSpinDelay } from 'spin-delay'
+import { getImageUrlForShip, getShip, imgSrc, searchShips } from './utils.tsx'
+
+const shipFallbackSrc = '/img/fallback-ship.png'
+
+function App() {
+	const [shipName, setShipName] = useState('Dreadnought')
+	const [isTransitionPending, startTransition] = useTransition()
+	const isPending = useSpinDelay(isTransitionPending, {
+		delay: 300,
+		minDuration: 350,
+	})
+	return (
+		<div className="app-wrapper">
+			<div className="app">
+				<ErrorBoundary
+					fallback={
+						<div className="app-error">
+							<p>Something went wrong!</p>
+						</div>
+					}
+				>
+					<Suspense
+						fallback={<img style={{ maxWidth: 400 }} src={shipFallbackSrc} />}
+					>
+						<div className="search">
+							<ShipSearch
+								onSelection={(selection) => {
+									startTransition(() => setShipName(selection))
+								}}
+							/>
+						</div>
+						<div className="details" style={{ opacity: isPending ? 0.6 : 1 }}>
+							<ErrorBoundary fallback={<ShipError shipName={shipName} />}>
+								{shipName ? (
+									<Suspense fallback={<ShipFallback shipName={shipName} />}>
+										<ShipDetails shipName={shipName} />
+									</Suspense>
+								) : (
+									<p>Select a ship from the list to see details</p>
+								)}
+							</ErrorBoundary>
+						</div>
+					</Suspense>
+				</ErrorBoundary>
+			</div>
+		</div>
+	)
+}
+
+function ShipSearch({
+	onSelection,
+}: {
+	onSelection: (shipName: string) => void
+}) {
+	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
+	const isPending = useSpinDelay(search !== deferredSearch)
+	return (
+		<>
+			<div>
+				<input
+					placeholder="Filter ships..."
+					type="search"
+					value={search}
+					onChange={(event) => {
+						setSearch(event.currentTarget.value)
+					}}
+				/>
+			</div>
+			<ErrorBoundary
+				fallback={
+					<div style={{ padding: 6, color: '#CD0DD5' }}>
+						There was an error retrieving results
+					</div>
+				}
+			>
+				<ul style={{ opacity: isPending ? 0.6 : 1 }}>
+					<Suspense fallback={<SearchResultsFallback />}>
+						<SearchResults search={deferredSearch} onSelection={onSelection} />
+					</Suspense>
+				</ul>
+			</ErrorBoundary>
+		</>
+	)
+}
+
+function SearchResultsFallback() {
+	return Array.from({ length: 12 }).map((_, i) => (
+		<li key={i}>
+			<button>
+				<img src={shipFallbackSrc} alt="loading" />
+				... loading
+			</button>
+		</li>
+	))
+}
+
+function SearchResults({
+	search,
+	onSelection,
+}: {
+	search: string
+	onSelection: (shipName: string) => void
+}) {
+	// 🦉 feel free to adjust the search delay to see how it affects the UI
+	// 🚨 the tests kinda rely on the search delay being longer than the spin-delay
+	const shipResults = use(searchShips(search, 500))
+	return shipResults.ships.map((ship) => (
+		<li key={ship.name}>
+			<button onClick={() => onSelection(ship.name)}>
+				<ShipImg
+					src={getImageUrlForShip(ship.name, { size: 20 })}
+					alt={ship.name}
+				/>
+				{ship.name}
+			</button>
+		</li>
+	))
+}
+
+function ShipDetails({ shipName }: { shipName: string }) {
+	const ship = use(getShip(shipName))
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<ShipImg
+					src={getImageUrlForShip(ship.name, { size: 200 })}
+					alt={ship.name}
+				/>
+			</div>
+			<section>
+				<h2>
+					{ship.name}
+					<sup>
+						{ship.topSpeed} <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				{ship.weapons.length ? (
+					<ul>
+						{ship.weapons.map((weapon) => (
+							<li key={weapon.name}>
+								<label>{weapon.name}</label>:{' '}
+								<span>
+									{weapon.damage} <small>({weapon.type})</small>
+								</span>
+							</li>
+						))}
+					</ul>
+				) : (
+					<p>NOTE: This ship is not equipped with any weapons.</p>
+				)}
+			</section>
+			<small className="ship-info__fetch-time">{ship.fetchedAt}</small>
+		</div>
+	)
+}
+
+function ShipFallback({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<ShipImg
+					src={getImageUrlForShip(shipName, { size: 200 })}
+					alt={shipName}
+				/>
+			</div>
+			<section>
+				<h2>
+					{shipName}
+					<sup>
+						XX <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				<ul>
+					{Array.from({ length: 3 }).map((_, i) => (
+						<li key={i}>
+							<label>loading</label>:{' '}
+							<span>
+								XX <small>(loading)</small>
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		</div>
+	)
+}
+
+function ShipError({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<ShipImg src="/img/broken-ship.webp" alt="broken ship" />
+			</div>
+			<section>
+				<h2>There was an error</h2>
+			</section>
+			<section>There was an error loading "{shipName}"</section>
+		</div>
+	)
+}
+
+function ShipImg(props: React.ComponentProps<'img'>) {
+	return (
+		<ErrorBoundary fallback={<img {...props} />} key={props.src}>
+			<Suspense fallback={<img {...props} src={shipFallbackSrc} />}>
+				<Img {...props} />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+
+function Img({ src = '', ...props }: React.ComponentProps<'img'>) {
+	src = use(imgSrc(src))
+	return <img src={src} {...props} />
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
+
+## utils.tsx    
+
+```tsx
+import { type Ship, type ShipSearch } from './api.server.ts'
+
+export type { Ship, ShipSearch }
+
+const shipCache = new Map<string, Promise<Ship>>()
+
+export function getShip(name: string, delay?: number) {
+	const shipPromise = shipCache.get(name) ?? getShipImpl(name, delay)
+	shipCache.set(name, shipPromise)
+	return shipPromise
+}
+
+async function getShipImpl(name: string, delay?: number) {
+	const searchParams = new URLSearchParams({ name })
+	if (delay) searchParams.set('delay', String(delay))
+	const response = await fetch(`api/get-ship?${searchParams.toString()}`)
+	if (!response.ok) {
+		return Promise.reject(new Error(await response.text()))
+	}
+	const ship = await response.json()
+	return ship as Ship
+}
+
+const shipSearchCache = new Map<string, Promise<ShipSearch>>()
+
+export function searchShips(query: string, delay?: number) {
+	const searchPromise =
+		shipSearchCache.get(query) ?? searchShipImpl(query, delay)
+	shipSearchCache.set(query, searchPromise)
+	return searchPromise
+}
+
+async function searchShipImpl(query: string, delay?: number) {
+	const searchParams = new URLSearchParams({ query })
+	if (delay) searchParams.set('delay', String(delay))
+	const response = await fetch(`api/search-ships?${searchParams.toString()}`)
+	if (!response.ok) {
+		return Promise.reject(new Error(await response.text()))
+	}
+	const ship = await response.json()
+	return ship as ShipSearch
+}
+
+const imgCache = new Map<string, Promise<string>>()
+
+export function imgSrc(src: string) {
+	const imgPromise = imgCache.get(src) ?? preloadImage(src)
+	imgCache.set(src, imgPromise)
+	return imgPromise
+}
+
+function preloadImage(src: string) {
+	return new Promise<string>(async (resolve, reject) => {
+		const img = new Image()
+		img.src = src
+		img.onload = () => resolve(src)
+		img.onerror = reject
+	})
+}
+
+export function getImageUrlForShip(
+	shipName: string,
+	{ size }: { size: number },
+) {
+	return `/img/ships/${shipName.toLowerCase().replaceAll(' ', '-')}.webp?size=${size}`
+}
+```

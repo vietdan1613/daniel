@@ -1,0 +1,653 @@
+---
+title: "React Suspense 3: Optimistic UI"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-04
+thumbnail: image.jpg
+featured: true
+---
+
+# Optimistic UI
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/intro-to-optimistic-ui" />
+
+The idea of "Optimistic UI" is based on the belief that most of the time the
+things your users do will be successful. So if they check off a todo, we can
+instantly mark it as complete in the client while the request is made to make
+the change because most of the time it will be successful. This makes the UI
+feel much faster.
+
+Learn more about the concept of Optimistic UI from the end of my talk here:
+
+<VideoEmbed
+	title="Kent Dodds - Bringing Back Progressive Enhancement - RenderATL 2022"
+	url="https://www.youtube.com/embed/EzLGleT1yrY"
+/>
+
+## `useOptimistic`
+
+Transitions (like those you get from `useTransition`) prevent the UI from
+changing when the component is suspended. But sometimes you want to show a
+different UI while the component is suspended (and even change that UI multiple
+times while it's in the suspended state).
+
+This is where `useOptimistic` comes into play. It may even be better to call it
+[`useTransitionState`](https://twitter.com/ryanflorence/status/1788364906900959481)
+instead! In any case, the idea is that `useOptimistic` is like a `useState` hook
+which will actually change the UI even while it's suspended. It's often used
+to implement Optimistic UI which is why it's called `useOptimistic`.
+
+Form Actions are automatically wrapped in `startTransition` for us so if you
+have a form action for which you would like to implement optimistic UI (which
+requires updating state), then you need to use `useOptimistic` to get around the
+suspended nature of the transition. Here's an example of how it's used with a
+Form Action:
+
+```tsx lines=2,7,14
+function Todo({ todo }: { todo: TodoItem }) {
+	const [isComplete, setIsComplete] = useOptimistic(todo.isComplete)
+
+	return (
+		<form
+			action={async () => {
+				setIsComplete(!isComplete)
+				await updateTodo(todo.id, !isComplete)
+			}}
+		>
+			<label>
+				<input
+					type="checkbox"
+					checked={isComplete}
+					className="todos-checkbox"
+				/>
+				{todo.text}
+			</label>
+		</form>
+	)
+}
+```
+
+The `isComplete` is based on the `todo.isComplete`, but during the transition,
+we can change it to `!isComplete`. Once the transition is finished (whether it
+was successful or errored out), it will fall back to the value of
+`todo.isComplete`.
+
+And the interesting thing about this is we can update optimistic state as many
+times as we would like during the course of a transition, which means if you
+have a multi-step action, you could update a message to let the user know what
+step in the process you're running in all with the nice declarative model of
+suspense and transitions.
+
+## `useFormStatus`
+
+Another part of giving users feedback of their form submission is showing them
+the status. `useFormStatus` can be used by any components that are underneath
+a `form` element.
+
+<callout-success>
+	Think of the `form` element as a context provider and the `useFormStatus` hook
+	as a context consumer.
+</callout-success>
+
+So you can make a submit button that has access to the current status of its
+parent form and display a pending state while the form action is in progress:
+
+```tsx
+function SubmitButton() {
+	const formStatus = useFormStatus()
+	return (
+		<button type="submit">
+			{formStatus.pending ? 'Creating...' : 'Create'}
+		</button>
+	)
+}
+```
+
+The `formStatus` has a number of other useful properties that can be used to
+help implement optimistic UI as well (like the data that's being submitted).
+
+- [📜 `useOptimistic`](https://react.dev/reference/react/useOptimistic)
+- [📜 `useFormStatus`](https://react.dev/reference/react-dom/hooks/useFormStatus)
+
+# Optimistic UI
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/optimistic-ui" />
+
+🧝‍♂️ I've added a form and some API updates for us to be able to create new ships
+to add to the page. As usual, you can <PrevDiffLink>check my work</PrevDiffLink>
+if you're curious what has changed and if you'd like to implement this yourself
+for some extra practice, feel free to go back to the previous solution and add
+the form and API updates yourself.
+
+👨‍💼 Thanks Kellie! Ok, so right now, the user experience is not great with the
+amount of time it takes to create a ship and then display the newly created
+ship. It definitely would be nice to let the user see as much of their newly
+created ship as possible while we're in the process of saving it and loading it.
+
+What we need is a mechanism for turning the user's submission into a Ship object
+which we can use to display.
+
+🧝‍♂️ Actually, I already implemented this as well, it's called
+`createOptimisticShip` and accepts a `FormData` object. So you can use that.
+You'll notice the `fetchedAt` time is set to '...' because it's not technically
+been fetched yet. This is common for optimistic UI where there's some data you
+can't display until the server response actually comes through. But the rest of
+the data we get is what we want to display.
+
+👨‍💼 Oh awesome. Great so what you need to do is create an optimistic ship which
+we can pass to the `ShipDetails` component to display that while the real data
+is being retrieved.
+
+You'll need to store this up in the `App` component and pass the
+`optimisticShip` and `setOptimisticShip` props down to the `CreateForm` and
+`ShipDetails` components.
+
+Hop to it!
+
+# Form Status
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/form-status" />
+
+👨‍💼 It would be nice if we update the create button with a message letting the
+user know that we're in the process of creating their ship and also disable it
+to prevent the user from clicking it again by mistake.
+
+Can you use `useFormStatus` to do this?
+
+- [📜 `useFormStatus`](https://react.dev/reference/react-dom/hooks/useFormStatus)
+
+# Multi-step Actions
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-suspense/multi-step-actions" />
+
+👨‍💼 Our submit button changes from "Create" to "Creating..." but our form action
+actually has one more step: loading the newly created ship.
+
+We want to update the message of our submit button to indicate which step we're
+on in the process. But updating state during a transition (like that in our form
+action) isn't possible. So we need to use `useOptimistic`. Here's an example of
+how you might do this:
+
+```tsx
+<form
+	action={async (formData) => {
+		setMessage('Creating order...')
+		const order = await createOrder(formData)
+		setMessage('Creating payment...')
+		const payment = await createPayment(formData, order)
+		setMessage('Almost done!')
+		await sendThankYou(order, payment)
+	}}
+>
+	{/* ...*/}
+</form>
+```
+
+So please add a `useOptimistic` for a "message" variable which we'll use to
+update the submit button message. You can initialize it to "Create" and then
+update it in each step of our form action.
+
+## index.css    
+
+```css
+body {
+	margin: 0;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+.app-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.ship-buttons {
+	display: flex;
+	justify-content: space-between;
+	width: 300px;
+	padding-bottom: 10px;
+}
+
+.ship-buttons button {
+	border-radius: 2px;
+	padding: 2px 4px;
+	font-size: 0.75rem;
+	background-color: white;
+	color: black;
+	&:not(.active) {
+		box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+	&.active {
+		box-shadow: inset 0 0 4px 0 rgba(0, 0, 0, 0.5);
+	}
+}
+
+.app {
+	display: flex;
+	max-width: 1024px;
+	border: 1px solid #000;
+	border-start-end-radius: 0.5rem;
+	border-start-start-radius: 0.5rem;
+	border-end-start-radius: 50% 8%;
+	border-end-end-radius: 50% 8%;
+	overflow: hidden;
+}
+
+.search {
+	width: 150px;
+	max-height: 400px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+
+	input {
+		width: 100%;
+		border: 0;
+		border-bottom: 1px solid #000;
+		padding: 8px;
+		line-height: 1.5;
+		border-top-left-radius: 0.5rem;
+	}
+
+	ul {
+		flex: 1;
+		list-style: none;
+		padding: 4px;
+		padding-bottom: 30px;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		overflow-y: auto;
+		li {
+			button {
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				border: none;
+				background-color: transparent;
+				&:hover {
+					text-decoration: underline;
+				}
+				img {
+					width: 20px;
+					height: 20px;
+					object-fit: contain;
+					border-radius: 50%;
+				}
+			}
+		}
+	}
+}
+
+.details {
+	flex: 1;
+	height: 400px;
+	position: relative;
+	overflow: hidden;
+}
+
+.ship-info {
+	height: 100%;
+	width: 300px;
+	margin: auto;
+	overflow: auto;
+	background-color: #eee;
+	border-radius: 4px;
+	padding: 20px;
+	position: relative;
+}
+
+.ship-info.ship-loading {
+	opacity: 0.6;
+}
+
+.ship-info h2 {
+	font-weight: bold;
+	text-align: center;
+	margin-top: 0.3em;
+}
+
+.ship-info img {
+	width: 100%;
+	height: 100%;
+	aspect-ratio: 1;
+	object-fit: contain;
+}
+
+.ship-info .ship-info__img-wrapper {
+	margin-top: 20px;
+	width: 100%;
+	height: 200px;
+}
+
+.ship-info .ship-info__fetch-time {
+	position: absolute;
+	top: 6px;
+	right: 10px;
+}
+
+.app-error {
+	position: relative;
+	background-image: url('/img/broken-ship.webp');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 400px;
+	height: 400px;
+	p {
+		position: absolute;
+		top: 30%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: white;
+		padding: 6px 12px;
+		border-radius: 1rem;
+		font-size: 1.5rem;
+		font-weight: bold;
+		width: 300px;
+		text-align: center;
+	}
+}
+```
+
+## index.tsx
+
+```tsx
+import { Suspense, use, useOptimistic, useState, useTransition } from 'react'
+import { useFormStatus } from 'react-dom'
+import * as ReactDOM from 'react-dom/client'
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
+import { useSpinDelay } from 'spin-delay'
+import { type Ship, getShip, createShip } from './utils.tsx'
+
+function App() {
+	const [shipName, setShipName] = useState('Dreadnought')
+	const [isTransitionPending, startTransition] = useTransition()
+	const isPending = useSpinDelay(isTransitionPending, {
+		delay: 300,
+		minDuration: 350,
+	})
+	const [optimisticShip, setOptimisticShip] = useOptimistic<Ship | null>(null)
+
+	function handleShipSelection(newShipName: string) {
+		startTransition(() => {
+			setShipName(newShipName)
+		})
+	}
+
+	return (
+		<div className="app-wrapper">
+			<ShipButtons shipName={shipName} onShipSelect={handleShipSelection} />
+			<div className="app">
+				<div className="details" style={{ opacity: isPending ? 0.6 : 1 }}>
+					<ErrorBoundary fallback={<ShipError shipName={shipName} />}>
+						<Suspense fallback={<ShipFallback shipName={shipName} />}>
+							<ShipDetails shipName={shipName} optimisticShip={optimisticShip} />
+						</Suspense>
+					</ErrorBoundary>
+				</div>
+			</div>
+			<CreateForm
+				setOptimisticShip={setOptimisticShip}
+				setShipName={setShipName}
+			/>
+		</div>
+	)
+}
+
+function CreateForm({
+	setOptimisticShip,
+	setShipName,
+}: {
+	setOptimisticShip: (ship: Ship | null) => void
+	setShipName: (name: string) => void
+}) {
+	const [message, setMessage] = useOptimistic('Create')
+	return (
+		<div>
+			<p>Create a new ship</p>
+			<ErrorBoundary FallbackComponent={FormErrorFallback}>
+				<form
+					action={async (formData) => {
+						setMessage('Creating...')
+						setOptimisticShip(await createOptimisticShip(formData))
+
+						await createShip(formData, 2000)
+
+						setMessage('Created! Loading...')
+
+						setShipName(formData.get('name') as string)
+					}}
+				>
+					<div>
+						<label htmlFor="shipName">Ship Name</label>
+						<input id="shipName" type="text" name="name" required />
+					</div>
+					<div>
+						<label htmlFor="topSpeed">Top Speed</label>
+						<input id="topSpeed" type="number" name="topSpeed" required />
+					</div>
+					<div>
+						<label htmlFor="image">Image</label>
+						<input
+							id="image"
+							type="file"
+							name="image"
+							accept="image/*"
+							required
+						/>
+					</div>
+					<CreateButton>{message}</CreateButton>
+				</form>
+			</ErrorBoundary>
+		</div>
+	)
+}
+
+function CreateButton({ children }: { children: React.ReactNode }) {
+	const { pending } = useFormStatus()
+	return (
+		<button type="submit" disabled={pending}>
+			{children}
+		</button>
+	)
+}
+
+async function createOptimisticShip(formData: FormData) {
+	return {
+		name: formData.get('name') as string,
+		topSpeed: Number(formData.get('topSpeed')),
+		image: await fileToDataUrl(formData.get('image') as File),
+		weapons: [],
+		fetchedAt: '...',
+	}
+}
+
+function fileToDataUrl(file: File) {
+	return new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = reject
+		reader.readAsDataURL(file)
+	})
+}
+
+function FormErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+	return (
+		<div role="alert">
+			There was an error:{' '}
+			<pre style={{ color: 'red', whiteSpace: 'normal' }}>{error.message}</pre>
+			<button onClick={resetErrorBoundary}>Try again</button>
+		</div>
+	)
+}
+
+function ShipButtons({
+	shipName,
+	onShipSelect,
+}: {
+	shipName: string
+	onShipSelect: (shipName: string) => void
+}) {
+	const ships = ['Dreadnought', 'Interceptor', 'Galaxy Cruiser']
+
+	return (
+		<div className="ship-buttons">
+			{ships.map((ship) => (
+				<button
+					key={ship}
+					onClick={() => onShipSelect(ship)}
+					className={shipName === ship ? 'active' : ''}
+				>
+					{ship}
+				</button>
+			))}
+		</div>
+	)
+}
+
+function ShipDetails({
+	shipName,
+	optimisticShip,
+}: {
+	shipName: string
+	optimisticShip: Ship | null
+}) {
+	// 🦉 you can change this delay to control how long loading the resource takes:
+	const delay = 2000
+	const ship = optimisticShip ?? use(getShip(shipName, delay))
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<img src={ship.image} alt={ship.name} />
+			</div>
+			<section>
+				<h2>
+					{ship.name}
+					<sup>
+						{ship.topSpeed} <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				{ship.weapons.length ? (
+					<ul>
+						{ship.weapons.map((weapon) => (
+							<li key={weapon.name}>
+								<label>{weapon.name}</label>:{' '}
+								<span>
+									{weapon.damage} <small>({weapon.type})</small>
+								</span>
+							</li>
+						))}
+					</ul>
+				) : (
+					<p>NOTE: This ship is not equipped with any weapons.</p>
+				)}
+			</section>
+			<small className="ship-info__fetch-time">{ship.fetchedAt}</small>
+		</div>
+	)
+}
+
+function ShipFallback({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<img src="/img/fallback-ship.png" alt={shipName} />
+			</div>
+			<section>
+				<h2>
+					{shipName}
+					<sup>
+						XX <small>lyh</small>
+					</sup>
+				</h2>
+			</section>
+			<section>
+				<ul>
+					{Array.from({ length: 3 }).map((_, i) => (
+						<li key={i}>
+							<label>loading</label>:{' '}
+							<span>
+								XX <small>(loading)</small>
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		</div>
+	)
+}
+
+function ShipError({ shipName }: { shipName: string }) {
+	return (
+		<div className="ship-info">
+			<div className="ship-info__img-wrapper">
+				<img src="/img/broken-ship.webp" alt="broken ship" />
+			</div>
+			<section>
+				<h2>There was an error</h2>
+			</section>
+			<section>There was an error loading "{shipName}"</section>
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
+
+## utils.tsx
+
+```tsx
+import { type Ship } from './api.server.ts'
+
+export type { Ship }
+
+export async function createShip(formData: FormData, delay?: number) {
+	const searchParams = new URLSearchParams()
+	if (delay) searchParams.set('delay', String(delay))
+	const r = await fetch(`api/create-ship?${searchParams.toString()}`, {
+		method: 'POST',
+		body: formData,
+	})
+	if (!r.ok) {
+		throw new Error(await r.text())
+	}
+}
+
+const shipCache = new Map<string, Promise<Ship>>()
+
+export function getShip(name: string, delay?: number) {
+	const shipPromise = shipCache.get(name) ?? getShipImpl(name, delay)
+	shipCache.set(name, shipPromise)
+	return shipPromise
+}
+
+async function getShipImpl(name: string, delay?: number) {
+	const searchParams = new URLSearchParams({ name })
+	if (delay) searchParams.set('delay', String(delay))
+	const response = await fetch(`api/get-ship?${searchParams.toString()}`)
+	if (!response.ok) {
+		return Promise.reject(new Error(await response.text()))
+	}
+	const ship = await response.json()
+	return ship as Ship
+}
+
+export function getImageUrlForShip(
+	shipName: string,
+	{ size }: { size: number },
+) {
+	return `/img/ships/${shipName.toLowerCase().replaceAll(' ', '-')}.webp?size=${size}`
+}
+```

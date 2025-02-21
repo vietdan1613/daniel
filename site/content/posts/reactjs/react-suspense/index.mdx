@@ -1,0 +1,57 @@
+---
+title: "React Suspense: Introduction"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-01
+thumbnail: image.jpg
+featured: true
+---
+
+Suspense is key to managing async operations declaratively in React.
+
+It allows you to handle loading states, errors, and other async dependencies more smoothly by rendering a fallback while a promise is pending.
+
+In this workshop, you'll learn how to:
+
+Manage loading and errors with Suspense
+Cache promises and use the useTransition hook
+Update UI optimistically with useOptimistic
+Load images asynchronously with suspense
+Keep UI responsive with useDeferredValue
+Optimize and avoid network waterfalls
+Once you're through this workshop you'll have a solid handle on Suspense, which will really improve the UX of your apps and open doors to more advanced patterns in later workshops.
+
+## Data Fetching
+No matter how fast your server is, you need to think about what the user's looking at while they wait. You also need to think about what happens if the request fails.
+
+In this section you'll learn how to manage both of these declaratively in components using Suspense and ErrorBoundary.
+
+## Dynamic Promises
+Here you'll learn how to cache your promises in order to avoid unnecessary re-fetching.
+
+You'll also learn about transitions and how to make the transition from loading to resolved state smoother using the useTransition hook.
+
+## Optimistic UI
+The idea of "Optimistic UI" is based on the belief that most of the time the things your users do will be successful.
+
+In this section you'll discover the useOptimistic hook, which is like useState that actually changes the UI even while it's suspended.
+
+## Suspense img
+Anything async can be suspended, including images!
+
+This technique involves loading images with promises and using the browser’s native caching system.
+
+By combining async image loading with Suspense boundaries, you can control rendering fallbacks and ensure images are fully loaded before displaying updated content, avoiding stale UI states
+
+## Responsive
+You can run into some problems when using useTransition. For example, if the user is typing in a search box which you're controlling with state, you want to keep the <input />'s value up-to-date with what they're typing, not with the previous state while React is waiting for the transition to complete.
+
+So in this section you'll learn how to use the useDeferredValue hook to display some pending state while also allowing us to display the state that triggered a component to suspend.
+
+## Optimizations
+This section is about how to go chasing waterfalls.
+
+Due to the design of Suspense, you can easily create network waterfalls by mistake.
+
+So what you're really be learning is how to deal with this both on the frontend and the backend. On the front you'll figure out how to trigger requests before use is called. And on the back you'll set cache headers on your responses to tell the client how to cache properly.
