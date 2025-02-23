@@ -1,0 +1,301 @@
+---
+title: "React Performance 6: Optimize Rendering"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-07-07
+thumbnail: image.jpg
+featured: true
+---
+
+# Optimize Rendering
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/intro-to-optimize-rendering" />
+
+Here's the lifecycle of a React app:
+
+![→ render → reconciliation → commit → state change → rerender](/img/react-render-cycle.png)
+
+Let's define a few terms:
+
+- The "render" phase: create React elements React.createElement
+- The "reconciliation" phase: compare previous elements with the new ones
+- The "commit" phase: update the DOM (if needed).
+
+React exists in its current form (in large part) because updating the DOM is the
+slowest part of this process. By separating us from the DOM, React can perform
+the most surgically optimal updates to the DOM to speed things up for us
+big-time.
+
+A React Component can rerender for any of the following reasons:
+
+1. Its props change
+2. Its internal state changes
+3. It is consuming context values which have changed
+4. Its parent rerenders
+
+React is really fast, however, _sometimes_ it can be useful to give React little
+tips about certain parts of the React tree when there's a state update. You can
+opt-out of state updates for a part of the React tree by using
+[`memo`](https://react.dev/reference/react/memo).
+
+I want to emphasize that I've seen many projects make the mistake of using these
+utilities as band-aids over more problematic performance problems in their apps.
+Please read more about this in my blog post:
+[Fix the slow render before you fix the rerender](https://kentcdodds.com/blog/fix-the-slow-render-before-you-fix-the-re-render).
+
+Let's look at an example to learn how this works. You can pull this example up
+at <a target="_blank" href="/app/example.unnecessary-rerenders/">/app/example.unnecessary-rerenders</a>
+(and feel free to play with it in `examples/unnecessary-rerenders`). Pull this
+up and profile it with the React DevTools.
+
+Here's the implementation:
+
+```tsx
+function CountButton({
+	count,
+	onClick,
+}: {
+	count: number
+	onClick: () => void
+}) {
+	return <button onClick={onClick}>{count}</button>
+}
+
+function NameInput({
+	name,
+	onNameChange,
+}: {
+	name: string
+	onNameChange: (name: string) => void
+}) {
+	return (
+		<label>
+			Name:{' '}
+			<input
+				value={name}
+				onChange={(e) => onNameChange(e.currentTarget.value)}
+			/>
+		</label>
+	)
+}
+
+function App() {
+	const [name, setName] = useState('')
+	const [count, setCount] = useState(0)
+	const increment = () => setCount((c) => c + 1)
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+			<div>
+				<CountButton count={count} onClick={increment} />
+			</div>
+			<div>
+				<NameInput name={name} onNameChange={setName} />
+			</div>
+			{name ? <div>{`${name}'s favorite number is ${count}`}</div> : null}
+		</div>
+	)
+}
+```
+
+Based on how this is implemented, when you click on the counter button, the
+`<CountButton />` rerenders (so we can update the `count` value). But the
+`<NameInput />` is also rerendered. If you have
+`Record why each component rendered while profiling.` enabled in React DevTools,
+then you'll see that under "Why did this render?" it says "The parent component
+rendered."
+
+React does this because it has no way of knowing whether the NameInput will need
+to return different React elements based on the state change of its parent. In
+our case there were no changes necessary, so React didn't bother updating the
+DOM. This is what's called an "unnecessary rerender" and if that
+render/reconciliation process is expensive, then it can be worthwhile to prevent
+it.
+
+Using one of the bail-out APIs, you can instruct React when to rerender.
+The only relevant API these days is `memo`. What happens is that React will
+compare the previous props with the new props and if they're the same, then
+React will not call the component function and will not update the DOM.
+
+So here's how we can improve our example:
+
+```tsx
+import { memo } from 'react'
+
+function CountButton({
+	count,
+	onClick,
+}: {
+	count: number
+	onClick: () => void
+}) {
+	return <button onClick={onClick}>{count}</button>
+}
+
+const NameInput = memo(function NameInput({
+	name,
+	onNameChange,
+}: {
+	name: string
+	onNameChange: (name: string) => void
+}) {
+	return (
+		<label>
+			Name:{' '}
+			<input
+				value={name}
+				onChange={(e) => onNameChange(e.currentTarget.value)}
+			/>
+		</label>
+	)
+})
+
+// etc... no other changes necessary
+```
+
+The only change there was to wrap the `NameInput` component in react's `memo`
+utility.
+
+If you try that out, then you'll notice the `<NameInput />` no longer rerenders
+when you click on the counter button, saving React the work of having to call
+the `NameInput` function and compare the previous react elements with the new
+ones.
+
+Again, I want to mention that people can make the mistake of wrapping
+_everything_ in `memo` which can actually slow down your app in some cases and
+in all cases it makes your code more complex.
+
+In fact, why don't you try wrapping the `CountButton` in `memo` and see what
+happens. You'll notice that it doesn't work.
+
+This is because its parent is passing `increment` and that function is new every
+render (as it's defined in the `App`). Because `memo` relies on the same props
+each call to prevent unnecessary renders, we're not getting any benefit! If we
+really wanted to take advantage of `memo` here, we'd have to wrap `increment` in
+`useCallback`. Feel free to try that if you'd like.
+
+It's much better to use `memo` more intentionally and further, there are other
+things you can do to reduce the amount of unnecessary rerenders throughout your
+application (some of which we've done already).
+
+# Component Memoization
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/component-memoization" />
+
+👨‍💼 We've got a problem. Here's how you reproduce it in our component.
+
+In this exercise, pull up the React DevTools Profiler and start a recording.
+Observe when you click the "force rerender" button, the `CityChooser` and
+`ListItem` components are rerendered even though no DOM updates were needed.
+This is an unnecessary rerender and a bottleneck in our application (especially
+if we want to start showing all of the results rather than just the first 500...
+which we do want to do eventually). If you enable 6x throttle on the CPU (under
+the Performance tab in Chrome DevTools) then you'll notice the issue is more
+stark.
+
+Your job is to optimize the `ListItem` component to be memoized via `memo`. Make
+note of the before/after render times.
+
+Make sure to check both the React Profiler and the Chrome DevTools Performance
+tab.
+
+As with most of these exercises, the code changes are minimal, but the impact
+is significant!
+
+# Custom Comparator
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/custom-comparator" />
+
+👨‍💼 We've improved things so the `ListItem` components don't rerender when there
+are unrelated changes, but what if there are changes to the list item state?
+
+Hover over one of the list items and notice they all rerender. But we really
+only need the hovered item to rerender (as well as the one that's no longer
+highlighted).
+
+So let's add a custom comparator to the `memo` call in `ListItem` to only
+rerender when the changed props will affect the output.
+
+Here's an example of the comparator:
+
+```tsx
+const Avatar = memo(
+	function Avatar({ user }: { user: User }) {
+		return <img src={user.avatarUrl} alt={user.name} />
+	},
+	(prevProps, nextProps) => {
+		const avatarUnchanged =
+			prevProps.user.avatarUrl === nextProps.user.avatarUrl
+		const nameUnchanged = prevProps.user.name === nextProps.user.name
+		// return true if we don't want to re-render
+		return avatarUnchanged && nameUnchanged
+	},
+)
+```
+
+So even if the user object changes, the `Avatar` component will only rerender if
+the `avatarUrl` or `name` properties change.
+
+By default, React just checks the reference of the props, so by providing a
+custom comparator, we override that default behavior to have a more fine-grained
+control over when the component should rerender.
+
+So let's add a custom comparator to the `ListItem` component so it only rerenders
+when absolutely necessary.
+
+Pull up the React Profiler and the DevTools Performance tab to see the impact
+of this optimization as you hover over different list items.
+
+# Primitives
+
+<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/primitives" />
+
+👨‍💼 I would love to have the performance improvement without all the complexity
+of the custom comparator function.
+
+The default comparator function is a simple `===` comparison. So if we changed
+the props a bit, we could take advantage of this.
+
+Remember our Avatar example before?
+
+```tsx
+const Avatar = memo(
+	function Avatar({ user }: { user: User }) {
+		return <img src={user.avatarUrl} alt={user.name} />
+	},
+	(prevProps, nextProps) => {
+		const avatarUnchanged =
+			prevProps.user.avatarUrl === nextProps.user.avatarUrl
+		const nameUnchanged = prevProps.user.name === nextProps.user.name
+		// return true if we don't want to re-render
+		return avatarUnchanged || nameUnchanged
+	},
+)
+```
+
+We could change the props for this component to be primitives instead of objects.
+
+```tsx
+const Avatar = memo(function Avatar({
+	avatarUrl,
+	name,
+}: {
+	avatarUrl: string
+	name: string
+}) {
+	return <img src={avatarUrl} alt={name} />
+})
+```
+
+And now we can use the default comparator function without specifying our own
+because a simple check with `===` will be enough.
+
+Let's do this for our `ListItem`.
+
+And make sure to check the before/after of your work!
+
+<callout-info>
+	🚨 There is no change in how many times the ListItem renders with this change
+	so the tests will be passing from the start. But you'll want to make sure the
+	tests continue to pass when you're finished.
+</callout-info>

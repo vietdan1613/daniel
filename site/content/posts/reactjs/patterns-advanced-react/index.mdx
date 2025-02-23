@@ -1,0 +1,68 @@
+---
+title: "Advanced React Patterns: Introduction"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-20
+thumbnail: image.jpg
+featured: true
+---
+
+Make your code better than ever by learning the strengths and weaknesses of several advanced patterns.
+
+After taking this workshop you'll always know exactly what patterns to reach for.
+
+Running into prop drilling? Reach for some composition patterns.
+
+Are the values you need stale? Use latest ref.
+
+Are you a library author who wants to make a component more flexible? Use the control props or state reducer patterns.
+
+Learning the following patterns will take you far!
+
+## Composition
+Avoiding prop drilling is one of the reasons so many people have jumped onto state management solutions like Redux.
+
+In this section you'll learn what you can accomplish just by passing react elements rather than treating components as uncrossable boundaries.
+
+You'll see how things get quite a bit easier without losing any flexibility!
+
+## Latest Ref
+Sometimes, you need to make sure that you are getting the absolute latest version of a value.
+
+Here, you'll learn how to use the useRef hook to store a value and avoid issues with stale closures in your hooks.
+
+## Compound Components
+
+```
+This pattern can actually be seen in HTML with the <select> and <option> elements.
+```
+
+Instead of loading up props with data and trying to build the UI inside the component definition, you will instead learn how you can compose several React components together in the compound component pattern.
+
+## Slots
+This flexible pattern is useful for creating reusable compound components that aren't locked into having the same parent every time.
+
+Slots allow you to specify an element which takes on a particular role in the overall collection of components. So a parent component can have many props available to children with various roles.
+
+## Prop Collections and Getters
+The Prop Collections and Getters Patterns allows your hook to support common use cases for UI elements people build with your hook.
+
+Basically, in this section you'll learn how to create a function that can return props!
+
+Note, the prop collections pattern isn't recommended but it'll be useful to learn since the getters pattern builds on the idea.
+
+## State Initializer
+The state initializer pattern is a way to initialize (and reset) the state of a component in a predictable way.
+
+This pattern is simple but you'll learn that there's a catch if you want to truly ensure that a component is reset to its initial state and ignores any changes made to the values you used initialize it.
+
+## State Reducer
+This one is especially useful for library authors.
+
+In this section you'll learn the State Reducer Pattern, which inverts control over the state management of your hook and/or component to the developer using it so they can control the state changes that happen when dispatching events.
+
+## Control Props
+Sometimes, people want to be able to manage the internal state of our component from the outside
+
+Learning this pattern will allow you to give control of a component's state to its users so they can make state changes to it themselves.

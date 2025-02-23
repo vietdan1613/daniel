@@ -1,0 +1,73 @@
+---
+title: "React Performance: Introduction"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-07-01
+thumbnail: image.jpg
+featured: true
+---
+
+In this workshop you will diagnose, profile, and fix performance problems in your React application using the Browser Profiler, React DevTools Profiler, and optimization techniques.
+
+There are always trade-offs to consider when thinking about optimization.
+
+You will be learning optimizaiton patterns in this workshop.
+
+But, more importantly you'll be learning how to measure the performance of your app, carefully consider the complexity trade-offs of optimization, and understand which optimizations apply to certain situations.
+
+By the end of this workshop you'll understand how to:
+
+Prevent unnecessary re-renders
+Render concurrently
+Lazy and eager load components
+Use memoization and web workers
+and use windowing with react-virtual
+Element Optimization
+Gain practical experience optimizing React component rendering.
+
+Learn to hoist React elements to prevent unnecessary renders, pass elements as props, use React's Context API to trigger re-renders only on necessary state changes, and apply useMemo and React.memo.
+
+## Optimize Context
+Here you'll learn three ways to optimize context: Memoize context values, create a provider component, and split context values into setter functions.
+
+In addition to the techniques, this will teach you how to use the devtools to determine which ones you need to use.
+
+## Concurrent Rendering
+Sometimes, you're rendering so many components or those components are doing such complex things that you can't afford to render them all quickly enough.
+
+Find out how to use the useDeferredValue hook and memo to prioritize the rendering of some parts of your app over others.
+
+## Code Splitting
+Code splitting acts on the principle that loading less code will speed up your app. There are three ways we'll approach it in this section:
+
+Lazy loading, eager loading, and transitions.
+
+In lazy loading you'll learn how to use React's lazy method for lazy loading components
+
+Eager loading is like a layer on top of lazy loading. You'll learn how to deferr the loading of a component until some event occurs like a mouse over or on focus.
+
+In transitions you'll learn to optimize the loading experience using the useTransition hook and the useSpinDelay hook from the spin-delay package.
+
+## Expensive Calculations
+JavaScript is single-threaded which poses a problem when you need to deal with some kind of expensive calculation.
+
+React has ways of dealing with this but if you are outside of React-land you'll be blocking the thread while the calculation is being performed. Luckily there are a couple options for dealing with this.
+
+useMemo is useful if you're working with indempotent functions. And if you aren't, Web Workers let you perform the calculations on a separate thread but they add some complexity to your code.
+
+Throughout this workshop you'll be learning to measure performance and weigh the trade-offs of all the techniques you learn!
+
+## Optimize Rendering
+React is pretty smart about determining when it needs to re-render. But, sometimes there are cases we can get a bit of an edge over it ourselves.
+
+If your components are re-rendering when a DOM update isn't actually needed, you'll want to reach for memo and memoize your components.
+
+But, what if memo's built-in comparitor isn't doing the trick? It works off a simple Object.is. Which is great most of the time but if you're dealing with complex props you have the option of passing a custom comparitor function.
+
+## Windowing
+And lastly you'll be exploring an advanced technique for when you're dealing with a truly massive amount of elements.
+
+There's only so much optimizing you can do when you need to rendering thousands of elements. But, what if you only had to render a slice of them? That's where windowing comes in.
+
+You'll be using the @tanstack/react-virtual library to virtualize only the visible DOM nodes (and a few nodes outside of view for the fast-scrollers) in a large scrollable element.

@@ -1,0 +1,183 @@
+---
+title: "Advanced React Patterns 6: State Initializer"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-26
+thumbnail: image.jpg
+featured: true
+---
+
+# State Initializer
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-state-initializer" />
+
+<callout-success>
+	**One liner:** The state initializer pattern is a way to initialize (and
+	reset) the state of a component in a predictable way.
+</callout-success>
+
+This one is simple in concept:
+
+```tsx
+function useCounter() {
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(c => c + 1)
+	return { count, increment }
+}
+```
+
+If I wanted to initialize the state of the count to a different value, I could
+do so by passing an argument to the `useCounter` function:
+
+```tsx
+function useCounter({ initialCount = 0 } = {}) {
+	const [count, setCount] = useState(initialCount)
+	const increment = () => setCount(c => c + 1)
+	return { count, increment }
+}
+```
+
+And often when you have a state initializer, you also have a state resetter:
+
+```tsx
+function useCounter({ initialCount = 0 } = {}) {
+	const [count, setCount] = useState(initialCount)
+	const increment = () => setCount(c => c + 1)
+	const reset = () => setCount(initialCount)
+	return { count, increment, reset }
+}
+```
+
+But there's a catch. If you truly want to reset the component to its _initial_
+state, then you need to make certain that any changes to the `initialCount` are
+ignored!
+
+You can do this, by using a `ref` which will keep the initial value constant
+across renders:
+
+```tsx
+function useCounter({ initialCount = 0 } = {}) {
+	const initialCountRef = useRef(initialCount)
+	const [count, setCount] = useState(initialCountRef.current)
+	const increment = () => setCount(c => c + 1)
+	const reset = () => setCount(initialCountRef.current)
+	return { count, increment, reset }
+}
+```
+
+And that's the crux of the state initializer pattern.
+# Initialize Toggle
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/initialize-toggle" />
+
+👨‍💼 Our toggle component should be able to be customizable for the initial state
+and reset to the initial state.
+
+🧝‍♂️ I've updated the toggle component to use a reducer instead of `useState`. If
+you'd like to back up, and do that yourself in the playground, by my guest. Or
+you can <PrevDiffLink>check my work</PrevDiffLink> instead.
+
+👨‍💼 Please add a case in our reducer for the `reset` logic, and add an option to
+our `useToggle` hook for setting the initialOn state.
+# Stability
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/stability" />
+
+👨‍💼 We've noticed that if someone passes an `initialOn` that's based on state,
+then calling `reset` will sometimes change the state to the wrong value based on
+what the `initialOn` was set to at the time the component was initialized.
+
+This is confusing and we want to make certain to avoid it.
+
+🧝‍♂️ I've put together a simple example of this for you to experiment with. You'll
+notice we now have a button for toggling the `initialOn` state which we pass as
+an option to `useToggle`. So if you toggle the `initialOn` state and then click
+the reset button, you'll notice it resets to the current `initialOn` state, not
+the original one.
+
+👨‍💼 This is a little confusing for users of the `useToggle` hook, so please fix
+this issue! Thanks!
+
+## app.tsx
+
+```tsx
+import { useState } from 'react'
+import { Switch } from '#shared/switch.tsx'
+import { useToggle } from './toggle.tsx'
+
+export function App() {
+	const [initialOn, setInitialOn] = useState(true)
+	const { on, getTogglerProps, reset } = useToggle({ initialOn })
+	return (
+		<div>
+			<button onClick={() => setInitialOn(o => !o)}>
+				initialOn is: {initialOn ? 'true' : 'false'}
+			</button>
+			<Switch {...getTogglerProps({ on })} />
+			<hr />
+			<button onClick={reset}>Reset</button>
+		</div>
+	)
+}
+```
+
+## toggle.tsx
+
+```tsx
+import { useReducer } from 'react'
+
+function callAll<Args extends Array<unknown>>(
+	...fns: Array<((...args: Args) => unknown) | undefined>
+) {
+	return (...args: Args) => fns.forEach(fn => fn?.(...args))
+}
+
+type ToggleState = { on: boolean }
+type ToggleAction =
+	| { type: 'toggle' }
+	| { type: 'reset'; initialState: ToggleState }
+
+function toggleReducer(state: ToggleState, action: ToggleAction) {
+	switch (action.type) {
+		case 'toggle': {
+			return { on: !state.on }
+		}
+		case 'reset': {
+			return action.initialState
+		}
+	}
+}
+
+export function useToggle({ initialOn = false } = {}) {
+	// 🐨 wrap this in a useRef
+	const initialState = { on: initialOn }
+	// 🐨 pass the ref-ed initial state into useReducer
+	const [state, dispatch] = useReducer(toggleReducer, initialState)
+	const { on } = state
+
+	const toggle = () => dispatch({ type: 'toggle' })
+	// 🐨 make sure the ref-ed initial state gets passed here
+	const reset = () => dispatch({ type: 'reset', initialState })
+
+	function getTogglerProps<Props>({
+		onClick,
+		...props
+	}: {
+		onClick?: React.ComponentProps<'button'>['onClick']
+	} & Props) {
+		return {
+			'aria-checked': on,
+			onClick: callAll(onClick, toggle),
+			...props,
+		}
+	}
+
+	return {
+		on,
+		reset,
+		toggle,
+		getTogglerProps,
+	}
+}
+```

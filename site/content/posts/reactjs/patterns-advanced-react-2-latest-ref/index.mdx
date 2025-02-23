@@ -1,0 +1,348 @@
+---
+title: "Advanced React Patterns 2: Latest Ref"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-22
+thumbnail: image.jpg
+featured: true
+---
+
+# Latest Ref
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-latest-ref" />
+
+<callout-success>
+	**One liner:** The Latest Ref Pattern allows you to have a reference to the
+	latest value of a prop, state, or callback without needing to list it in a
+	dependency array when accessing it in a `useEffect`.
+</callout-success>
+
+When React introduced hooks it did more than give us an excellent primitive with
+super abstract-ability powers. It also changed an important default that results
+in fewer bugs deployed to production. They changed how you access the latest
+value of state and props.
+
+Before, you would access these values via `this.state` and `this.props` meaning
+that you'd always get the latest value of state or props in your functions.
+Let's explore an example:
+
+```tsx
+class PetFeeder extends React.Component {
+	state = { selectedPetFood: null }
+	feedPet = async () => {
+		const canEat = await this.props.pet.canEat(this.state.selectedPetFood)
+		if (canEat) {
+			this.props.pet.eat(this.state.selectedPetFood)
+		}
+	}
+	render() {
+		return (
+			<div>
+				<PetFoodChooser
+					onSelection={selectedPetFood => this.setState({ selectedPetFood })}
+				/>
+				<button onClick={this.feedPet}>Feed {this.props.pet.name}</button>
+			</div>
+		)
+	}
+}
+```
+
+Think about that `feedPet` function for a moment... What kinds of bugs can you
+spot with this implementation? Let me ask you a question. What would happen if
+the `pet.canEat` function took a couple seconds to resolve? What could the user
+do to cause a problem? If the user changed the `selectedPetFood` what could
+happen? Yeah! You could check whether your bird can eat worms but then actually
+feed it grass! Or what if while we're checking whether your dog can eat some
+candy the props changed now we're withholding the candy from a hungry crab! 😢
+(I mean, like crab-candy... I don't know if that's a thing... 😅)
+
+Can you imagine how we could side-step these issues? It's simple actually:
+
+```ts
+class PetFeeder extends React.Component {
+	// ...
+	feedPet = async () => {
+		const { pet } = this.props
+		const { selectedPetFood } = this.state
+		const canEat = await pet.canEat(selectedPetFood)
+		if (canEat) {
+			pet.eat(selectedPetFood)
+		}
+	}
+	// ...
+}
+```
+
+The default led to bugs that were hard to catch because they often didn't happen
+locally, but if there's one thing I know it's that everything that can happen,
+users will make happen eventually 😅 And unfortunately these kinds of bugs are
+also difficult to reproduce. So I made it a habit of doing this when I was
+writing React class components back in the day and I was able to avoid this
+problem altogether most of the time.
+
+As mentioned earlier, React hooks flipped this default on its head and now every
+function references the closure-version of props and state values rather than
+accessing the latest value off some component instance. So now the kinds of bugs
+you experience will happen during your local development. You won't be able to
+avoid them, so you'll ship fewer (at least, that's been my experience).
+
+So let's rewrite the example above with hooks:
+
+```tsx
+function PetFeeder({ pet }) {
+	const [selectedPetFood, setSelectedPetFood] = useState(null)
+	const feedPet = async () => {
+		const canEat = await pet.canEat(selectedPetFood)
+		if (canEat) {
+			pet.eat(selectedPetFood)
+		}
+	}
+	return (
+		<div>
+			<PetFoodChooser onSelection={food => setSelectedPetFood(food)} />
+			<button onClick={feedPet}>Feed {pet.name}</button>
+		</div>
+	)
+}
+```
+
+Alright, so that's the default (by that I mean it's the more natural and easier
+way to write it). It avoids the bugs mentioned. But what if we _wanted_ the
+behavior before? Could we make that work with hooks? Sure! We just need some way
+to **ref**erence the latest version of a value. `useRef` to the rescue!
+
+```tsx
+function PetFeeder({ pet }) {
+	const [selectedPetFood, setSelectedPetFood] = useState(null)
+	const latestPetRef = useRef(pet)
+	const latestSelectedPetFoodRef = useRef(selectedPetFood)
+
+	// why is the useEffect necessary? Because side-effects run in the function
+	// body of your component can lead to some pretty confusing bugs. Just keep
+	// your function body free of side-effects and you'll be better off.
+	useEffect(() => {
+		latestPetRef.current = pet
+		latestSelectedPetFoodRef.current = selectedPetFood
+		// Wondering why we have no dependency list? Do we really need it?
+		// Not really... So we don't bother.
+	})
+
+	const feedPet = async () => {
+		const canEat = await latestPetRef.current.canEat(
+			latestSelectedPetFoodRef.current,
+		)
+		if (canEat) {
+			latestPetRef.current.eat(latestSelectedPetFoodRef.current)
+		}
+	}
+	return (
+		<div>
+			<PetFoodChooser onSelection={food => setSelectedPetFood(food)} />
+			<button onClick={feedPet}>Feed {pet.name}</button>
+		</div>
+	)
+}
+```
+
+We've successfully simulated the class version of our original component. The
+`ref` + `useEffect` there is what makes up the latest ref pattern.
+
+Now why is this a desirable pattern you might ask? In the example above it looks
+like you'd never want to deal with those bugs we talked about right. Well it
+turns out there are some situations where you really _do_ want the latest
+version of the callback. Use cases vary, but one popular library that uses this
+pattern heavily is [`react-query`](https://react-query.tanstack.com). They use
+this for query and mutation functions/configuration. One reason this is so
+useful is because it means they can call your callback in a `useEffect` without
+referencing it in the dependency list. For example:
+
+```tsx
+function useExampleOne(callback) {
+	useEffect(() => {
+		callback()
+	}, [callback]) // <-- have to include the callback in the dep array
+}
+
+function useExampleTwo(callback) {
+	const latestCallbackRef = useRef(callback)
+	useEffect(() => {
+		latestCallbackRef.current = callback
+	})
+
+	useEffect(() => {
+		latestCallbackRef.current()
+	}, []) // <-- don't have to include the callback in the dep array
+}
+```
+
+It's important that you understand the trade-offs here! Remember, when we do
+this we're going back to the class component default. So just think about the
+unexpected behavior's you'll get when you switch the default like this.
+
+📜 For more on hooks and closures, check
+[Getting Closure on React Hooks](https://www.swyx.io/hooks)
+
+📜 For more on this subject, read
+[How React Uses Closures to Avoid Bugs](https://epicreact.dev/how-react-uses-closures-to-avoid-bugs).
+
+📜 For more on the latest ref pattern, read
+[The Latest Ref Pattern in React](https://epicreact.dev/the-latest-ref-pattern-in-react).
+
+**Real World Projects that use this pattern:**
+
+- [react-query](https://tanstack.com/query)
+
+# Latest Ref
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/latest-ref" />
+
+👨‍💼 In our exercise, we have a `useDebounce` function that isn't working the way
+we want with hooks. We're going to need to "change the default" using the latest
+ref pattern.
+
+`debounce` is a pattern that's often used in user-input fields. For example, if
+you've got a signup form where the user can select their username, you probably
+want to validate for the user that the username is not taken. You want to do it
+when the user's done typing but without requiring them to do anything to trigger
+the validation. With a debounced function, you could say when the user stops
+typing for 400ms you can trigger the validation. If they start typing again
+after only 350ms then you want to start over and wait again until the user
+pauses for 400ms.
+
+In this exercise, the `debounce` function is already written. Even the
+`useDebounce` hook is implemented for you. Your job is to implement the latest
+ref pattern to fix its behavior.
+
+Our example here is a counter button that has a debounced increment function. We
+want to make it so this works:
+
+- The step is `1`
+- The user clicks the button
+- The user updates the step value to `2`
+- The user clicks the button again (before the debounce timer completes)
+- The debounce timer completes for both clicks
+- The count value should be `2` (instead of `1`)
+
+(Keep in mind, the tests are there to help you know you got it right).
+
+Before continuing here, please familiarize yourself with the code to know how
+it's implemented... Got it? Great, let's continue.
+
+Right now, you can play around with two different problems with the way our
+exercise is implemented:
+
+```ts
+// option 1:
+// ...
+const increment = () => setCount(c => c + step)
+const debouncedIncrement = useDebounce(increment, 3000)
+// ...
+```
+
+The problem here is `useDebounce` list `increment` in the dependency list for
+`useMemo`. For this reason, any time there's a state update, we create a _new_
+debounced version of that function so the `timer` in that debounce function's
+closure is different from the previous which means we don't cancel that timeout.
+Ultimate this is the bug our users experience:
+
+- The user clicks the button
+- The user updates the step value
+- The user clicks the button again
+- The first debounce timer completes
+- The count value is incremented by the step value at the time the first click
+  happened
+- The second debounce timer completes
+- The count value is incremented by the step value at the time the second click
+  happened
+
+This is not what we want at all! And the reason it's a problem is because we're
+not memoizing the callback that's going into our `useMemo` dependency list.
+
+So the alternative solution is we could change our `useDebounce` API to require
+you pass a memoized callback:
+
+```ts
+// option 2:
+// ...
+const increment = useCallback(() => setCount(c => c + step), [step])
+const debouncedIncrement = useDebounce(increment, 3000)
+// ...
+```
+
+But again, this callback function will be updated when the `step` value changes
+which means we'll get another instance of the `debouncedIncrement`. Dah! So the
+user experience doesn't actually change with this adjustment _and_ we have a
+less fun API. The latest ref pattern will give us a nice API and we'll avoid
+this problem.
+
+I've made the debounce value last `3000ms` to make it easier for you to observe
+and test the behavior, but you can feel free to adjust that as you like. The
+tests can also help you make sure you've got things working well.
+
+<callout-info>
+	The debounce behavior means that this will make the tests a bit slow. Don't
+	worry though, the rest of the tests will be quite fast.
+</callout-info>
+
+```tsx
+import { useEffect, useMemo, useRef, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
+
+function debounce<Callback extends (...args: Array<unknown>) => void>(
+	fn: Callback,
+	delay: number,
+) {
+	let timer: ReturnType<typeof setTimeout> | null = null
+	return (...args: Parameters<Callback>) => {
+		if (timer) clearTimeout(timer)
+		timer = setTimeout(() => {
+			fn(...args)
+		}, delay)
+	}
+}
+
+function useDebounce<Callback extends (...args: Array<unknown>) => unknown>(
+	callback: Callback,
+	delay: number,
+) {
+	const callbackRef = useRef(callback)
+	useEffect(() => {
+		callbackRef.current = callback
+	})
+	return useMemo(
+		() => debounce((...args) => callbackRef.current(...args), delay),
+		[delay],
+	)
+}
+
+function App() {
+	const [step, setStep] = useState(1)
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(c => c + step)
+	const debouncedIncrement = useDebounce(increment, 3000)
+	return (
+		<div>
+			<div>
+				<label>
+					Step:{' '}
+					<input
+						type="number"
+						step="1"
+						min="1"
+						max="10"
+						onChange={e => setStep(Number(e.currentTarget.value))}
+						defaultValue={step}
+					/>
+				</label>
+			</div>
+			<button onClick={debouncedIncrement}>{count}</button>
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```

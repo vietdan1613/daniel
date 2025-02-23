@@ -1,0 +1,189 @@
+---
+title: "React Hook Section 5: Unique IDs"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-05-15
+thumbnail: image.jpg
+featured: true
+---
+
+# Unique IDs
+
+To build accessible forms, you need to ensure that each input element has a
+globally unique `id` attribute, and that the corresponding label element has a
+`for` attribute that matches the input's `id`. This allows screen readers to
+associate the label with the input, making it easier for users to understand the
+form's structure and purpose. Additionally, it allows users to click on the
+label to focus the input, which can be especially helpful for users with motor
+impairments (or like, for everyone you know?).
+
+This gets challenging with reusable components, especially when they're used
+multiple times on the same page. You can't just hardcode an `id` value, because
+then you'd have multiple elements with the same `id`, which is invalid HTML. You
+could use a random number or string, but then you'd have to manage that
+yourself, and it wouldn't be consistent between renders. And if you want to
+server render your app, you'd have to make sure the ID that's generated on the
+client matches the one that was generated on the server to avoid bugs which is
+a pain.
+
+This is where the `useId` hook comes into play.
+
+The `useId` hook generates a unique and stable identifier (ID) that you can use
+for DOM elements.
+
+Here's an example of how you can use the `useId` hook in a form component:
+
+```tsx
+function FormField() {
+	const id = useId()
+	return (
+		<div>
+			<label htmlFor={id}>Name:</label>
+			<input id={id} type="text" />
+		</div>
+	)
+}
+```
+
+In this example, `useId` generates a unique ID that links the label to the
+input, ensuring that screen readers and other assistive technologies can
+correctly identify the form field relationship.
+
+Unlike `useState` or `useEffect`, `useId` does not accept any arguments and
+returns a single string value. There's no setter or updater function because the
+ID it provides is meant to be constant and unique throughout the component's
+lifecycle.
+
+It's especially useful in server-side rendering (SSR) contexts because it
+ensures consistency between server-generated IDs and client-side generated ones,
+avoiding hydration mismatches.
+
+Remember, the main use of `useId` is for accessibility and managing
+relationships between different DOM elements, like labels and inputs. It helps
+keep your UI predictable and accessible without having to manage unique IDs
+yourself.
+
+One important thing to call out is that you should never use `useId` to generate
+IDs for non-DOM elements, like keys in a list or unique keys for React elements.
+Those IDs should come from your data, not from `useId`.
+
+📜 Check [the `useId` docs](https://react.dev/reference/react/useId) for more
+info. (There's this interesting `identifierPrefix` feature you'll probably never
+use too! 😅)
+
+```tsx
+import { useEffect, useRef, useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import VanillaTilt from 'vanilla-tilt'
+
+function Field({
+	label,
+	...inputProps
+}: {
+	label: string
+} & React.ComponentProps<'input'>) {
+	// 🐨 create a generatedId using useId
+	// 🐨 create an id that defaults to inputProps.id and falls back to the generatedId
+	return (
+		<div>
+			{/* 🐨 add htmlFor on the label and set it to the id */}
+			<label>{label}</label>
+			{/* 🐨 add an id prop here */}
+			<input {...inputProps} />
+		</div>
+	)
+}
+
+interface HTMLVanillaTiltElement extends HTMLDivElement {
+	vanillaTilt?: VanillaTilt
+}
+
+function Tilt({
+	children,
+	max = 25,
+	speed = 400,
+	glare = true,
+	maxGlare = 0.5,
+}: {
+	children: React.ReactNode
+	max?: number
+	speed?: number
+	glare?: boolean
+	maxGlare?: number
+}) {
+	const tiltRef = useRef<HTMLVanillaTiltElement>(null)
+
+	useEffect(() => {
+		const { current: tiltNode } = tiltRef
+		if (!tiltNode) return
+		const vanillaTiltOptions = {
+			max,
+			speed,
+			glare,
+			'max-glare': maxGlare,
+		}
+		VanillaTilt.init(tiltNode, vanillaTiltOptions)
+		return () => tiltNode.vanillaTilt?.destroy()
+	}, [glare, max, maxGlare, speed])
+
+	return (
+		<div ref={tiltRef} className="tilt-root">
+			<div className="tilt-child">{children}</div>
+		</div>
+	)
+}
+
+function App() {
+	const [count, setCount] = useState(0)
+	const [options, setOptions] = useState({
+		max: 25,
+		speed: 400,
+		glare: true,
+		maxGlare: 0.5,
+	})
+	return (
+		<div className="app">
+			<form
+				onSubmit={e => e.preventDefault()}
+				onChange={event => {
+					const formData = new FormData(event.currentTarget)
+					setOptions({
+						max: Number(formData.get('max')),
+						speed: Number(formData.get('speed')),
+						glare: formData.get('glare') === 'on',
+						maxGlare: Number(formData.get('maxGlare')),
+					})
+				}}
+			>
+				<Field label="Max" name="max" type="number" defaultValue={25} />
+				<Field label="Speed" name="speed" type="number" defaultValue={400} />
+				<div>
+					<label>
+						<input name="glare" type="checkbox" defaultChecked />
+						Glare
+					</label>
+				</div>
+				<Field
+					label="Max Glare"
+					name="maxGlare"
+					type="number"
+					defaultValue={0.5}
+				/>
+			</form>
+			<br />
+			<Tilt {...options}>
+				<div className="totally-centered">
+					<button className="count-button" onClick={() => setCount(c => c + 1)}>
+						{count}
+					</button>
+				</div>
+			</Tilt>
+		</div>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+createRoot(rootEl).render(<App />)
+```

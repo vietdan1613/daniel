@@ -1,0 +1,237 @@
+---
+title: "Advanced React Patterns 8: Control Props"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-28
+thumbnail: image.jpg
+featured: true
+---
+
+# Control Props
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-control-props" />
+
+<callout-success>
+	**One liner:** The Control Props pattern allows users to completely control
+	state values within your component. This differs from the state reducer
+	pattern in the fact that you can not only change the state changes based on
+	actions dispatched but you _also_ can trigger state changes from outside the
+	component or hook as well.
+</callout-success>
+
+Sometimes, people want to be able to manage the internal state of our component
+from the outside. The state reducer allows them to manage what state changes are
+made when a state change happens, but sometimes people may want to make state
+changes themselves. We can allow them to do this with a feature called "Control
+Props."
+
+This concept is basically the same as
+[controlled form elements 📜](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable)
+in React that you've probably used many times.
+
+```tsx
+function MyCapitalizedInput() {
+	const [capitalizedValue, setCapitalizedValue] = useState('')
+
+	return (
+		<input
+			value={capitalizedValue}
+			onChange={e => setCapitalizedValue(e.target.value.toUpperCase())}
+		/>
+	)
+}
+```
+
+In this case, the "component" that's implemented the "control props" pattern is
+the `<input />`. Normally it controls state itself (like if you render
+`<input />` by itself with no `value` prop). But once you add the `value` prop,
+suddenly the `<input />` takes the back seat and instead makes "suggestions" to
+you via the `onChange` prop on the state updates that it would normally make
+itself.
+
+This flexibility allows us to change how the state is managed (by capitalizing
+the value), and it also allows us to programmatically change the state whenever
+we want to, which enables this kind of synchronized input situation:
+
+```tsx
+function MyTwoInputs() {
+	const [capitalizedValue, setCapitalizedValue] = useState('')
+	const [lowerCasedValue, setLowerCasedValue] = useState('')
+
+	function handleInputChange(e) {
+		setCapitalizedValue(e.target.value.toUpperCase())
+		setLowerCasedValue(e.target.value.toLowerCase())
+	}
+
+	return (
+		<>
+			<input value={capitalizedValue} onChange={handleInputChange} />
+			<input value={lowerCasedValue} onChange={handleInputChange} />
+		</>
+	)
+}
+```
+
+**Real World Projects that use this pattern:**
+
+- [downshift](https://github.com/downshift-js/downshift)
+- [`@radix-ui/react-select`](https://www.radix-ui.com/primitives/docs/components/select#controlling-the-value-displayed-in-the-trigger)
+# Control Props
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/control-props" />
+
+👨‍💼 In this exercise, we've created a `<Toggle />` component which can accept a
+prop called `on` and another called `onChange`. These work similar to the
+`value` and `onChange` props of `<input />`. Your job is to make those props
+actually control the state of `on` and call the `onChange` with the suggested
+changes.
+
+## app.tsx
+
+```tsx
+import { useState } from 'react'
+import { Toggle, type ToggleAction, type ToggleState } from './toggle.tsx'
+
+export function App() {
+	const [bothOn, setBothOn] = useState(false)
+	const [timesClicked, setTimesClicked] = useState(0)
+
+	function handleToggleChange(state: ToggleState, action: ToggleAction) {
+		if (action.type === 'toggle' && timesClicked > 4) {
+			return
+		}
+		setBothOn(state.on)
+		setTimesClicked(c => c + 1)
+	}
+
+	function handleResetClick() {
+		setBothOn(false)
+		setTimesClicked(0)
+	}
+
+	return (
+		<div>
+			<div>
+				<Toggle on={bothOn} onChange={handleToggleChange} />
+				<Toggle on={bothOn} onChange={handleToggleChange} />
+			</div>
+			{timesClicked > 4 ? (
+				<div data-testid="notice">
+					Whoa, you clicked too much!
+					<br />
+				</div>
+			) : (
+				<div data-testid="click-count">Click count: {timesClicked}</div>
+			)}
+			<button onClick={handleResetClick}>Reset</button>
+			<hr />
+			<div>
+				<div>Uncontrolled Toggle:</div>
+				<Toggle
+					onChange={(...args) =>
+						console.info('Uncontrolled Toggle onChange', ...args)
+					}
+				/>
+			</div>
+		</div>
+	)
+}
+```
+
+## toggle.tsx
+
+```tsx
+import { useReducer, useRef } from 'react'
+import { Switch } from '#shared/switch.tsx'
+
+function callAll<Args extends Array<unknown>>(
+	...fns: Array<((...args: Args) => unknown) | undefined>
+) {
+	return (...args: Args) => fns.forEach(fn => fn?.(...args))
+}
+
+export type ToggleState = { on: boolean }
+export type ToggleAction =
+	| { type: 'toggle' }
+	| { type: 'reset'; initialState: ToggleState }
+
+export function toggleReducer(state: ToggleState, action: ToggleAction) {
+	switch (action.type) {
+		case 'toggle': {
+			return { on: !state.on }
+		}
+		case 'reset': {
+			return action.initialState
+		}
+	}
+}
+
+export function useToggle({
+	initialOn = false,
+	reducer = toggleReducer,
+	onChange,
+	on: controlledOn,
+}: {
+	initialOn?: boolean
+	reducer?: typeof toggleReducer
+	onChange?: (state: ToggleState, action: ToggleAction) => void
+	on?: boolean
+} = {}) {
+	const { current: initialState } = useRef<ToggleState>({ on: initialOn })
+	const [state, dispatch] = useReducer(reducer, initialState)
+	const onIsControlled = controlledOn != null
+	const on = onIsControlled ? controlledOn : state.on
+
+	function dispatchWithOnChange(action: ToggleAction) {
+		if (!onIsControlled) {
+			dispatch(action)
+		}
+		onChange?.(reducer({ ...state, on }, action), action)
+	}
+
+	const toggle = () => dispatchWithOnChange({ type: 'toggle' })
+	const reset = () => dispatchWithOnChange({ type: 'reset', initialState })
+
+	function getTogglerProps<Props>({
+		onClick,
+		...props
+	}: { onClick?: React.ComponentProps<'button'>['onClick'] } & Props) {
+		return {
+			'aria-checked': on,
+			onClick: callAll(onClick, toggle),
+			...props,
+		}
+	}
+
+	function getResetterProps<Props>({
+		onClick,
+		...props
+	}: { onClick?: React.ComponentProps<'button'>['onClick'] } & Props) {
+		return {
+			onClick: callAll(onClick, reset),
+			...props,
+		}
+	}
+
+	return {
+		on,
+		reset,
+		toggle,
+		getTogglerProps,
+		getResetterProps,
+	}
+}
+
+export function Toggle({
+	on: controlledOn,
+	onChange,
+}: {
+	on?: boolean
+	onChange?: (state: ToggleState, action: ToggleAction) => void
+}) {
+	const { on, getTogglerProps } = useToggle({ on: controlledOn, onChange })
+	const props = getTogglerProps({ on })
+	return <Switch {...props} />
+}
+```

@@ -1,0 +1,276 @@
+---
+title: "Advanced React Patterns 1: Composition"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-21
+thumbnail: image.jpg
+featured: true
+---
+
+# Composition
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-composition" />
+
+<callout-success>
+	**One liner:** The Composition and Layout Components Pattern helps to avoid
+	the prop drilling problem and enhances the reusability of your components.
+</callout-success>
+
+🦉 If you're unfamiliar with the concept of "Prop Drilling" then please read
+[this blog post](https://kentcdodds.com/blog/prop-drilling) before going
+forward.
+
+Let's skip to the end here. It's surprising what you can accomplish by passing
+react elements rather than treating components as uncrossable boundaries. We'll
+have a practical example in our exercise, so let me show you a quick and easy
+contrived example to explain what we'll be doing here:
+
+```tsx
+function App() {
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(c => c + 1)
+	return <Child count={count} increment={increment} />
+}
+
+function Child({ count, increment }: { count: number; increment: () => void }) {
+	return (
+		<div>
+			<strong>
+				I am a child and I don't actually use count or increment. My child does
+				though so I have to accept those as props and forward them along.
+			</strong>
+			<GrandChild count={count} onIncrementClick={increment} />
+		</div>
+	)
+}
+
+function GrandChild({
+	count,
+	onIncrementClick,
+}: {
+	count: number
+	onIncrementClick: () => void
+}) {
+	return (
+		<div>
+			<small>I am a grand child and I just pass things off to a button</small>
+			<button onClick={onIncrementClick}>{count}</button>
+		</div>
+	)
+}
+```
+
+This prop drilling stuff is one of the reasons so many people have jumped onto
+state management solutions, whether it be libraries or React context. However,
+if we restructure things a bit, we'll notice that things get quite a bit easier
+without losing the flexibility we're hoping for.
+
+```tsx
+function App() {
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(c => c + 1)
+	return (
+		<Child
+			grandChild={
+				<GrandChild
+					button={<button onClick={onIncrementClick}>{count}</button>}
+				/>
+			}
+		/>
+	)
+}
+
+function Child({ grandChild }: { grandChild: React.ReactNode }) {
+	return (
+		<div>
+			<strong>
+				I am a child and I don't actually use count or increment. My child does
+				though so I have to accept those as props and forward them along.
+			</strong>
+			{grandChild}
+		</div>
+	)
+}
+
+function GrandChild({ button }: { button: React.ReactNode }) {
+	return (
+		<div>
+			<small>I am a grand child and I just pass things off to a button</small>
+			{button}
+		</div>
+	)
+}
+```
+
+Now, clearly you can take this too far (our contrived example above probably
+does), but the point is that by structuring things a little differently, you can
+keep the components that don't care about state free of the plumbing needed to
+make it work. If we decided we needed to manage some more state in the App and
+that was needed in the button then we could update only the app for that.
+
+This style of composition has helped me reduce the amount of components and
+files I touch (break?) when I need to make a change and it's also made my
+abstractions much easier (imagine if we wanted to reuse the `Child` from above
+but needed to customize the `grandChild`. Much easier when we're just accepting
+a prop for it).
+
+When we structure our components to only really deal with props it actually
+cares about, then it becomes more of a "layout" component. A component
+responsible for laying out the react elements it accepts as props. If you're
+familiar with Vue, this concept is similar to the concept of scoped slots.
+
+📜 Read more about this in my blog post:
+[One React mistake that's slowing you down](https://epicreact.dev/one-react-mistake-thats-slowing-you-down)
+
+**Real World Projects that use this pattern:**
+
+- [kentcdodds.com](https://kentcdodds.com) (for the hero component you see at
+  the top of most pages)
+
+# Composition and Layout Components
+
+<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/composition-and-layout-components" />
+
+👨‍💼 In this exercise we've got a simple user interface with several components
+necessitating passing state and updaters around. We're going to restructure
+things so we pass react elements instead of state and updaters. We might be
+going a _tiny_ bit overboard, but the goal is for this to be instructive for
+you.
+
+By the time you're done, the whole UI should look and function exactly as
+before, but you'll get a sense for how to use this pattern. The tests will be
+there just for you to verify you haven't broken anything that should be working
+if you want to use them.
+
+```tsx
+import { useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
+import { SportDataView, allSports } from '#shared/sports.tsx'
+import { type SportData, type User } from '#shared/types.tsx'
+
+function App() {
+	const [user] = useState<User>({ name: 'Kody', image: '/img/kody.png' })
+	const [sportList] = useState<Array<SportData>>(() => Object.values(allSports))
+	const [selectedSport, setSelectedSport] = useState<SportData | null>(null)
+
+	return (
+		<div
+			id="app-root"
+			style={{ ['--accent-color' as any]: selectedSport?.color ?? 'black' }}
+		>
+			<Nav avatar={<img src={user.image} alt={`${user.name} profile`} />} />
+			<div className="spacer" data-size="lg" />
+			<Main
+				sidebar={
+					<List
+						listItems={sportList.map(p => (
+							<li key={p.id}>
+								<SportListItemButton
+									sport={p}
+									onClick={() => setSelectedSport(p)}
+								/>
+							</li>
+						))}
+					/>
+				}
+				content={<Details selectedSport={selectedSport} />}
+			/>
+			<div className="spacer" data-size="lg" />
+			<Footer
+				footerMessage={`Don't have a good day–have a great day, ${user.name}`}
+			/>
+		</div>
+	)
+}
+
+function Nav({ avatar }: { avatar: React.ReactNode }) {
+	return (
+		<nav>
+			<ul>
+				<li>
+					<a href="#/home">Home</a>
+				</li>
+				<li>
+					<a href="#/about">About</a>
+				</li>
+				<li>
+					<a href="#/contact">Contact</a>
+				</li>
+			</ul>
+			<a href="#/me" title="User Settings">
+				{avatar}
+			</a>
+		</nav>
+	)
+}
+
+function Main({
+	sidebar,
+	content,
+}: {
+	sidebar: React.ReactNode
+	content: React.ReactNode
+}) {
+	return (
+		<main>
+			{sidebar}
+			{content}
+		</main>
+	)
+}
+
+function List({ listItems }: { listItems: Array<React.ReactNode> }) {
+	return (
+		<div className="sport-list">
+			<ul>{listItems}</ul>
+		</div>
+	)
+}
+
+function SportListItemButton({
+	sport,
+	onClick,
+}: {
+	sport: SportData
+	onClick: () => void
+}) {
+	return (
+		<button
+			className="sport-item"
+			onClick={onClick}
+			style={{ ['--accent-color' as any]: sport.color }}
+			aria-label={sport.name}
+		>
+			<img src={sport.image} alt={sport.name} />
+			<div className="sport-list-info">
+				<strong>{sport.name}</strong>
+			</div>
+		</button>
+	)
+}
+
+function Details({ selectedSport }: { selectedSport: SportData | null }) {
+	return (
+		<div className="sport-details">
+			{selectedSport ? (
+				<SportDataView sport={selectedSport} />
+			) : (
+				<div>Select a Sport</div>
+			)}
+		</div>
+	)
+}
+
+function Footer({ footerMessage }: { footerMessage: string }) {
+	return (
+		<footer>
+			<p>{footerMessage}</p>
+		</footer>
+	)
+}
+
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+ReactDOM.createRoot(rootEl).render(<App />)
+```
