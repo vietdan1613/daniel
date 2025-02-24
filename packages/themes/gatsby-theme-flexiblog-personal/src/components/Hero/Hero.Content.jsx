@@ -23,13 +23,13 @@ const styles = {
 export default () => (
   <>
     <Heading variant='h1'>
-      Hi, I'm <Text sx={styles.author}>Jane Smith</Text>.
+      Hi, I'm <Text sx={styles.author}>Daniel Nguyen</Text>.
     </Heading>
     <Heading variant='h1' sx={styles.occupation}>
       UX/UI Designer
     </Heading>
     <Heading variant='h3' sx={styles.specialty}>
-      Specialized in Gatsby and React
+      Specialized in ReactJS and Javascript
     </Heading>
     <Box variant='buttons.group'>
       <Button as={Link} to='/contact'>

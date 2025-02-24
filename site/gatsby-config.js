@@ -24,14 +24,14 @@ module.exports = {
         name: 'Github',
         url: 'https://github.com/gatsbyjs'
       },
-      {
-        name: 'Twitter',
-        url: 'https://twitter.com/gatsbyjs'
-      },
-      {
-        name: 'Instagram',
-        url: 'https://github.com/gatsbyjs'
-      }
+      // {
+      //   name: 'Twitter',
+      //   url: 'https://twitter.com/gatsbyjs'
+      // },
+      // {
+      //   name: 'Instagram',
+      //   url: 'https://github.com/gatsbyjs'
+      // }
     ],
 
     //Header Menu Items
@@ -55,18 +55,18 @@ module.exports = {
       {
         title: 'Quick Links',
         items: [
+          // {
+          //   name: 'Advertise with us',
+          //   slug: '/contact'
+          // },
           {
-            name: 'Advertise with us',
-            slug: '/contact'
-          },
-          {
-            name: 'About Us',
+            name: 'About Me',
             slug: '/about'
           },
-          {
-            name: 'Contact Us',
-            slug: '/contact'
-          }
+          // {
+          //   name: 'Contact Us',
+          //   slug: '/contact'
+          // }
         ]
       },
       {
@@ -76,14 +76,14 @@ module.exports = {
             name: 'Privacy Notice',
             slug: '/'
           },
-          {
-            name: 'Cookie Policy',
-            slug: '/'
-          },
-          {
-            name: 'Terms Of Use',
-            slug: '/'
-          }
+          // {
+          //   name: 'Cookie Policy',
+          //   slug: '/'
+          // },
+          // {
+          //   name: 'Terms Of Use',
+          //   slug: '/'
+          // }
         ]
       }
     ]
