@@ -43,7 +43,7 @@ export default props => {
   function onClickDownload() {
     const link = document.createElement('a');
     link.target = "_blank"
-    link.href = `https://drive.google.com/file/d/1Wn4cFL9ItRYVVlajtExWOKwl0pdSk1Jw/view?usp=sharing`;
+    link.href = `https://drive.google.com/file/d/1EaanzcxzwM94U9lid_oP6XIogM8rTx8V/view?usp=drive_link`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
