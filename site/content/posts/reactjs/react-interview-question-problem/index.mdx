@@ -1,0 +1,155 @@
+---
+title: "Problem-Solving Interview Questions"
+category: React JS
+author: Daniel Nguyen
+tags: ['#InterView']
+date: 2025-04-11
+thumbnail: image.jpg
+featured: true
+---
+
+Here are possible answers to all the situational questions you might encounter in a software developer interview:
+
+---
+
+## **1. Problem-Solving & Debugging**
+
+### **Q: You are working on a critical feature, and the code that was working yesterday is suddenly failing. How would you approach troubleshooting?**  
+**A:**  
+1. **Reproduce the issue** – Check what changed since yesterday, review logs, and try different scenarios.  
+2. **Check version control** – Compare the latest changes in Git to see if something was modified.  
+3. **Review dependencies** – Ensure there were no unintended updates to libraries.  
+4. **Isolate the problem** – Use debugging tools, print statements, or breakpoints.  
+5. **Try reverting changes** – If necessary, roll back to the last working state and reintroduce changes one by one.  
+
+---
+
+### **Q: A customer reports a bug in production, but you cannot reproduce it in your local environment. What steps would you take to investigate and resolve it?**  
+**A:**  
+1. **Gather details from the customer** – Ask for screenshots, steps to reproduce, and browser/system info.  
+2. **Check logs and monitoring tools** – Look at server logs, database logs, and error-tracking tools (e.g., Sentry, Datadog).  
+3. **Try reproducing in different environments** – Test on staging, different browsers, or with various data inputs.  
+4. **Use feature flags or remote debugging** – Enable logging in production or attach a debugger if possible.  
+5. **Implement additional logging** – If the issue persists, add more logging to capture unexpected behaviors.  
+
+---
+
+### **Q: You discover a performance issue in a piece of code. How would you go about diagnosing and optimizing it?**  
+**A:**  
+1. **Identify the bottleneck** – Use profiling tools like Chrome DevTools (frontend) or dotTrace (backend).  
+2. **Analyze database queries** – Check for slow queries using `EXPLAIN ANALYZE`.  
+3. **Optimize loops and data structures** – Replace inefficient loops, use maps/sets, and avoid unnecessary computations.  
+4. **Leverage caching** – Store frequently accessed data in memory (e.g., Redis, browser local storage).  
+5. **Optimize network requests** – Reduce API calls, use pagination, and enable compression (e.g., Gzip).  
+
+---
+
+## **2. Collaboration & Communication**
+
+### **Q: A teammate submits a pull request with code that does not follow best practices. How would you provide constructive feedback?**  
+**A:**  
+1. **Start with positives** – Acknowledge what they did well.  
+2. **Be specific** – Instead of "this is bad," suggest improvements: "Consider using async/await here to improve readability."  
+3. **Explain why** – Reference best practices or project guidelines.  
+4. **Encourage discussion** – Ask questions instead of dictating: "Would using a factory pattern here make sense?"  
+5. **Offer help** – If needed, suggest a quick call or pair programming session.  
+
+---
+
+### **Q: You are assigned to work on a feature that another developer has already started, but you find their approach inefficient. How would you handle this situation?**  
+**A:**  
+1. **Understand their reasoning** – Ask why they chose that approach.  
+2. **Evaluate trade-offs** – If the approach works and is maintainable, it might be acceptable.  
+3. **Suggest improvements respectfully** – "I noticed this could be optimized by doing X. What do you think?"  
+4. **Work together** – Collaborate on refactoring if necessary.  
+5. **Adapt if needed** – If time is limited, propose incremental improvements instead of a full rewrite.  
+
+---
+
+### **Q: Your project manager requests a last-minute change that could impact the delivery timeline. How do you handle the conversation?**  
+**A:**  
+1. **Assess the impact** – Identify how much extra time is needed.  
+2. **Communicate trade-offs** – "We can do this, but it may delay Feature X or introduce risks."  
+3. **Offer alternatives** – "Can we release a simpler version now and improve it later?"  
+4. **Get stakeholder input** – Ensure all relevant teams (QA, DevOps) are aware of the impact.  
+5. **Negotiate priorities** – If the change is urgent, discuss what can be postponed.  
+
+---
+
+## **3. Working Under Pressure**
+
+### **Q: The deadline for a project is approaching, and your team is behind schedule. How do you handle the situation?**  
+**A:**  
+1. **Identify bottlenecks** – Find what’s causing delays (e.g., unclear requirements, technical issues).  
+2. **Prioritize critical tasks** – Focus on must-have features first.  
+3. **Seek help** – If possible, redistribute work among team members.  
+4. **Communicate early** – Inform stakeholders about potential delays.  
+5. **Avoid shortcuts** – Don't compromise code quality; technical debt can be costly.  
+
+---
+
+### **Q: A high-priority incident occurs outside of your working hours. How would you respond?**  
+**A:**  
+1. **Assess urgency** – If critical (e.g., production is down), act immediately.  
+2. **Follow escalation procedures** – If a team is on-call, notify them.  
+3. **Find a temporary fix** – If a rollback or quick fix is possible, apply it.  
+4. **Document the issue** – Ensure details are recorded for a long-term solution.  
+5. **Balance work-life** – If it's a recurring issue, discuss better on-call policies.  
+
+---
+
+### **Q: Your team lead asks you to learn a new technology within a short period to complete a project. How would you approach this challenge?**  
+**A:**  
+1. **Prioritize key concepts** – Focus on what’s needed for the project.  
+2. **Use official documentation** – Read docs, tutorials, and quick-start guides.  
+3. **Practice hands-on** – Build a small project or POC.  
+4. **Leverage team expertise** – Ask colleagues for best practices.  
+5. **Use AI and forums** – Check Stack Overflow, GitHub discussions, and AI tools for guidance.  
+
+---
+
+## **4. Code Quality & Best Practices**
+
+### **Q: You inherit a legacy codebase with poor documentation and no tests. How do you ensure maintainability while implementing new features?**  
+**A:**  
+1. **Understand the codebase** – Read existing code, run tests (if any), and document findings.  
+2. **Refactor incrementally** – Avoid rewriting everything at once.  
+3. **Add tests gradually** – Implement unit tests for new changes.  
+4. **Improve documentation** – Add comments and README updates.  
+5. **Introduce best practices** – Slowly enforce linting, CI/CD, and coding standards.  
+
+---
+
+### **Q: A stakeholder asks for a feature that could introduce security vulnerabilities. How do you handle the request?**  
+**A:**  
+1. **Explain security risks** – Educate them on potential issues.  
+2. **Propose alternatives** – Offer a secure implementation.  
+3. **Follow company policies** – If necessary, escalate the concern.  
+4. **Provide examples** – Show past breaches related to similar risks.  
+5. **Document everything** – Ensure security decisions are recorded.  
+
+---
+
+## **5. Conflict Resolution**
+
+### **Q: You and a teammate strongly disagree on the best approach to implement a feature. How do you resolve the disagreement?**  
+**A:**  
+1. **Listen to their perspective** – Understand their reasoning.  
+2. **Compare pros and cons** – Evaluate both approaches objectively.  
+3. **Seek a third opinion** – Ask another developer for input.  
+4. **Prototype solutions** – Build quick POCs to test performance.  
+5. **Agree on a compromise** – Pick the best approach or iterate.  
+
+---
+
+### **Q: A non-technical stakeholder does not understand why a feature is taking longer than expected. How do you explain it?**  
+**A:**  
+1. **Use simple language** – Avoid technical jargon.  
+2. **Break it down** – Explain dependencies and challenges.  
+3. **Provide analogies** – Compare it to real-world examples.  
+4. **Offer a timeline** – Give realistic estimates.  
+5. **Ensure transparency** – Keep them updated on progress.  
+
+---
+
+Want answers tailored to React, .NET, or project management? 😊
