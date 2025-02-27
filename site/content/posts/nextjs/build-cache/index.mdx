@@ -1,0 +1,111 @@
+---
+title: "Next.js 1 - Introduction"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2024-03-31
+thumbnail: image.jpg
+featured: true
+---
+
+## Introduction to Next.js  
+
+### What is Next.js?  
+Next.js is a **React framework** that enables developers to build fast, scalable, and SEO-friendly web applications with ease. It provides features like **server-side rendering (SSR)**, **static site generation (SSG)**, and **API routes**, making it a powerful tool for modern web development.  
+
+### Why Use Next.js?  
+1. **Performance Optimization** – Automatic code splitting and server-side rendering improve page speed.  
+2. **SEO-Friendly** – Pre-rendered pages enhance search engine visibility.  
+3. **Full Flexibility** – Supports SSR, SSG, and client-side rendering (CSR).  
+4. **Built-in Routing** – Uses a file-based routing system (no need for React Router).  
+5. **API Routes** – Allows building backend functionalities within the same project.  
+6. **Image Optimization** – Handles image loading efficiently using the `next/image` component.  
+7. **TypeScript Support** – Built-in support for TypeScript.  
+
+### Getting Started with Next.js  
+#### Installation  
+You can create a new Next.js project using the following command:  
+```bash
+npx create-next-app@latest my-next-app
+cd my-next-app
+npm run dev
+```
+This will start a development server at `http://localhost:3000/`.  
+
+#### Basic Folder Structure  
+```
+my-next-app/
+│── pages/            # Routes based on file names
+│   ├── index.js      # Homepage
+│   ├── about.js      # About page
+│── public/           # Static assets
+│── styles/           # CSS files
+│── components/       # Reusable React components
+│── next.config.js    # Configuration file
+│── package.json      # Project dependencies
+```
+
+### Rendering Methods in Next.js  
+1. **Server-Side Rendering (SSR)**  
+   - Fetches data on every request.  
+   - Improves SEO but may slow response times.  
+   - Example:  
+   ```js
+   export async function getServerSideProps() {
+     const res = await fetch('https://api.example.com/data');
+     const data = await res.json();
+     return { props: { data } };
+   }
+   ```
+  
+2. **Static Site Generation (SSG)**  
+   - Pre-builds pages at compile time for better performance.  
+   - Example:  
+   ```js
+   export async function getStaticProps() {
+     const res = await fetch('https://api.example.com/data');
+     const data = await res.json();
+     return { props: { data } };
+   }
+   ```
+  
+3. **Client-Side Rendering (CSR)**  
+   - Fetches data in the browser using `useEffect()`.  
+   - Best for non-SEO critical pages.  
+   - Example:  
+   ```js
+   import { useEffect, useState } from 'react';
+
+   function Page() {
+     const [data, setData] = useState(null);
+
+     useEffect(() => {
+       fetch('/api/data')
+         .then(res => res.json())
+         .then(data => setData(data));
+     }, []);
+
+     return <div>{data ? JSON.stringify(data) : 'Loading...'}</div>;
+   }
+   export default Page;
+   ```
+
+### API Routes  
+You can create API endpoints inside the `pages/api/` directory. Example:  
+```js
+// pages/api/hello.js
+export default function handler(req, res) {
+  res.status(200).json({ message: 'Hello from Next.js API' });
+}
+```
+
+### Deployment  
+Next.js apps can be deployed on:  
+- **Vercel** (recommended)  
+- Netlify  
+- AWS, Firebase, DigitalOcean, etc.  
+
+### Conclusion  
+Next.js is a powerful framework for building modern web applications. Whether you need SSR for SEO, SSG for performance, or CSR for dynamic experiences, Next.js provides the flexibility to handle different use cases efficiently. 🚀  
+
+Would you like a more detailed guide on a specific topic, like authentication, data fetching, or styling in Next.js?
