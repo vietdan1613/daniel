@@ -3,17 +3,15 @@ title: "Next.js 1 - Introduction"
 category: Next JS
 author: Daniel Nguyen
 tags: ['#NextJS']
-date: 2024-03-31
+date: 2025-08-01
 thumbnail: image.jpg
 featured: true
 ---
 
-## Introduction to Next.js  
-
-### What is Next.js?  
+## What is Next.js?  
 Next.js is a **React framework** that enables developers to build fast, scalable, and SEO-friendly web applications with ease. It provides features like **server-side rendering (SSR)**, **static site generation (SSG)**, and **API routes**, making it a powerful tool for modern web development.  
 
-### Why Use Next.js?  
+## Why Use Next.js?  
 1. **Performance Optimization** – Automatic code splitting and server-side rendering improve page speed.  
 2. **SEO-Friendly** – Pre-rendered pages enhance search engine visibility.  
 3. **Full Flexibility** – Supports SSR, SSG, and client-side rendering (CSR).  
@@ -22,8 +20,8 @@ Next.js is a **React framework** that enables developers to build fast, scalable
 6. **Image Optimization** – Handles image loading efficiently using the `next/image` component.  
 7. **TypeScript Support** – Built-in support for TypeScript.  
 
-### Getting Started with Next.js  
-#### Installation  
+## Getting Started with Next.js  
+### Installation  
 You can create a new Next.js project using the following command:  
 ```bash
 npx create-next-app@latest my-next-app
@@ -32,7 +30,7 @@ npm run dev
 ```
 This will start a development server at `http://localhost:3000/`.  
 
-#### Basic Folder Structure  
+### Basic Folder Structure  
 ```
 my-next-app/
 │── pages/            # Routes based on file names
@@ -45,7 +43,7 @@ my-next-app/
 │── package.json      # Project dependencies
 ```
 
-### Rendering Methods in Next.js  
+## Rendering Methods in Next.js  
 1. **Server-Side Rendering (SSR)**  
    - Fetches data on every request.  
    - Improves SEO but may slow response times.  
@@ -90,7 +88,7 @@ my-next-app/
    export default Page;
    ```
 
-### API Routes  
+## API Routes  
 You can create API endpoints inside the `pages/api/` directory. Example:  
 ```js
 // pages/api/hello.js
@@ -99,13 +97,13 @@ export default function handler(req, res) {
 }
 ```
 
-### Deployment  
+## Deployment  
 Next.js apps can be deployed on:  
 - **Vercel** (recommended)  
 - Netlify  
 - AWS, Firebase, DigitalOcean, etc.  
 
-### Conclusion  
+## Conclusion  
 Next.js is a powerful framework for building modern web applications. Whether you need SSR for SEO, SSG for performance, or CSR for dynamic experiences, Next.js provides the flexibility to handle different use cases efficiently. 🚀  
 
 Would you like a more detailed guide on a specific topic, like authentication, data fetching, or styling in Next.js?

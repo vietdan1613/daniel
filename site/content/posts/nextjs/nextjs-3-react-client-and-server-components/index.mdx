@@ -1,0 +1,104 @@
+---
+title: "Next.js 3 - React Client and Server Components"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-03
+thumbnail: image.jpg
+featured: true
+---
+
+Okay, Now that you're familiar with the entire Next.js application structure, let’s get our hands dirty.
+
+At the start of the crash course, we talked about Architecture, where we can write two types of components: Client And Server Components.
+
+If you remember, I said by default the React components you’ll write are Server Components. But are they?
+
+We have this home page component saying, “Welcome to Next.js.” Let’s add a console log before we return the jsx.
+
+```tsx
+export default function Home() {
+  console.log("Which component am I?");
+
+  return (
+    <main>
+      <h1 className='font-bold text-3xl'>Welcome to Next.js</h1>
+    </main>
+  );
+}
+```
+
+Where do you think this console log will show up? In the browser?
+
+Nah, interesting, right? It will actually appear in your terminal, not in the browser. Check your terminal—that's where your log is. This is what a Server Component is; it's rendered on the server, not in the browser.
+
+
+## React Server Component (RSC)
+
+Server components are rendered on the server, and their HTML output is sent to the client. Since they’re rendered on the server, they can access server-side resources directly, like databases or the file system. This helps reduce the amount of JavaScript sent to the client, improving performance.
+
+Server components are excellent when:
+
+you need direct access to server-side resources (like accessing files in a file system)
+or you want to keep sensitive information, such as access tokens, safe on the server.
+All right, but if server components are better, why can’t everything be a Server Component?
+
+Well, if your component requires browser interactivity, such as clicking buttons, navigating to different pages, and submitting forms, then you need to turn it into a client component.
+
+## So, what are React Client Component (RCC)
+
+Client components are rendered on the client side (in the browser). To use them in Next.js, you must add the "use client" flag at the top of the component.
+
+Let’s create a new component, say hello.client.tsx inside the components folder.
+
+```tsx
+("use client");
+
+function Hello() {
+  console.log("I am a Client Component");
+
+  return (
+    <div>
+      <h1>Hello</h1>
+    </div>
+  );
+}
+
+export default Hello;
+```
+
+After this, import this into the app/page.tsx file and see where this Client Components log appears.
+
+```tsx
+import Hello from "@/components/hello.client";
+
+export default function Home() {
+  console.log("Which component am I?");
+
+  return (
+    <main>
+      <h1 className='font-bold text-3xl'>Welcome to Next.js</h1>
+      <Hello />
+    </main>
+  );
+}
+```
+
+Let’s check the terminal—no, browser—and there is the log. hello.client.tsx is actually a client component.
+
+But wait, you did see something in the terminal, too, right? The log of the client component is also there. How? Or maybe, more importantly, WHY?
+
+This is because Server Components are rendered only on the server side, while Client Components are pre-rendered on the server to create a static shell and then hydrated on the client side.
+
+This means that everything within the Client Component that doesn't require interactivity or isn't dependent on the browser is rendered on the server. The code or parts that rely on the browser or require interactivity are left as placeholders during server-side pre-rendering. When this reaches the client, the browser renders the Client Components and fills in the placeholders left by the server.
+
+## **4️⃣ When to Use What? (Quick Guide)**
+| Feature                 | **Server Component** (default) | **Client Component** (`"use client"`) |
+|-------------------------|--------------------------------|--------------------------------------|
+| **Fetching data**       | ✅ Yes (before rendering)     | ❌ No (use `useEffect`, less efficient) |
+| **State (`useState`)**  | ❌ No                         | ✅ Yes |
+| **Side effects (`useEffect`)** | ❌ No | ✅ Yes |
+| **SEO optimization**    | ✅ Yes (pre-rendered HTML)   | ❌ No (runs on client) |
+| **Forms & buttons**     | ❌ No                         | ✅ Yes |
+| **Animations**          | ❌ No                         | ✅ Yes |
+| **Reducing JS bundle size** | ✅ Yes | ❌ No |

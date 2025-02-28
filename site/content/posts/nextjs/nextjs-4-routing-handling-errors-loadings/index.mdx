@@ -1,0 +1,219 @@
+---
+title: "Next.js 1 - Next.js 15: Routing, Error Handling & Loading UI"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-01
+thumbnail: image.jpg
+featured: true
+---
+
+Next.js 15 follows the **App Router** (`app/` directory), introduced in Next.js 13, which provides a **file-based routing system** with **React Server Components, Server Actions, and Middleware**.  
+
+---
+
+# **1️⃣ Routing in Next.js 15** 🛤️  
+Next.js uses **file-based routing**, meaning the folder structure determines the URL.  
+
+### **Basic Page Routing**
+Each file inside `app/` corresponds to a route.  
+
+```
+app/
+ ├── page.tsx        →  "/" (Home page)
+ ├── about/
+ │    ├── page.tsx   →  "/about"
+ ├── dashboard/
+ │    ├── page.tsx   →  "/dashboard"
+ ├── blog/
+ │    ├── [id]/page.tsx  → "/blog/:id" (Dynamic Route)
+```
+
+**Example: A simple `about` page (`app/about/page.tsx`)**  
+```tsx
+export default function AboutPage() {
+  return <h1>About Us</h1>;
+}
+```
+
+### **Dynamic Routing (`[param]`)**
+Used for paths that change dynamically, like `/blog/:id`.  
+
+```tsx
+// app/blog/[id]/page.tsx → "/blog/:id"
+export default function BlogPost({ params }: { params: { id: string } }) {
+  return <h1>Blog Post {params.id}</h1>;
+}
+```
+📌 `params.id` gets the dynamic value from the URL.  
+
+---
+
+# **2️⃣ Nested & Layout Routing**  
+### **Layouts (`layout.tsx`)**
+Layouts wrap multiple pages with shared UI (e.g., headers, footers).  
+```tsx
+// app/layout.tsx (applies to all pages)
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <header>My Site Header</header>
+        {children}  {/* Pages will be rendered here */}
+        <footer>Footer Content</footer>
+      </body>
+    </html>
+  );
+}
+```
+
+### **Nested Layouts**
+Layouts can be defined per route, like a `dashboard` layout:  
+```tsx
+// app/dashboard/layout.tsx
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      <nav>Dashboard Sidebar</nav>
+      <main>{children}</main>
+    </div>
+  );
+}
+```
+💡 Now, all pages inside `/dashboard/` use this layout.
+
+---
+
+# **3️⃣ Handling Errors in Next.js** ⚠️  
+Next.js provides `error.tsx` files for **per-route error handling**.
+
+### **Example: Custom Error Page for Dashboard**
+```tsx
+// app/dashboard/error.tsx
+"use client"; // Required for error components
+
+import { useEffect } from "react";
+
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  return (
+    <div>
+      <h1>Something went wrong! 😢</h1>
+      <button onClick={() => reset()}>Try Again</button>
+    </div>
+  );
+}
+```
+📌 **`reset()` reloads the page** when an error occurs.  
+
+### **Global Error Handling**
+For site-wide error handling, add an `app/global-error.tsx` file.  
+
+```tsx
+// app/global-error.tsx
+"use client";
+
+export default function GlobalError({ error }: { error: Error }) {
+  return (
+    <html>
+      <body>
+        <h1>Global Error: {error.message}</h1>
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+# **4️⃣ Loading States in Next.js** ⏳  
+Next.js supports **automatic loading UI with `loading.tsx` files**.
+
+### **Example: Show a loading spinner while fetching data**
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <p>Loading Dashboard...</p>;
+}
+```
+📌 The `loading.tsx` file **automatically renders** when a page or component is **fetching data**.
+
+---
+
+# **5️⃣ Route Groups (`(group)`)** 📂  
+Used to organize files without affecting the URL structure.
+
+**Example:**  
+```
+app/
+ ├── (marketing)/  → Not part of the URL
+ │    ├── about/page.tsx  → "/about"
+ │    ├── pricing/page.tsx  → "/pricing"
+ ├── (dashboard)/  → Not part of the URL
+ │    ├── settings/page.tsx  → "/settings"
+```
+💡 Even though `(group)` is in the file structure, it **does not appear in the URL**.
+
+---
+
+# **6️⃣ API Routes (Server Actions & Route Handlers)**  
+Next.js 15 **removes API routes in `pages/api`** and introduces **server-side handlers** inside `app/api/`.
+
+### **Example: Server-side API (`app/api/hello/route.ts`)**
+```ts
+// Handles GET requests at "/api/hello"
+export async function GET() {
+  return Response.json({ message: "Hello from Next.js API!" });
+}
+```
+📌 **No need for Express.js!** Next.js handles API requests natively.  
+
+---
+
+# **7️⃣ Navigation & Link Handling** 🏃‍♂️  
+### **Client-side navigation with `next/link`**
+```tsx
+import Link from "next/link";
+
+export default function Home() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">Go to About</Link>
+    </div>
+  );
+}
+```
+📌 `next/link` **preloads** the linked page for faster navigation.  
+
+### **Programmatic Navigation with `useRouter`**
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+
+export default function GoBack() {
+  const router = useRouter();
+
+  return <button onClick={() => router.push("/dashboard")}>Go to Dashboard</button>;
+}
+```
+📌 `useRouter().push("/dashboard")` navigates programmatically.
+
+---
+
+## **🚀 Summary: What’s New in Next.js 15?**
+✅ **File-based routing with `app/`**  
+✅ **Dynamic routing with `[param]`**  
+✅ **Layouts & route groups `(group)`**  
+✅ **Error handling with `error.tsx`**  
+✅ **Loading UI with `loading.tsx`**  
+✅ **API routes with `app/api/`**  
+✅ **Server Components by default**  
+
+---
+
+## **🔥 Next Steps**
+Would you like a deep dive into **data fetching (SSR, SSG, ISR)**, **auth handling**, or **performance optimizations** in Next.js 15? 😊

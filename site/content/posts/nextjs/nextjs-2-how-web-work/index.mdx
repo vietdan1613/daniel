@@ -1,0 +1,119 @@
+---
+title: "Next.js 2 - How the Web Works"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-02
+thumbnail: image.jpg
+featured: true
+---
+
+The web is a vast network of interconnected computers that communicate using standardized protocols. When you visit a website, several processes happen behind the scenes to deliver the requested web page to your browser.  
+
+---
+
+## 1️⃣ The Basics of the Web  
+At its core, the web works on a **client-server model**:  
+- **Client** 🖥️ → A device (computer, phone, tablet) that requests a web page.  
+- **Server** 🖥️ → A machine that stores and serves web pages.  
+
+💡 Example: When you enter `www.google.com` in your browser, your computer (client) sends a request to Google's server, which responds with the web page.  
+
+---
+
+## 2️⃣ Key Components of the Web  
+### **1. Web Browser (Client-Side)**  
+A web browser (Chrome, Firefox, Edge, Safari) is software that retrieves and displays web content. It interprets HTML, CSS, and JavaScript to render pages.  
+
+### **2. Web Server (Server-Side)**  
+A web server hosts websites and responds to client requests. Examples include:  
+- Apache  
+- Nginx  
+- Microsoft IIS  
+
+### **3. Internet Protocols**  
+The web relies on communication protocols:  
+- **HTTP (HyperText Transfer Protocol)** – Sends and receives web pages.  
+- **HTTPS (Secure HTTP)** – Encrypts data for security.  
+- **TCP/IP (Transmission Control Protocol/Internet Protocol)** – Governs how data moves between computers.  
+- **DNS (Domain Name System)** – Translates human-readable domain names (like `google.com`) into IP addresses (like `142.250.190.46`).  
+
+---
+
+## 3️⃣ How a Web Page Loads  
+When you enter a website URL, here’s what happens step by step:  
+
+### **Step 1: DNS Lookup (Finding the Server)**
+1. You type `www.example.com` in your browser.  
+2. The browser contacts a **DNS server** to find the corresponding IP address.  
+3. The DNS server returns an IP address like `192.168.1.1`.  
+
+### **Step 2: Sending an HTTP Request**
+1. The browser sends an HTTP request to `192.168.1.1`.  
+2. The request includes information like:  
+   - The web page being requested (`index.html`)  
+   - The browser type  
+   - Cookies (if available)  
+
+### **Step 3: Server Processes the Request**
+1. The web server receives the request.  
+2. It processes the request and finds the requested file (HTML, CSS, JavaScript, or dynamic content from a database).  
+3. The server sends the response back to the browser.  
+
+### **Step 4: Browser Renders the Web Page**
+1. The browser receives the HTML file and starts rendering.  
+2. It downloads additional resources (CSS for styling, JavaScript for interactivity, images, fonts, etc.).  
+3. It constructs the **DOM (Document Object Model)** and applies styles and scripts.  
+4. The final page is displayed to the user.  
+
+---
+
+## 4️⃣ Client-Side vs. Server-Side  
+- **Client-Side (Front-End)**  
+  - Runs in the browser.  
+  - Uses **HTML, CSS, JavaScript**.  
+  - Example: Animations, form validation, dynamic UI updates.  
+
+- **Server-Side (Back-End)**  
+  - Runs on the web server.  
+  - Uses **Node.js, Python, PHP, Java, .NET, etc.**  
+  - Example: Processing login requests, retrieving data from a database.  
+
+---
+
+## 5️⃣ How Websites Handle User Input  
+When you submit a form (like logging in):  
+1. The browser sends form data to the server via an **HTTP request**.  
+2. The server processes the request (e.g., checking login credentials).  
+3. The server responds with success (redirect to the dashboard) or failure (show an error message).  
+
+---
+
+## 6️⃣ Static vs. Dynamic Websites  
+- **Static Websites**  
+  - Pre-built HTML files served to users.  
+  - Faster, but lacks interactivity.  
+  - Example: Portfolio websites.  
+
+- **Dynamic Websites**  
+  - Pages are generated in real-time using a database.  
+  - More interactive, but requires a server-side language.  
+  - Example: Facebook, Twitter, Amazon.  
+
+---
+
+## 7️⃣ Popular Web Technologies  
+| Category        | Technologies |
+|----------------|-------------|
+| Front-End      | HTML, CSS, JavaScript, React, Next.js |
+| Back-End       | Node.js, Express.js, Django, Flask, .NET |
+| Databases      | MySQL, PostgreSQL, MongoDB, Firebase |
+| Web Servers    | Apache, Nginx, Vercel, Netlify |
+| APIs          | REST, GraphQL |
+
+---
+
+## 🚀 Conclusion  
+The web is a complex yet fascinating system built on top of protocols and technologies that enable seamless communication between clients and servers. Understanding how it works is key to becoming a skilled developer!  
+
+Would you like to explore **how APIs work**, **how websites handle security**, or **how JavaScript runs in the browser**? 😊

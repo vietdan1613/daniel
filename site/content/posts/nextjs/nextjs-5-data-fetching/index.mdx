@@ -1,0 +1,194 @@
+---
+title: "Next.js 1 - Data Fetching (CSR, SSR, SSG, ISR, PPR)"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-01
+thumbnail: image.jpg
+featured: true
+---
+
+Next.js provides multiple ways to fetch data, each suited for different use cases. Understanding them helps optimize performance, SEO, and user experience.  
+
+| **Method** | **When Data is Fetched?** | **Use Case** |
+|------------|----------------|-------------|
+| **CSR (Client-Side Rendering)** | After page loads (on client) | Non-SEO pages, user-specific data |
+| **SSR (Server-Side Rendering)** | On every request (server) | Dynamic pages with fresh data |
+| **SSG (Static Site Generation)** | At build time | Blogs, marketing pages (fast & cached) |
+| **ISR (Incremental Static Regeneration)** | Build time + on-demand updates | Static pages with occasional updates |
+| **PPR (Partial Prerendering)** | Hybrid: Some content pre-rendered, some fetched on client | Dynamic content with SEO optimization |
+
+---
+
+## **1️⃣ Client-Side Rendering (CSR)**
+- Data is fetched **on the client after the page loads**.  
+- **SEO is bad** because the HTML is empty at first (Google sees a blank page).  
+- Best for **user-specific data** (e.g., dashboards, private pages).  
+
+### **Example: Fetching Data with `useEffect` (CSR)**
+```tsx
+"use client"; // Required for client-side rendering
+import { useState, useEffect } from "react";
+
+export default function CSRPage() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch("https://api.example.com/data")
+      .then((res) => res.json())
+      .then((data) => setData(data));
+  }, []);
+
+  return (
+    <div>
+      <h1>Client-Side Rendered Data</h1>
+      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Loading...</p>}
+    </div>
+  );
+}
+```
+✅ **Pros**: Works well for user-specific content (auth-required pages).  
+❌ **Cons**: Slower initial load, bad for SEO.  
+
+---
+
+## **2️⃣ Server-Side Rendering (SSR)**
+- Data is **fetched on each request** (server-side).  
+- Good for **real-time data and SEO**.  
+- Slower than SSG because it runs **every time a user visits**.  
+
+### **Example: Fetching Data with `getServerSideProps` (SSR)**
+```tsx
+// app/page.tsx (Server Component)
+export async function getServerSideProps() {
+  const res = await fetch("https://api.example.com/data");
+  const data = await res.json();
+
+  return { props: { data } };
+}
+
+export default function SSRPage({ data }) {
+  return (
+    <div>
+      <h1>Server-Side Rendered Data</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+```
+✅ **Pros**: Fresh data, SEO-friendly.  
+❌ **Cons**: Slower response time, higher server load.  
+
+---
+
+## **3️⃣ Static Site Generation (SSG)**
+- Data is **fetched at build time** and saved as **static HTML**.  
+- **Super fast** (CDN cached).  
+- **Not suitable for frequently changing data**.  
+
+### **Example: Fetching Data with `getStaticProps` (SSG)**
+```tsx
+// app/page.tsx (Server Component)
+export async function getStaticProps() {
+  const res = await fetch("https://api.example.com/data");
+  const data = await res.json();
+
+  return { props: { data } };
+}
+
+export default function SSGPage({ data }) {
+  return (
+    <div>
+      <h1>Static Site Generated Data</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+```
+✅ **Pros**: Super fast, scalable, SEO-friendly.  
+❌ **Cons**: Data can become stale.  
+
+---
+
+## **4️⃣ Incremental Static Regeneration (ISR)**
+- Like **SSG**, but allows **on-demand updates** (no full rebuild).  
+- Uses **`revalidate`** to refresh data at a set interval.  
+- Great for **semi-static** pages (e.g., blog posts, product listings).  
+
+### **Example: Using `revalidate` in ISR**
+```tsx
+export async function getStaticProps() {
+  const res = await fetch("https://api.example.com/data");
+  const data = await res.json();
+
+  return { props: { data }, revalidate: 60 }; // Regenerates every 60 seconds
+}
+```
+✅ **Pros**: Fast like SSG, but can update without rebuilding the whole site.  
+❌ **Cons**: Data is not always 100% fresh.  
+
+---
+
+## **5️⃣ Partial Prerendering (PPR) – NEW in Next.js 15**
+- **Hybrid approach**: Some parts **statically pre-rendered**, others **loaded dynamically**.  
+- Best for **e-commerce, personalized content, and dynamic SEO-friendly pages**.  
+
+### **Example: Static Header + Dynamic Product List**
+```tsx
+// app/page.tsx
+import { Suspense } from "react";
+import Products from "./Products";
+
+export default function HomePage() {
+  return (
+    <div>
+      <h1>Welcome to Our Store</h1>
+      <Suspense fallback={<p>Loading products...</p>}>
+        <Products />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+```tsx
+// app/Products.tsx (Server Component)
+export default async function Products() {
+  const res = await fetch("https://api.example.com/products");
+  const products = await res.json();
+
+  return (
+    <ul>
+      {products.map((p) => (
+        <li key={p.id}>{p.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+✅ **Pros**: SEO-friendly, fast, handles dynamic data well.  
+❌ **Cons**: More complex than SSG or SSR.  
+
+---
+
+## **6️⃣ When to Use What?**
+| Feature | **CSR** | **SSR** | **SSG** | **ISR** | **PPR** |
+|---------|--------|--------|--------|--------|--------|
+| **Data freshness** | ✅ Latest | ✅ Latest | ❌ Stale | ✅ Auto-refresh | ✅ Latest |
+| **SEO** | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Performance** | ❌ Slow (JS heavy) | ❌ Slower (server fetch) | ✅ Fast (pre-built) | ✅ Fast | ✅ Fast |
+| **Best for** | Private dashboards | News feeds | Blogs, docs | E-commerce, product pages | Personalized SEO content |
+
+---
+
+## **🎯 Conclusion**
+- **Use CSR** for user-specific data (dashboards, auth-required pages).  
+- **Use SSR** for dynamic content that needs to be fresh (news feeds, search results).  
+- **Use SSG** for static pages that don’t change often (marketing pages, blogs).  
+- **Use ISR** when you need **fast performance + occasional updates**.  
+- **Use PPR** when you need **hybrid rendering (SEO + personalization)**.  
+
+---
+
+## **🔥 Next Steps**
+Would you like a **deep dive into React Server Components, caching strategies, or middleware in Next.js 15**? 🚀
