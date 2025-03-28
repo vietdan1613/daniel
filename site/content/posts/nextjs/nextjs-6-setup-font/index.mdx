@@ -1,0 +1,105 @@
+---
+title: "Next.js 6 - Setting Up Fonts"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-06
+thumbnail: image.jpg
+featured: true
+---
+
+To integrate **local fonts** into your **Next.js** project using **Tailwind CSS 4** and the `next/font` module, follow these steps:
+
+---
+
+## **1. Place Your Font Files**
+
+Store your custom font files (e.g., `.woff2`, `.ttf`) in the `public/fonts` directory of your Next.js project.
+
+**Example:**
+
+```
+/public/fonts/MyFont-Regular.woff2
+/public/fonts/MyFont-Bold.woff2
+```
+
+---
+
+## **2. Import the Font Using `next/font/local`**
+
+Next.js's `next/font/local` module allows for optimized loading of local fonts.
+
+**In your `app/layout.js` or `pages/_app.js`:**
+
+```javascript
+import localFont from 'next/font/local';
+
+const myFont = localFont({
+  src: [
+    {
+      path: '/fonts/MyFont-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '/fonts/MyFont-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-myFont',
+});
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" className={myFont.variable}>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+
+This setup creates a CSS variable `--font-myFont` for your custom font.
+
+---
+
+## **3. Configure Tailwind CSS to Use the Font**
+
+Update your `tailwind.config.js` to reference the CSS variable:
+
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-myFont)', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+};
+```
+
+
+This configuration allows you to apply your custom font using Tailwind's `font-sans` utility class.
+
+---
+
+## **4. Apply the Custom Font in Your Components**
+
+You can now use the `font-sans` class in your components to apply the custom font:
+
+```javascript
+export default function Home() {
+  return <h1 className="font-sans text-3xl">Hello, Custom Font!</h1>;
+}
+```
+
+---
+
+By following these steps, you can effectively integrate local fonts into your Next.js project using Tailwind CSS 4 and the `next/font` module, ensuring optimized performance and a consistent user experience.
+
+For a visual walkthrough, you might find this tutorial helpful:
+
+videoUsing Fonts in Next.js (Google Fonts, Local Fonts, Tailwind CSS)turn0search2 

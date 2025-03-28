@@ -1,0 +1,182 @@
+---
+title: "Mastering JavaScript Arrays: A Comprehensive Guide"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-03-28
+thumbnail: image.png
+featured: true
+---
+
+Here's an updated version of the JavaScript array blog post with **Big O notation** added to each relevant section.  
+
+---
+
+JavaScript arrays are one of the most commonly used data structures. They allow you to store multiple values in a single variable and provide powerful methods to manipulate data efficiently. In this guide, we'll explore JavaScript arrays in depth, covering their **creation, manipulation, common methods, and performance (Big O notation).**  
+
+---
+
+## 1. **Creating Arrays**  
+
+### Using `[]` (Array Literal) – **O(1)**  
+The most common way to create an array:  
+
+```js
+const fruits = ["Apple", "Banana", "Cherry"];
+```
+
+### Using `new Array()` – **O(1)**  
+```js
+const numbers = new Array(1, 2, 3, 4, 5);
+```
+
+### Creating an Empty Array – **O(1)**  
+```js
+const emptyArray = [];
+```
+
+---
+
+## 2. **Accessing and Modifying Elements**  
+
+### Accessing Elements – **O(1)**  
+```js
+console.log(fruits[0]); // "Apple"
+```
+
+### Modifying Elements – **O(1)**  
+```js
+fruits[1] = "Blueberry";
+```
+
+### Finding the Length – **O(1)**  
+```js
+console.log(fruits.length);
+```
+
+---
+
+## 3. **Common Array Methods and Their Big O Complexity**  
+
+### Adding Elements  
+
+- **`push()`** – *Adds to the end* – **O(1)**  
+- **`unshift()`** – *Adds to the beginning (shifts all elements)* – **O(n)**  
+
+```js
+fruits.push("Orange"); // O(1)
+fruits.unshift("Mango"); // O(n)
+```
+
+### Removing Elements  
+
+- **`pop()`** – *Removes from the end* – **O(1)**  
+- **`shift()`** – *Removes from the beginning (shifts all elements)* – **O(n)**  
+
+```js
+fruits.pop(); // O(1)
+fruits.shift(); // O(n)
+```
+
+### Slicing and Splicing  
+
+- **`slice(start, end)`** – *Creates a new array* – **O(n)**  
+- **`splice(start, deleteCount, item1, item2, ...)`** – *Removes/Replaces elements* – **O(n)**  
+
+```js
+const sliced = fruits.slice(1, 3); // O(n)
+fruits.splice(1, 1, "Peach"); // O(n)
+```
+
+### Searching for Elements  
+
+- **`indexOf(value)`** – *Finds index* – **O(n)**  
+- **`includes(value)`** – *Checks existence* – **O(n)**  
+
+```js
+console.log(fruits.indexOf("Cherry")); // O(n)
+console.log(fruits.includes("Banana")); // O(n)
+```
+
+### Iterating Over Arrays  
+
+- **`forEach()`** – **O(n)**  
+- **`map()`** – **O(n)**  
+- **`filter()`** – **O(n)**  
+- **`reduce()`** – **O(n)**  
+
+```js
+fruits.forEach((fruit) => console.log(fruit)); // O(n)
+const uppercased = fruits.map((fruit) => fruit.toUpperCase()); // O(n)
+const shortNames = fruits.filter((fruit) => fruit.length <= 5); // O(n)
+const totalChars = fruits.reduce((sum, fruit) => sum + fruit.length, 0); // O(n)
+```
+
+---
+
+## 4. **Advanced Techniques**  
+
+### Sorting Arrays  
+
+- **`sort()`** – *Default sort (mutates array, uses QuickSort or Timsort depending on engine)* – **O(n log n)**  
+- **`reverse()`** – *Reverses array in place* – **O(n)**  
+
+```js
+fruits.sort(); // O(n log n)
+fruits.reverse(); // O(n)
+```
+
+For numbers, use a compare function:  
+
+```js
+const numbers = [10, 5, 8, 20];
+numbers.sort((a, b) => a - b); // O(n log n)
+```
+
+### Removing Duplicates  
+
+- **Using `Set` (Best approach)** – **O(n)**  
+- **Using `filter()` + `indexOf()`** – **O(n²)** (Not recommended)  
+
+```js
+const uniqueFruits = [...new Set(fruits)]; // O(n)
+```
+
+### Flattening Nested Arrays  
+
+- **`flat(depth)`** – **O(n)**  
+
+```js
+const nested = [1, [2, [3, 4]], 5];
+console.log(nested.flat(2)); // [1, 2, 3, 4, 5] // O(n)
+```
+
+---
+
+## 5. **Big O Summary for JavaScript Arrays**  
+
+| Operation      | Method             | Time Complexity |
+|---------------|--------------------|----------------|
+| **Accessing** | `arr[index]`       | **O(1)**       |
+| **Adding**    | `push()`           | **O(1)**       |
+|               | `unshift()`        | **O(n)**       |
+| **Removing**  | `pop()`            | **O(1)**       |
+|               | `shift()`          | **O(n)**       |
+| **Searching** | `indexOf()`        | **O(n)**       |
+|               | `includes()`       | **O(n)**       |
+| **Slicing**   | `slice()`          | **O(n)**       |
+| **Splicing**  | `splice()`         | **O(n)**       |
+| **Iterating** | `forEach()`, `map()` | **O(n)**       |
+| **Sorting**   | `sort()`           | **O(n log n)** |
+| **Reversing** | `reverse()`        | **O(n)**       |
+| **Flattening** | `flat()`          | **O(n)**       |
+
+---
+
+## Conclusion  
+
+JavaScript arrays are incredibly powerful and flexible. Understanding **Big O complexity** helps you write efficient code, especially when dealing with large datasets.  
+
+If you're working with massive amounts of data, consider alternatives like **linked lists** for faster insertions and deletions, or **objects/maps** for better lookup performance.  
+
+Would you like real-world optimization examples? 🚀

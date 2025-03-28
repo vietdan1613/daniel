@@ -1,0 +1,329 @@
+---
+title: "Next.js 8 - File Based Routing"
+category: Next JS
+author: Daniel Nguyen
+tags: ['#NextJS']
+date: 2025-08-01
+thumbnail: image.jpg
+featured: true
+---
+
+Next.js supports **file-based routing**, meaning that the folder structure inside the `pages/` or `app/` directory **automatically defines routes**. Let's explore both **App Router (Next.js 13+)** and **Pages Router (Legacy).**
+
+---
+
+# **1. File-Based Routing in Next.js (App Router - `app/`)**
+Introduced in Next.js 13, the **App Router** (`app/` directory) uses **React Server Components (RSC)** and a more **modern routing system**.
+
+## **1.1 Defining Routes (Automatic Routing)**
+- Every `.js`, `.jsx`, or `.tsx` file inside `app/` becomes a **route**.
+- The folder structure defines **nested routes**.
+
+```
+app/
+ ├── layout.js        → Shared layout (wrapping all pages)
+ ├── page.js          → Home page ("/")
+ ├── about/
+ │   ├── page.js      → About page ("/about")
+ │   ├── team/
+ │       ├── page.js  → Team page ("/about/team")
+ ├── blog/
+ │   ├── page.js      → Blog homepage ("/blog")
+ │   ├── [slug]/
+ │       ├── page.js  → Dynamic route ("/blog/:slug")
+```
+
+### **Example: Home Page (`/`)**
+`app/page.js`
+```jsx
+export default function HomePage() {
+  return <h1>Welcome to Next.js</h1>;
+}
+```
+
+### **Example: About Page (`/about`)**
+`app/about/page.js`
+```jsx
+export default function AboutPage() {
+  return <h1>About Us</h1>;
+}
+```
+
+---
+
+## **1.2 Dynamic Routes (`[slug]`)**
+For **dynamic pages**, use square brackets `[param]` in folder names.
+
+Example for `/blog/:slug`:
+```
+app/blog/
+ ├── [slug]/
+ │   ├── page.js    → "/blog/:slug"
+```
+
+`app/blog/[slug]/page.js`
+```jsx
+export default function BlogPost({ params }) {
+  return <h1>Blog Post: {params.slug}</h1>;
+}
+```
+📌 URL `/blog/nextjs-routing` → Shows `Blog Post: nextjs-routing`
+
+---
+
+## **1.3 Catch-All Routes (`[...slug]`)**
+For handling multiple segments dynamically (`/docs/a/b/c`), use **`[...slug]`**.
+
+Example:
+```
+app/docs/
+ ├── [...slug]/
+ │   ├── page.js    → Handles "/docs/a", "/docs/a/b", etc.
+```
+
+`app/docs/[...slug]/page.js`
+```jsx
+export default function Docs({ params }) {
+  return <h1>Docs for {params.slug?.join(" / ")}</h1>;
+}
+```
+📌 `/docs/nextjs/routing` → Shows `Docs for nextjs / routing`
+
+---
+
+## **1.4 Layouts (`layout.js`)**
+`layout.js` allows **shared layouts** across multiple pages.
+
+Example: `app/layout.js`
+```jsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <nav>Navbar</nav>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+📌 Now all pages (`/`, `/about`, `/blog`) **share this layout**.
+
+---
+
+# **2. File-Based Routing in Next.js (Pages Router - `pages/`)**
+The **Pages Router** (legacy approach) uses the `pages/` directory for routing.
+
+## **2.1 Defining Routes**
+```
+pages/
+ ├── index.js     → Home page ("/")
+ ├── about.js     → About page ("/about")
+ ├── blog/
+ │   ├── index.js → Blog homepage ("/blog")
+ │   ├── [slug].js → Dynamic route ("/blog/:slug")
+```
+
+Example for `/about`:
+`pages/about.js`
+```jsx
+export default function AboutPage() {
+  return <h1>About Us</h1>;
+}
+```
+
+---
+
+## **2.2 Dynamic Routes (`[slug].js`)**
+```
+pages/blog/
+ ├── [slug].js → "/blog/:slug"
+```
+
+`pages/blog/[slug].js`
+```jsx
+import { useRouter } from "next/router";
+
+export default function BlogPost() {
+  const router = useRouter();
+  return <h1>Blog Post: {router.query.slug}</h1>;
+}
+```
+📌 `/blog/nextjs-routing` → `Blog Post: nextjs-routing`
+
+---
+
+## **2.3 API Routes (`pages/api/`)**
+API endpoints live in `pages/api/`.
+
+Example: `pages/api/hello.js`
+```js
+export default function handler(req, res) {
+  res.status(200).json({ message: "Hello from API!" });
+}
+```
+📌 Access at `/api/hello`
+
+---
+
+# **3. Key Differences: App Router vs. Pages Router**
+| Feature         | App Router (`app/`) | Pages Router (`pages/`) |
+|---------------|----------------|----------------|
+| **React Components** | Server & Client | Client only |
+| **Layouts** | `layout.js` (built-in) | Manual `_app.js` |
+| **Dynamic Routes** | `app/[slug]/page.js` | `pages/[slug].js` |
+| **API Routes** | Uses **Route Handlers** (`app/api/route.js`) | `pages/api/*.js` |
+| **Performance** | Faster (RSC, no hydration) | Slower (hydration needed) |
+
+📌 **New projects should use the App Router (`app/`) for better performance and scalability.**
+
+---
+
+# **4. Nested Layouts in App Router**
+The **App Router** allows deeply nested layouts.
+
+Example:
+```
+app/
+ ├── layout.js         → Global Layout
+ ├── dashboard/
+ │   ├── layout.js     → Dashboard Layout
+ │   ├── page.js       → "/dashboard"
+ │   ├── settings/
+ │       ├── page.js   → "/dashboard/settings"
+```
+
+`app/dashboard/layout.js`
+```jsx
+export default function DashboardLayout({ children }) {
+  return (
+    <div>
+      <nav>Dashboard Menu</nav>
+      {children}
+    </div>
+  );
+}
+```
+📌 Now `/dashboard` and `/dashboard/settings` **share this layout**.
+
+# **Route Groups** 
+
+Next.js **App Router** allows **Route Groups** to organize routes **without affecting the URL structure**. This is useful for:  
+✅ **Organizing files** without changing paths  
+✅ **Creating nested layouts** for specific sections  
+✅ **Grouping routes for middleware, authentication, or localization**  
+
+---
+
+## **1. Creating a Route Group** 🗂️  
+To create a **grouped route**, wrap it inside **(parenthesis)**:  
+
+```
+app/
+ ├── (dashboard)/        → Route Group (Does not appear in URL)
+ │   ├── layout.js       → Shared layout for dashboard pages
+ │   ├── page.js        → "/"
+ │   ├── analytics/
+ │   │   ├── page.js    → "/analytics"
+ │   ├── settings/
+ │       ├── page.js    → "/settings"
+```
+📌 Even though `dashboard/` exists in the folder structure, it **won't appear in the URL**.
+
+---
+
+### **2. Example: Dashboard Route Group**
+Create `app/(dashboard)/layout.js`:  
+```jsx
+export default function DashboardLayout({ children }) {
+  return (
+    <div>
+      <nav>Dashboard Navigation</nav>
+      {children}
+    </div>
+  );
+}
+```
+📌 Now **all pages in `(dashboard)/` share this layout**.  
+
+---
+
+### **3. Example: Individual Pages in Route Group**
+#### `app/(dashboard)/page.js`
+```jsx
+export default function DashboardHome() {
+  return <h1>Welcome to the Dashboard</h1>;
+}
+```
+📌 Accessible at **`/`**, NOT `/dashboard`
+
+#### `app/(dashboard)/analytics/page.js`
+```jsx
+export default function AnalyticsPage() {
+  return <h1>Analytics Data</h1>;
+}
+```
+📌 Accessible at **`/analytics`**, NOT `/dashboard/analytics`
+
+#### `app/(dashboard)/settings/page.js`
+```jsx
+export default function SettingsPage() {
+  return <h1>Settings Page</h1>;
+}
+```
+📌 Accessible at **`/settings`**, NOT `/dashboard/settings`
+
+---
+
+## **4. Why Use Route Groups?**
+✅ **Better Organization** – Keep related pages together without affecting URLs  
+✅ **Shared Layouts** – Apply `layout.js` to only part of the app  
+✅ **Middleware & Authentication** – Apply Next.js Middleware to a specific group  
+
+---
+
+## **5. Combining Route Groups with Auth**
+You can **protect a route group** using middleware (`middleware.js` in the root):  
+```js
+import { NextResponse } from "next/server";
+
+export function middleware(req) {
+  const isLoggedIn = req.cookies.get("auth_token"); // Example auth check
+
+  if (!isLoggedIn && req.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+}
+```
+📌 **Now all `/dashboard` routes require authentication.**
+
+---
+
+## **6. Localized Route Groups (i18n)**
+You can use **route groups for internationalization**:
+
+```
+app/
+ ├── (en)/
+ │   ├── page.js  → "/"
+ │   ├── about/
+ │       ├── page.js → "/about"
+ ├── (fr)/
+ │   ├── page.js  → "/fr"
+ │   ├── about/
+ │       ├── page.js → "/fr/about"
+```
+📌 This creates localized URLs (`/` and `/fr/`), keeping code **organized**.
+
+---
+
+# **🎯 Final Thoughts**
+
+✔ **Use `(group)/` to organize pages without affecting URLs**  
+✔ **Apply shared layouts inside a group**  
+✔ **Combine with middleware for authentication or localization**  
+✔ **Works great with dynamic routes & API routes**  
+✔ **Use `app/` (App Router) for modern Next.js projects.**  
+✔ **File structure = route structure (easy to manage).**  
+✔ **Leverage layouts for shared UI.**  
+✔ **Use `[slug]` and `[...slug]` for dynamic & catch-all routes.**  
