@@ -1,0 +1,190 @@
+---
+title: "Set and Map in JavaScript"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-03-30
+thumbnail: image.png
+featured: true
+---
+
+`Set` and `Map` are built-in JavaScript objects introduced in **ES6** that help manage collections of unique values and key-value pairs, respectively.
+
+---
+
+## **`Set` (Unique Collection of Values)**
+A `Set` is a collection of unique values, meaning it **does not allow duplicates**.
+
+### **Creating a Set**
+```javascript
+const mySet = new Set();
+```
+
+### **Adding Values**
+```javascript
+mySet.add(1);
+mySet.add(2);
+mySet.add(2); // Duplicate, ignored
+
+console.log(mySet); // Set { 1, 2 }
+```
+
+### **Checking for Values**
+```javascript
+console.log(mySet.has(1)); // true
+console.log(mySet.has(3)); // false
+```
+
+### **Deleting Values**
+```javascript
+mySet.delete(1);
+console.log(mySet); // Set { 2 }
+```
+
+### **Getting the Size**
+```javascript
+console.log(mySet.size); // 1
+```
+
+### **Iterating Over a Set**
+```javascript
+mySet.add(3);
+mySet.add(4);
+
+for (let value of mySet) {
+  console.log(value);
+}
+// Output: 2, 3, 4
+```
+
+### **Converting Set to Array**
+```javascript
+const myArray = [...mySet];
+console.log(myArray); // [2, 3, 4]
+```
+
+### **Removing All Elements**
+```javascript
+mySet.clear();
+console.log(mySet.size); // 0
+```
+
+---
+
+## **`Map` (Key-Value Pair Collection)**
+A `Map` stores key-value pairs and allows **any type of key** (objects, functions, numbers, strings, etc.).
+
+### **Creating a Map**
+```javascript
+const myMap = new Map();
+```
+
+### **Adding Key-Value Pairs**
+```javascript
+myMap.set("name", "Daniel");
+myMap.set(1, "Number One");
+myMap.set(true, "Boolean Value");
+
+console.log(myMap);
+// Map(3) { 'name' => 'Daniel', 1 => 'Number One', true => 'Boolean Value' }
+```
+
+### **Getting a Value**
+```javascript
+console.log(myMap.get("name")); // "Daniel"
+console.log(myMap.get(1)); // "Number One"
+console.log(myMap.get(true)); // "Boolean Value"
+```
+
+### **Checking for a Key**
+```javascript
+console.log(myMap.has("name")); // true
+console.log(myMap.has("age")); // false
+```
+
+### **Deleting a Key**
+```javascript
+myMap.delete(1);
+console.log(myMap.has(1)); // false
+```
+
+### **Getting the Size**
+```javascript
+console.log(myMap.size); // 2
+```
+
+### **Iterating Over a Map**
+```javascript
+for (let [key, value] of myMap) {
+  console.log(key, value);
+}
+// Output:
+// name Daniel
+// true Boolean Value
+```
+
+### **Converting Map to Array**
+```javascript
+const mapArray = [...myMap];
+console.log(mapArray);
+// [ [ 'name', 'Daniel' ], [ true, 'Boolean Value' ] ]
+```
+
+### **Removing All Elements**
+```javascript
+myMap.clear();
+console.log(myMap.size); // 0
+```
+
+## **Key Differences: `Set` vs `Map`**
+| Feature        | `Set`                             | `Map`                          |
+|---------------|---------------------------------|--------------------------------|
+| Stores       | Unique values                    | Key-value pairs                |
+| Key Type     | Not applicable                   | Any type (objects, numbers, etc.) |
+| Value Type   | Any type                         | Any type                        |
+| Duplicates   | Not allowed                      | Keys must be unique             |
+| Order        | Iteration order is insertion order | Iteration order is insertion order |
+
+---
+
+### **When to Use `Set` and `Map`?**
+- **Use `Set`** when you need to store **unique values** without duplicates.
+- **Use `Map`** when you need a **key-value** structure where keys can be **any type**, not just strings.
+
+Would you like an example of how to use these in real-world scenarios? 🚀
+
+### **Big O Notation for `Set` and `Map` in JavaScript**
+Understanding the time complexity of `Set` and `Map` operations is crucial for performance optimization. Both `Set` and `Map` are implemented using **hash tables** in JavaScript, which provide **average** constant-time operations (`O(1)`) but can degrade to **linear time** (`O(n)`) in worst-case scenarios.
+
+---
+
+## **`Set` Time Complexity**
+| Operation        | Average Case | Worst Case |
+|-----------------|-------------|------------|
+| `add(value)`    | **O(1)**    | **O(n)**   |
+| `delete(value)` | **O(1)**    | **O(n)**   |
+| `has(value)`    | **O(1)**    | **O(n)**   |
+| `size`          | **O(1)**    | **O(1)**   |
+| `clear()`       | **O(1)**    | **O(1)**   |
+| `iteration` (`forEach`, `for..of`) | **O(n)** | **O(n)** |
+
+### **Explanation:**
+- **Average Case (`O(1)`)**: Hash table lookup/insertion is usually constant time.
+- **Worst Case (`O(n)`)**: If hash collisions occur, operations can take linear time.
+
+---
+
+## **`Map` Time Complexity**
+| Operation      | Average Case | Worst Case |
+|---------------|-------------|------------|
+| `set(key, value)`  | **O(1)**    | **O(n)**   |
+| `get(key)`         | **O(1)**    | **O(n)**   |
+| `delete(key)`      | **O(1)**    | **O(n)**   |
+| `has(key)`         | **O(1)**    | **O(n)**   |
+| `size`            | **O(1)**    | **O(1)**   |
+| `clear()`         | **O(1)**    | **O(1)**   |
+| `iteration` (`forEach`, `for..of`) | **O(n)** | **O(n)** |
+
+### **Explanation:**
+- **Average Case (`O(1)`)**: Hash tables provide fast access.
+- **Worst Case (`O(n)`)**: If too many hash collisions occur, JavaScript may need to search linearly.

@@ -1,0 +1,40 @@
+---
+title: "JI: Implementing a document versioning system"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Interview']
+date: 2025-03-30
+thumbnail: image.png
+featured: true
+---
+
+You are tasked with implementing a document versioning system. Each document has multiple versions, 
+and each version is represented by a timestamp (an integer) and the content (a string).
+The system should support the following operations: 1. Add a new version of a document 2. 
+Retrieve the content of a document at a specific timestamp For retrieval, if there's no version exactly at the
+requested timestamp, return the content of the most recent version that was created before or at the requested 
+timestamp. If there are no versions before the requested timestamp, return an empty string.
+
+> **Input:**    
+> addVersion (10, "Hello")    
+> addVersion (20, "Hello World"')   
+> getContent (15)   
+> getContent (5)    
+> getContent (20)   
+> **Output:**     
+> "Hello"     
+> ""    
+> "Hello World"   
+
+Explanation: Note that versions aren't added in order. At timestamp 50, we have an exact match with "Outline". 
+At timestamp 90, the most recent version is at timestamp 50. At timestam 150, the most recent version is at 
+timestamp 120 with "Second draft".
+
+**Requirements**
+
+1. Implement a DocumentSystem class with methods add Version (timestamp, content) and getContent (timestamp)
+2. The addVersion method adds a new version with the given timestamp and content
+3. The getContent method retrieves the content at the specified timestamp or the most recent version before it
+4. If no version exists before or at the requested timestamp, return an empty string
+5. Timestamps are positive integers and may not be added in chronological order
+6. Optimize for efficient retrieval operations
