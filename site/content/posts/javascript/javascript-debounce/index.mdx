@@ -1,0 +1,135 @@
+---
+title: "🔁 Understanding Debounce in JavaScript: Why, When, and How to Use It"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-11
+thumbnail: image.png
+featured: true
+---
+
+In modern web applications, user experience matters. A **responsive and smooth UI** not only feels good — it performs better. But what happens when a user types too fast, scrolls endlessly, or resizes a window like crazy? That's where **debouncing** comes in.
+
+In this post, you'll learn:
+
+- What debounce is (with real-world examples)
+- Why it matters in frontend development
+- How to implement your own `debounce` function in JavaScript
+- Bonus tips and best practices
+
+---
+
+## 🤔 What is Debounce?
+
+**Debounce** is a technique used to limit how often a function is called. Specifically, it ensures a function only executes **after a certain amount of time has passed since it was last invoked**.
+
+Think of it like this:
+> "Wait until the user is done typing before sending the API request."
+
+---
+
+## 🧪 Real-World Use Cases
+
+Here are some common scenarios where debouncing improves performance and UX:
+
+- **Search input**: Avoid hitting the API on every keystroke.
+- **Window resize**: Prevent triggering layout calculations too often.
+- **Scroll events**: Optimize lazy loading or sticky header logic.
+- **Autosave**: Save draft only after the user pauses typing.
+
+---
+
+## 🛠️ Writing a Debounce Function in JavaScript
+
+Let’s build our own `debounce` function step-by-step.
+
+### ✅ Basic Version
+
+```ts
+function debounce(fn, delay) {
+  let timeoutId;
+
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+```
+
+### 💡 How It Works:
+
+1. Each time the returned function is called:
+2. It clears the previous timeout.
+3. Sets a new timeout for `delay` ms.
+4. If no more calls happen during that time, the function executes.
+
+---
+
+### 🔄 Preserving `this` Context (Advanced Version)
+
+If the original function uses `this` (like in class methods), we need to preserve the context.
+
+```ts
+function debounce(fn, delay) {
+  let timeoutId;
+
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn.apply(context, args);
+    }, delay);
+  };
+}
+```
+
+---
+
+## 🧪 Example in Action
+
+```ts
+const logInput = debounce((value) => {
+  console.log("Searching for:", value);
+}, 500);
+
+// Simulate user typing
+logInput("r");
+logInput("re");
+logInput("rea");
+logInput("reac");
+logInput("react"); // ← Only this logs after 500ms
+```
+
+Perfect for live search fields — only the last input triggers the API.
+
+---
+
+## ✅ Best Practices
+
+- **Keep the delay reasonable**: 300–500ms is a good default.
+- **Use for user input or rapid events**.
+- **Combine with throttle if you need immediate + periodic calls**.
+- **Use lodash's `_.debounce` in large projects for reliability**.
+
+---
+
+## 🧰 Debounce vs Throttle: Know the Difference
+
+| Feature     | Debounce                             | Throttle                                 |
+|-------------|--------------------------------------|------------------------------------------|
+| Use case    | Wait until user stops doing something | Run function at regular intervals        |
+| Example     | Search input                         | Scroll tracking, mouse movement          |
+
+---
+
+## 🔚 Conclusion
+
+Debounce is one of those small, elegant solutions that makes a huge difference in your frontend projects. Whether you're building a search bar or handling resize events, mastering debounce can help you create smoother, faster, and more efficient web apps.
+
+---
+
+Want to take it further? Try building a custom **`useDebounce` React hook** — or ask me, and I’ll help you write one too!
+
+Let me know if you want this formatted for a blog platform like Dev.to, Medium, or Markdown for your portfolio.
