@@ -1,5 +1,5 @@
 ---
-title: "📘 50 JavaScript interview questions"
+title: "JavaScript interview questions"
 category: Javascript
 author: Daniel Nguyen
 tags: ['#InterView']
@@ -8,70 +8,72 @@ thumbnail: image.png
 featured: true
 ---
 
-Here are **50 JavaScript interview questions**, categorized by difficulty level:
+## 🔥 Core JavaScript (Deep Dive)
 
-## **Beginner-Level (1-20)**
-### **Basic Concepts**
-1. What are the different data types in JavaScript?
-2. What is the difference between `var`, `let`, and `const`?
-3. Explain the difference between `==` and `===`.
-4. What are truthy and falsy values in JavaScript?
-5. What is the difference between `null` and `undefined`?
-6. What is type coercion in JavaScript?
-7. Explain the difference between `typeof` and `instanceof`.
-8. What is the difference between primitive and reference data types?
-9. How do you convert a string to a number in JavaScript?
-10. What is the purpose of the `typeof` operator?
+1. **Explain event loop and microtasks vs macrotasks. How does `async/await` fit into this model?**
+2. **What are closures?** How are they used in memory leaks, module patterns, or callback handlers?
+3. **Difference between `var`, `let`, and `const`.** When would you intentionally use `var`?
+4. **What is hoisting?** How does it affect function expressions and variable declarations?
+5. **What is the difference between shallow copy and deep copy?** How would you implement a deep copy function?
+6. **Explain the behavior of `this` in different contexts.** Arrow functions vs normal functions.
+7. **What is the difference between `Object.freeze()`, `Object.seal()`, and `Object.preventExtensions()`?**
+8. **How does prototypal inheritance work in JavaScript?** How would you polyfill `Object.create()`?
 
 ---
 
-## **Intermediate-Level (21-40)**
-### **Functions and Scope**
-21. What are the different ways to define functions in JavaScript?
-22. What is the difference between function declarations and function expressions?
-23. Explain closures in JavaScript with an example.
-24. What is the difference between function scope and block scope?
-25. What are arrow functions, and how do they differ from regular functions?
-26. What is the difference between default parameters and rest parameters?
-27. What is the difference between `call()`, `apply()`, and `bind()`?
-28. What is the difference between a pure function and an impure function?
-29. What is an Immediately Invoked Function Expression (IIFE)?
-30. What is recursion, and how is it used in JavaScript?
+## ⚙️ Async Programming
 
-### **Arrays and Objects**
-31. What are the different ways to create an array in JavaScript?
-32. Explain the difference between `forEach()`, `map()`, `filter()`, and `reduce()`.
-33. How do you remove duplicate elements from an array in JavaScript?
-34. What is the difference between shallow copy and deep copy?
-35. What is destructuring, and how is it used in arrays and objects?
-36. What is object destructuring, and why is it useful?
-37. What is the difference between dot notation and bracket notation in JavaScript?
-38. What are getters and setters in JavaScript objects?
-39. How do you check if an object has a specific property?
-40. What is the difference between `Object.freeze()` and `Object.seal()`?
+1. **What's the difference between Promises and Observables?** When would you use each?
+2. **How would you implement your own `Promise.all()`?**
+3. **What's the behavior of `async` functions with error handling?** How would you handle both sync and async errors in a utility?
+4. **How would you debounce and throttle user input?** Bonus: implement both.
+5. **How would you cancel a fetch request or handle multiple race conditions in JS?**
 
 ---
 
-## **Advanced-Level (41-50)**
-### **Asynchronous JavaScript**
-41. What is the difference between `setTimeout()` and `setInterval()`?
-42. What is a Promise, and how does it work?
-43. What is async/await, and how does it simplify working with Promises?
-44. How do you handle errors in async/await functions?
-45. What is the difference between microtasks and macrotasks in JavaScript?
+## 📦 Performance and Optimization
 
-### **Advanced Concepts**
-46. What are prototypes in JavaScript, and how do they enable inheritance?
-47. What is the difference between prototypal inheritance and classical inheritance?
-48. Explain the concept of "hoisting" in JavaScript.
-49. What are JavaScript generators (`function*`), and when should you use them?
-50. How does JavaScript handle memory management and garbage collection?
+1. **What causes memory leaks in JS?** How can you detect and prevent them?
+2. **How do you optimize rendering in large-scale SPAs?**
+3. **How do you lazy-load modules and components in JavaScript apps (without frameworks)?**
+4. **What is event delegation and how does it help performance?**
+5. **How would you implement virtual scrolling or infinite scroll in a list-heavy UI?**
 
 ---
 
-### **How to Use These Questions**
-- **If you're preparing for an interview**: Try answering each question with an example.
-- **If you're an interviewer**: Use these questions to test a candidate's knowledge.
-- **If you're learning JavaScript**: Research and implement each concept in code.
+## 🔧 Code Design & Patterns
 
-Would you like **answers** or **code examples** for specific questions? 🚀
+1. **Explain the Module Pattern in JavaScript.** How do IIFE and closures relate to it?
+2. **When would you use Factory Functions over Classes?**
+3. **Explain how Currying and Partial Application work.** Real use cases?
+4. **How would you implement a simple pub/sub system (event bus) in vanilla JS?**
+5. **What are higher-order functions and how do you use them to write more declarative code?**
+
+---
+
+## 🧪 Real-world Code Challenges (You May Be Asked to Solve Live)
+
+- Implement a debounce function.
+- Write a deep clone function (without `structuredClone()` or `JSON.parse`).
+- Create a memoization wrapper for any expensive function.
+- Write a simple `compose()` or `pipe()` utility.
+- Implement a `once()` function that runs a callback only once.
+
+---
+
+## 🧠 System Thinking & Architecture
+
+1. **How do you design a large-scale JS codebase to remain modular and maintainable?**
+2. **How do you handle global state in pure JavaScript without libraries?**
+3. **How do you secure frontend JavaScript code from tampering or leaking secrets?**
+4. **How do you organize feature flags or A/B tests in a frontend system?**
+5. **What are some anti-patterns in large JS projects that you’ve encountered and fixed?**
+
+---
+
+## Want to Practice?
+
+I can:
+- Simulate a mock interview
+- Give you coding challenges with test cases
+- Walk you through an open-ended architectural system (like a design doc)

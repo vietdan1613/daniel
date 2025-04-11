@@ -1,0 +1,136 @@
+---
+title: "Nextjs interview questions"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#InterView']
+date: 2025-03-01
+thumbnail: image.png
+featured: true
+---
+
+## 🚀 **Core Next.js Concepts**
+
+1. **What are the differences between `getStaticProps`, `getServerSideProps`, and `getInitialProps`?**  
+   When would you use each?
+
+2. **Explain the difference between static generation (SSG) and server-side rendering (SSR) in Next.js.**
+
+3. **What is Incremental Static Regeneration (ISR)?**  
+   How does it work under the hood, and when is it useful?
+
+4. **How does routing work in Next.js?**  
+   How do dynamic routes, catch-all routes, and optional catch-all routes behave?
+
+5. **How do you prefetch pages in Next.js and improve perceived performance?**
+
+---
+
+## 🧱 **App Router (Next 13/14+)**
+
+1. **What’s the difference between the Pages Router and the new App Router?**
+
+2. **How do `layout.js`, `page.js`, and `loading.js` work in the App Router?**
+
+3. **How do you manage metadata (`<head>`) in the new App Router with `metadata` export?**
+
+4. **How is routing and nested layouts handled differently in the App Router vs Pages Router?**
+
+5. **Explain the concept of server and client components in the App Router.**  
+   When should you make a component `use client`?
+
+---
+
+## 🌐 **Data Fetching & API Integration**
+
+1. **How does data fetching differ between client and server components?**
+
+2. **How would you fetch and cache data using `useSWR` or React Query in a Next.js app?**
+
+3. **What are the trade-offs between fetching on the server vs client in terms of performance and UX?**
+
+4. **How do you handle sensitive tokens or credentials when calling APIs in Next.js?**
+
+5. **Explain how Next.js API routes work.**  
+   How would you secure them?
+
+---
+
+## ⚡ **Performance Optimization**
+
+1. **How does Next.js optimize performance out of the box?**
+
+2. **What is the Image Optimization API?**  
+   How would you use the `next/image` component?
+
+3. **How does Next.js handle code splitting and lazy loading?**
+
+4. **How do you analyze and reduce bundle size in a Next.js application?**
+
+5. **How do you handle large lists/pages with pagination or infinite scroll efficiently in Next.js?**
+
+---
+
+## 🔐 **Authentication & Authorization**
+
+1. **How would you implement authentication in a Next.js app?**  
+   Using NextAuth, Clerk, custom JWT-based, etc.
+
+2. **How would you protect both client and server routes in a secure way?**
+
+3. **How do middleware functions work in Next.js 13+?**  
+   What are their limitations and use cases?
+
+4. **How do you persist authentication across client and server renders?**
+
+---
+
+## 🛠 **Dev Experience & Tooling**
+
+1. **What is Middleware in Next.js, and how do you use it for redirects, AB testing, or auth?**
+
+2. **How would you handle internationalization (i18n) in a Next.js app?**
+
+3. **How do you customize the build and webpack configuration in Next.js?**
+
+4. **How would you implement error boundaries and error handling in both page and layout-levels?**
+
+5. **How do you configure custom document (`_document.js`) and app (`_app.js`) files? What are they for?**
+
+---
+
+## 🧩 **Architecture & Strategy**
+
+1. **How do you structure a large-scale project using Next.js?**  
+   Folder structure, feature-based architecture, etc.
+
+2. **How do you approach SEO and social sharing optimization in Next.js?**
+
+3. **What challenges have you faced migrating from CRA or other frameworks to Next.js?**
+
+4. **How would you architect a dashboard with authentication, role-based access, and dynamic routing in Next.js?**
+
+5. **How do you deploy a Next.js app to Vercel vs other providers like AWS, Netlify, or Docker?**
+
+---
+
+## 🧠 Bonus: Hands-On Questions
+
+These are the type of problems you might be asked to **code live or explain your thought process**:
+
+- Build a product detail page with SSG and dynamic routes.
+- Implement a blog using `getStaticPaths` and `getStaticProps`.
+- Create a secure server-side rendered dashboard that checks user roles.
+- Add a custom loading spinner that only shows on route change (App Router).
+- Use middleware to redirect unauthenticated users away from `/admin`.
+
+---
+
+### ✅ Want to Practice?
+
+I can help you with:
+
+- A **mock Next.js system design round**
+- Code-throughs of **App Router and server/client component patterns**
+- A small **project-based challenge** like building a blog, admin dashboard, or auth flow
+
+Let me know which direction you want to take — or if you want all of them bundled for prep!
