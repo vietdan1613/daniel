@@ -1,0 +1,112 @@
+---
+title: "Understanding var, let, and const in JavaScript: Differences and Best Practices"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-11
+thumbnail: image.jpg
+featured: true
+---
+
+One of the most fundamental yet frequently misunderstood topics in JavaScript is the difference between `var`, `let`, and `const`. While they all declare variables, their behaviors differ in ways that can significantly affect the clarity and reliability of your code. In this post, we’ll break down their key differences, explore when you might intentionally use `var`, and offer best practices for modern JavaScript development.
+
+---
+
+### 🔍 Key Differences at a Glance
+
+| Feature              | `var`                      | `let`                        | `const`                       |
+|----------------------|----------------------------|------------------------------|-------------------------------|
+| Scope                | Function-scoped            | Block-scoped                 | Block-scoped                  |
+| Hoisting             | Yes (initialized as `undefined`) | Yes (TDZ applies)            | Yes (TDZ applies)             |
+| Reassignment allowed | ✅ Yes                     | ✅ Yes                        | ❌ No                         |
+| Redeclaration        | ✅ Yes (in same scope)     | ❌ No                         | ❌ No                         |
+| Temporal Dead Zone   | ❌ No                      | ✅ Yes                        | ✅ Yes                        |
+
+---
+
+### 🧠 Understanding Each Declaration
+
+#### `var` – Function Scope & Hoisting
+
+```javascript
+function testVar() {
+  console.log(a); // undefined (hoisted)
+  var a = 5;
+}
+```
+- Declared variables are hoisted to the top of their function and initialized as `undefined`.
+- Scope is limited to the function, **not** to `{}` blocks.
+
+#### `let` – Block Scope & Safer Hoisting
+
+```javascript
+function testLet() {
+  // console.log(b); // ReferenceError (TDZ)
+  let b = 10;
+}
+```
+- Variables are block-scoped (e.g., inside `if`, `for`, `while` blocks).
+- Not accessible before declaration due to the **temporal dead zone (TDZ)**.
+
+#### `const` – Immutable Bindings
+
+```javascript
+const c = 20;
+c = 30; // ❌ TypeError
+```
+- Similar scope and hoisting as `let`.
+- Must be initialized during declaration.
+- Note: **You can still mutate objects or arrays** declared with `const`:
+
+```javascript
+const user = { name: "Dan" };
+user.name = "Daniel"; // ✅ allowed
+```
+
+---
+
+### 🤔 When Would You Intentionally Use `var`?
+
+Although `var` has mostly been replaced by `let` and `const`, there are still a few use cases:
+
+#### ✅ Maintaining Legacy Code
+Older JavaScript codebases often use `var`. When modifying or extending such code, sticking with `var` may help maintain consistency.
+
+#### ✅ Function-Level Hoisting
+In rare cases, you might want a variable that exists throughout the entire function regardless of block scope.
+
+```javascript
+function hoistMe() {
+  hoisted(); // works due to hoisting
+
+  function hoisted() {
+    console.log("I’m hoisted!");
+  }
+}
+```
+
+#### ✅ Global Variables (Not Recommended)
+Using `var` in the global scope adds the variable to the `window` object in browsers:
+
+```javascript
+var globalVar = "I’m global";
+console.log(window.globalVar); // "I’m global"
+```
+
+This is generally discouraged in modern development.
+
+---
+
+### ✅ Best Practices
+
+- Use `const` **by default**. It makes your code safer by preventing reassignment.
+- Use `let` **when you need to reassign** values, such as in loops or conditional logic.
+- Avoid `var` **unless you have a specific reason**, like supporting legacy environments or working in function scope on purpose.
+
+---
+
+### 📌 Summary
+
+Modern JavaScript encourages clean, predictable, and block-scoped variable declarations. Understanding the nuances of `var`, `let`, and `const` is essential for writing robust and maintainable code. Stick to `const` and `let` in your everyday work, and use `var` sparingly when it truly serves a purpose.
+
+Up next: We'll explore how `let` and `const` behave in loops, and how closures interact with variable declarations. Stay tuned!

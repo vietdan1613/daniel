@@ -1,0 +1,130 @@
+---
+title: "Demystifying the JavaScript Event Loop: Microtasks vs Macrotasks and Async/Await"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-11
+thumbnail: image.jpg
+featured: true
+---
+
+JavaScript is single-threaded, but it’s designed to handle asynchronous operations with grace. At the heart of this capability lies the **Event Loop**. Understanding the event loop, especially how **microtasks** and **macrotasks** work, is crucial for writing efficient and predictable JavaScript code. In this blog, we’ll break down the event loop, explore microtasks vs macrotasks, and explain where `async/await` fits in.
+
+---
+
+### 🔄 What Is the JavaScript Event Loop?
+
+JavaScript runs in a single-threaded environment. It can only do one thing at a time, yet it handles events, timers, network requests, and more asynchronously. This is thanks to the **event loop**.
+
+Here’s the basic idea:
+- There is a **call stack** that runs function code.
+- There is a **task queue** (macrotasks) and a **microtask queue**.
+- The **event loop** constantly checks: “Is the call stack empty?”
+  - If **yes**, it first runs all microtasks in the queue.
+  - Then, it processes the next macrotask.
+
+---
+
+### 🧩 Microtasks vs Macrotasks
+
+JavaScript has two types of asynchronous tasks:
+
+#### ✅ Microtasks
+Scheduled via:
+- `Promise.then()`, `catch()`, `finally()`
+- `queueMicrotask()`
+- `async/await` (internally based on Promises)
+
+Run **after the current call stack**, before any rendering or I/O.
+
+#### 🕒 Macrotasks
+Scheduled via:
+- `setTimeout`, `setInterval`
+- `setImmediate` (Node.js)
+- `MessageChannel`
+- DOM events (e.g., clicks, scrolls)
+
+Run **after** the call stack and **after all microtasks**.
+
+---
+
+### 🧪 Example: Execution Order
+
+```javascript
+console.log("Start");
+
+setTimeout(() => {
+  console.log("Macrotask");
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("Microtask");
+});
+
+console.log("End");
+```
+
+**Output:**
+```
+Start
+End
+Microtask
+Macrotask
+```
+
+Even though `setTimeout` is set to 0ms, the microtask from the `Promise.then()` runs first. Microtasks always have higher priority.
+
+---
+
+### ⚙️ How Async/Await Works
+
+`async/await` is syntactic sugar over Promises.
+
+```javascript
+async function example() {
+  console.log("1");
+  await Promise.resolve();
+  console.log("2");
+}
+
+example();
+console.log("3");
+```
+
+**Output:**
+```
+1
+3
+2
+```
+
+- The `await` pauses the `example` function.
+- The rest of the function (`console.log("2")`) is added as a microtask.
+- `console.log("3")` runs first because it’s in the main stack.
+
+---
+
+### 🎯 Summary Table
+
+| Feature         | Task Type  | Executes When                         |
+|----------------|------------|----------------------------------------|
+| `setTimeout()`  | Macrotask  | After current stack & microtasks       |
+| `Promise.then()`| Microtask  | After stack, before macrotasks         |
+| `async/await`   | Microtask  | Awaited code resumes as microtask      |
+| DOM Events      | Macrotask  | After stack & microtasks               |
+
+---
+
+### 🧠 Pro Tips for Developers
+
+- **Use microtasks** (Promises or `async/await`) for finer control and faster async execution.
+- Use **macrotasks** like `setTimeout` when you want to delay execution until after rendering or I/O.
+- Misunderstanding execution order can lead to bugs. Knowing how tasks are queued makes your async logic more predictable.
+
+---
+
+### 🧭 Conclusion
+
+The JavaScript event loop is an elegant mechanism that allows a single-threaded language to handle complex asynchronous operations. Understanding the difference between microtasks and macrotasks, and how `async/await` fits into this model, will make you a more confident and capable JavaScript developer.
+
+Stay tuned for a visual deep-dive into the event loop in our next post!

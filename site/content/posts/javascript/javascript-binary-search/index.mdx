@@ -1,0 +1,125 @@
+---
+title: "Binary Search in JavaScript"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-11
+thumbnail: image.jpg
+featured: true
+---
+
+**Binary Search** is one of those classic algorithms that every developer should understand — not just to ace interviews, but to truly level up how you think about performance and problem-solving. Whether you're building a real-time search UI, navigating sorted data, or optimizing lookups, this algorithm shines in its simplicity and speed.
+
+In this post, we’ll break down what binary search is, how to implement it in JavaScript (iteratively and recursively), and explore real-world applications + common variations you might face in interviews.
+
+---
+
+## 📌 What is Binary Search?
+
+Binary search is an efficient algorithm for finding a **target value in a sorted array**.
+
+Instead of scanning each element one by one (like linear search), binary search:
+
+- Looks at the **middle** element.
+- If it’s not the target, it **discards half** of the array.
+- Repeats until the value is found (or the search space is empty).
+
+This “divide and conquer” strategy makes it **O(log n)** time complexity — ideal for large datasets.
+
+---
+
+## ✨ Binary Search: Iterative JavaScript Version
+
+```js
+function binarySearch(arr, target) {
+  let left = 0;
+  let right = arr.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+
+    if (arr[mid] === target) return mid;
+    else if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+
+  return -1; // Target not found
+}
+```
+
+### Example:
+
+```js
+binarySearch([1, 3, 5, 7, 9, 11], 7); // ➞ 3 (index)
+```
+
+---
+
+## 🔁 Recursive Version (for Learning)
+
+```js
+function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
+  if (left > right) return -1;
+
+  const mid = Math.floor((left + right) / 2);
+
+  if (arr[mid] === target) return mid;
+  if (arr[mid] < target)
+    return binarySearchRecursive(arr, target, mid + 1, right);
+  else
+    return binarySearchRecursive(arr, target, left, mid - 1);
+}
+```
+
+---
+
+## 🧠 Why Use Binary Search?
+
+✅ Great for **large datasets**  
+✅ Reduces time complexity from **O(n)** to **O(log n)**  
+✅ Perfect fit for sorted arrays or data structures like **binary search trees**
+
+---
+
+## 🔥 Interview Follow-Ups and Variants
+
+Binary search is the base of many advanced problems:
+
+1. **Search Insert Position**  
+   Return index where target should go if not found.
+
+2. **Find First or Last Occurrence**  
+   When array has duplicates.
+
+3. **Binary Search in Rotated Sorted Array**  
+   (LeetCode classic) — slightly trickier.
+
+4. **Infinite Sorted Array**  
+   Simulate by expanding window size exponentially.
+
+5. **2D Matrix Binary Search**  
+   Flatten the 2D array mentally into a 1D view.
+
+---
+
+## 📦 Real-World Frontend Use Cases
+
+- Autocomplete with sorted search results
+- Efficiently finding breakpoints in responsive layouts
+- Virtualized lists & pagination boundaries
+- Debouncing binary search on user input
+- Smart fuzzy search + index navigation
+
+---
+
+## 💬 Final Thoughts
+
+Binary search is more than just a whiteboard algorithm — it’s a mindset. Once you truly understand how it cuts your problem space in half each step, you’ll start spotting optimization opportunities everywhere in your code.
+
+So the next time you’re looping through a sorted list or working on search features — stop and ask yourself: “Can I binary search this?”
+
+---
+
+### ✏️ Bonus Challenge
+
+Try writing a version of binary search that returns the **index of the closest number** if the target isn’t found. That’s a common real-world twist.
