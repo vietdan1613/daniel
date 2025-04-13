@@ -1,0 +1,143 @@
+---
+title: "Quick Sort"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-13
+thumbnail: image.jpg
+featured: true
+---
+
+In this article, we'll dive into **Quick Sort**, a high-performance, divide-and-conquer sorting algorithm that's widely used in real-world applications and coding interviews.
+
+---
+
+## 🚀 What is Quick Sort?
+
+**Quick Sort** is a **divide and conquer** algorithm that picks a **pivot** element from the array and partitions the other elements into two sub-arrays:
+- Elements **less than** the pivot
+- Elements **greater than or equal to** the pivot
+
+Then, it recursively sorts the sub-arrays and merges them together.
+
+---
+
+## 🧠 How Quick Sort Works
+
+Let’s say we want to sort this array:  
+`[8, 4, 7, 3, 1, 5, 2]`
+
+### Step-by-step:
+
+1. Choose a **pivot** (e.g., the last element `2`).
+2. Partition the array into:
+   - Left: elements `< 2` → `[1]`
+   - Right: elements `>= 2` → `[8, 4, 7, 3, 5]`
+3. Recursively apply quick sort to `[1]` and `[8, 4, 7, 3, 5]`
+4. Combine sorted arrays with the pivot:  
+   `[1] + [2] + quickSort([8, 4, 7, 3, 5])`
+
+Repeat this process until the whole array is sorted.
+
+---
+
+## 🔢 Quick Sort Implementation in JavaScript
+
+Here's a clean and readable version using recursion and array methods:
+
+```javascript
+function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+
+  const pivot = arr[arr.length - 1];
+  const left = [];
+  const right = [];
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] < pivot) {
+      left.push(arr[i]);
+    } else {
+      right.push(arr[i]);
+    }
+  }
+
+  return [...quickSort(left), pivot, ...quickSort(right)];
+}
+```
+
+### Example:
+
+```javascript
+const unsorted = [8, 4, 7, 3, 1, 5, 2];
+const sorted = quickSort(unsorted);
+
+console.log(sorted); // Output: [1, 2, 3, 4, 5, 7, 8]
+```
+
+---
+
+## 📈 Time and Space Complexity
+
+| Case         | Time Complexity |
+|--------------|-----------------|
+| Best Case    | O(n log n)      |
+| Average Case | O(n log n)      |
+| Worst Case   | O(n²) (if poorly implemented) |
+
+- **Space Complexity**: O(log n) for in-place implementations, O(n) for non-in-place (like the version above).
+
+---
+
+## ✅ Pros and Cons
+
+### ✅ Pros:
+- Very fast in practice
+- In-place (low memory usage) in optimized versions
+- Elegant and simple logic
+
+### ⚠️ Cons:
+- Worst-case time is O(n²) if the pivot is poorly chosen
+- Not stable (equal elements may not retain their original order)
+
+---
+
+## 🔧 Bonus: In-Place Quick Sort (Without Extra Arrays)
+
+The version above uses extra space for left and right arrays. Here's an **in-place** version that modifies the original array:
+
+```javascript
+function quickSortInPlace(arr, left = 0, right = arr.length - 1) {
+  if (left < right) {
+    const pivotIndex = partition(arr, left, right);
+    quickSortInPlace(arr, left, pivotIndex - 1);
+    quickSortInPlace(arr, pivotIndex + 1, right);
+  }
+  return arr;
+}
+
+function partition(arr, left, right) {
+  const pivot = arr[right];
+  let i = left;
+
+  for (let j = left; j < right; j++) {
+    if (arr[j] < pivot) {
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      i++;
+    }
+  }
+
+  [arr[i], arr[right]] = [arr[right], arr[i]];
+  return i;
+}
+```
+
+---
+
+## 🎯 Final Thoughts
+
+Quick Sort is one of the fastest and most efficient sorting algorithms when implemented correctly. It’s widely used in the real world, often even under the hood in language libraries like JavaScript’s `Array.prototype.sort()` (in most modern engines).
+
+Knowing how it works—and how to implement both recursive and in-place versions—gives you a powerful tool in your algorithm toolbox.
+
+---
+

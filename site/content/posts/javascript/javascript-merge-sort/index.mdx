@@ -1,0 +1,108 @@
+---
+title: "Merge Sort"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-13
+thumbnail: image.jpg
+featured: true
+---
+
+Sorting is one of the most fundamental tasks in computer science, and among the many sorting algorithms out there, **Merge Sort** stands out for its efficiency and elegance.
+
+In this post, we’ll break down **Merge Sort** in a way that’s beginner-friendly and easy to understand. By the end, you'll know how it works, why it’s useful, and how to implement it with JavaScript.
+
+---
+
+## 🔍 What is Merge Sort?
+
+**Merge Sort** is a **divide and conquer** algorithm. That means it breaks down a problem into smaller parts, solves each part, and then combines them to get the final result.
+
+### How Merge Sort Works
+
+1. **Divide**: Split the array into halves until each sub-array has only one element.
+2. **Conquer**: Recursively sort each half.
+3. **Merge**: Combine the sorted halves into a single sorted array.
+
+---
+
+## 🧠 Why Use Merge Sort?
+
+| Feature         | Merge Sort                     |
+|----------------|--------------------------------|
+| Time Complexity| O(n log n)                     |
+| Space Complexity| O(n) (not in-place)           |
+| Stability       | ✅ Stable (maintains order of equal elements) |
+| Recursive       | ✅ Yes                         |
+| Best for        | Large datasets, linked lists   |
+
+Unlike simpler sorts like Bubble Sort (O(n²)), Merge Sort is much faster for large arrays.
+
+---
+
+## 🧑‍💻 Merge Sort in JavaScript
+
+Here’s a simple and clean implementation:
+
+```javascript
+function mergeSort(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  }
+
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid));
+  const right = mergeSort(arr.slice(mid));
+
+  return merge(left, right);
+}
+
+function merge(left, right) {
+  const result = [];
+
+  let i = 0;
+  let j = 0;
+
+  while (i < left.length && j < right.length) {
+    if (left[i] < right[j]) {
+      result.push(left[i]);
+      i++;
+    } else {
+      result.push(right[j]);
+      j++;
+    }
+  }
+
+  // Add any remaining elements
+  return result.concat(left.slice(i)).concat(right.slice(j));
+}
+```
+
+### Example:
+
+```javascript
+const unsorted = [38, 27, 43, 3, 9, 82, 10];
+const sorted = mergeSort(unsorted);
+
+console.log(sorted); // [3, 9, 10, 27, 38, 43, 82]
+```
+
+---
+
+## 🧩 Visualizing Merge Sort
+
+Think of it like a tournament bracket:
+- You split teams (numbers) into individual matches.
+- Winners from each round are merged and sorted.
+- Eventually, you get the final sorted lineup.
+
+---
+
+## ✅ Summary
+
+- Merge Sort uses a **divide and conquer** strategy.
+- It guarantees **O(n log n)** performance, even in the worst case.
+- It’s a great choice when you care about performance and stability.
+
+Whether you’re preparing for coding interviews or building performance-critical features, **Merge Sort** is a fantastic tool to have in your algorithm toolkit.
+

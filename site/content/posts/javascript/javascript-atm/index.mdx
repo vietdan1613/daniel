@@ -1,0 +1,35 @@
+---
+title: "ATM Machine Withdraw Request"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-13
+thumbnail: image.jpg
+featured: true
+---
+
+Implement a program for an ATM machine to calculate the number of different types of monetary notes needed to output when processing a withdraw-requested amount. Please refer to the below requirement. 
+Input: 
+•	Available money notes 
+•	Withdraw-requested amount 
+o	If request amount is not common multiple of smallest value money note, throw an exception with error message 
+Output: 
+•	Number of each kind of money notes need to output that satisfy the rule: 
+o	Output maximum number of higher value money notes as much as possible first before using lower value money notes 
+  
+Example 1: 
+Input: 
+•	Available money notes: 100.000, 200.000 
+•	Withdraw-requested amount: 3.000.000 
+Output: 
+•	15 money notes of 200K 
+  
+Example 2: 
+Input: 
+•	Available money notes: 50.000, 100.000, 200.000, 500.000 
+•	Withdraw-requested amount: 3.350.000 
+Output: 
+•	6 money notes of 500K 
+•	1 money note of 200K 
+•	1 money note of 100K 
+•	1 money note of 50K 	

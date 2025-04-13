@@ -1,0 +1,93 @@
+---
+title: "List out the words that have a maximum number"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-13
+thumbnail: image.jpg
+featured: true
+---
+
+> Implement a method that will list out the words that have a maximum number of occurrence in a paragraph.  
+>   
+> Assumption: Delimiter between two next words is a space.      
+>   
+> An example of input/output    
+> - Input: “I want to know how to achieve the things I want”      
+> - Output: [to, I, want]     
+
+To implement a method that lists out the words with the maximum number of occurrences in a paragraph, we can follow these steps:
+
+1. **Split the input paragraph into words**.
+2. **Count the frequency of each word** using a dictionary or object.
+3. **Identify the maximum frequency**.
+4. **Filter and return all words with the maximum frequency**.
+
+### JavaScript Implementation
+
+```javascript
+function findMostFrequentWords(paragraph) {
+  const words = paragraph.split(' ').map(word => word.toLowerCase());  // Split by space and convert to lowercase
+  const wordCount = {};
+
+  // Count the occurrences of each word
+  for (const word of words) {
+    wordCount[word] = (wordCount[word] || 0) + 1;
+  }
+
+  // Find the maximum occurrence count
+  let maxCount = 0;
+  for (const count of Object.values(wordCount)) {
+    maxCount = Math.max(maxCount, count);
+  }
+
+  // Collect all words that have the maximum count
+  const result = [];
+  for (const [word, count] of Object.entries(wordCount)) {
+    if (count === maxCount) {
+      result.push(word);
+    }
+  }
+
+  return result;
+}
+
+// ✅ Example usage:
+const input = "I want to know how to achieve the things I want";
+console.log(findMostFrequentWords(input)); // Output: ['to', 'I', 'want']
+```
+
+### How It Works:
+1. **`split(' ')`**: Splits the input paragraph into an array of words by spaces.
+2. **`map(word => word.toLowerCase())`**: Converts each word to lowercase to make the comparison case-insensitive.
+3. **`wordCount`**: This object stores the frequency of each word.
+4. **`maxCount`**: Tracks the maximum frequency of any word.
+5. **Filter**: We collect words that have the maximum frequency and return them.
+
+### Example:
+
+For the input:
+```
+"I want to know how to achieve the things I want"
+```
+
+- Words and their frequencies:
+  - `I`: 2
+  - `want`: 2
+  - `to`: 2
+  - `know`: 1
+  - `how`: 1
+  - `achieve`: 1
+  - `the`: 1
+  - `things`: 1
+
+- The words with the highest frequency (2 occurrences) are: `["to", "I", "want"]`.
+
+### Time Complexity:
+- **O(n)**, where `n` is the number of words in the paragraph.  
+  - Splitting the paragraph takes O(n).
+  - Counting the frequency of each word also takes O(n).
+  - Finding the words with the maximum frequency takes O(n) in the worst case.
+
+Let me know if you'd like further optimizations or need this code in another language!
+
