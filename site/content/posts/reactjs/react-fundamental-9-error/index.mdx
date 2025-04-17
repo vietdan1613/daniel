@@ -8,47 +8,10 @@ thumbnail: image.jpg
 featured: true
 ---
 
-Unfortunately, sometimes things go wrong and we need to handle errors when they
-do so we can show the user useful information. No matter how hard you try,
-eventually your app code just isn't going to behave the way you expect it to and
-you'll need to handle those exceptions. If an error is thrown and unhandled,
-your application will be removed from the page, leaving the user with a blank
-screen... Kind of awkward...
-
 The problem is, you can't just wrap your entire application in a `try`/`catch`
-because of the way JavaScript works. If you recall from earlier lessons, when
-then you'll remember this:
+because of the way JavaScript works.
 
-```tsx
-const element = (
-	<div>
-		<h1>Calculator</h1>
-		<Calculator left={1} operator="+" right={2} />
-		<Calculator left={1} operator="-" right={2} />
-		<Calculator left={1} operator="*" right={2} />
-		<Calculator left={1} operator="/" right={2} />
-	</div>
-)
-
-console.log(element)
-// logs something like:
-
-// {
-// 	type: 'div',
-// 	props: {
-// 		children: [
-// 			{ type: 'h1', props: { children: 'Calculator' } },
-// 			{ type: Calculator, props: { left: 1, operator: '+', right: 2 } },
-// 			{ type: Calculator, props: { left: 1, operator: '-', right: 2 } },
-// 			{ type: Calculator, props: { left: 1, operator: '*', right: 2 } },
-// 			{ type: Calculator, props: { left: 1, operator: '/', right: 2 } },
-// 		],
-// 	},
-// }
-```
-
-You'll notice that the `Calculator` is just referenced, but not actually called
-at this stage. So if we tried to wrap our JSX in a `try`/`catch`, it would only
+If we tried to wrap our JSX in a `try`/`catch`, it would only
 catch errors during the creation of those elements, but the real errors will
 happen with React gets around to calling our component functions.
 
@@ -74,15 +37,7 @@ function Calculator({ left, operator, right }) {
 // ugh, that would be terrible
 ```
 
-If only there were something like:
-
-```tsx
-<Try catch={<div>Oh no!</div>}>
-	<App />
-</Try>
-```
-
-Oh wait! There is! They're called
+They're called
 [Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
 
 So you can make a special kind of component that implements the Error Boundary
@@ -189,12 +144,6 @@ that makes sense for that part of the application.
 You'll use error boundaries in a similar way. Just think about what the user
 will be able to do when errors occur and if you're able to give them more useful
 actions by handling the error more closely to where it originated, then do that.
-
-For example, let's say you have a list/detail view. You might want to have an
-error boundary around the list and another around the detail view. This way, if
-there's an error in the list, you can show a message to the user and give them
-the option to retry fetching the list. If there's an error in the detail view,
-you can show an error and they can at least try other items in the list.
 
 ```tsx
 function App() {
