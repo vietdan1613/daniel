@@ -1,0 +1,97 @@
+---
+title: "How `this` behaves in JavaScript"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-24
+thumbnail: image.jpg
+featured: true
+---
+
+
+## 🔹 What is `this`?
+
+In JavaScript, `this` refers to the **execution context** — or **how a function is called**, not where it’s defined.
+
+---
+
+## 🔸 1. **Global Context**
+```js
+console.log(this); // In browser: window; In Node.js: {}
+```
+
+---
+
+## 🔸 2. **Inside a Regular Function**
+```js
+function show() {
+  console.log(this);
+}
+show(); // In non-strict mode: window (or global), in strict mode: undefined
+```
+
+---
+
+## 🔸 3. **Inside an Object Method**
+```js
+const user = {
+  name: "Daniel",
+  greet() {
+    console.log(this.name);
+  }
+};
+user.greet(); // "Daniel"
+```
+
+> In object methods, `this` refers to the object the method is called on.
+
+---
+
+## 🔸 4. **Arrow Functions & `this`**
+```js
+const user = {
+  name: "Daniel",
+  greet: () => {
+    console.log(this.name);
+  }
+};
+user.greet(); // undefined
+```
+
+> Arrow functions **do not bind their own `this`**. They inherit it from the **lexical scope** (i.e. the place they were defined).  
+> If defined globally, `this` is the global object (or `undefined` in strict mode).
+
+---
+
+## 🔸 5. **Inside Class Methods**
+```js
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+  sayHi() {
+    console.log(this.name);
+  }
+}
+const p = new Person("Daniel");
+p.sayHi(); // "Daniel"
+```
+
+> In class methods, `this` refers to the **instance**.
+
+---
+
+## 🔸 6. **In Event Listeners**
+```js
+const btn = document.querySelector("button");
+btn.addEventListener("click", function () {
+  console.log(this); // the button element
+});
+```
+
+> If you use a regular function in an event listener, `this` refers to the DOM element.  
+> If you use an arrow function, `this` will refer to the **outer context**, **not** the element.
+
+---
+
+Want a quiz or coding challenge with tricky `this` examples? 😏

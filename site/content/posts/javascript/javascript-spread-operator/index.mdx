@@ -1,0 +1,124 @@
+---
+title: "🔍 JavaScript Destructuring"
+category: Javascript
+author: Daniel Nguyen
+tags: ['#Javascript']
+date: 2025-04-06
+thumbnail: image.jpg
+featured: true
+---
+
+
+## 🔹 **Spread Operator (`...`)**
+
+**Use it to _expand_ values** — most often used in arrays, objects, or function calls.
+
+### ✅ **Examples:**
+
+### 1. **In Arrays:**
+```js
+const a = [1, 2];
+const b = [...a, 3, 4]; 
+console.log(b); // [1, 2, 3, 4]
+```
+
+### 2. **In Objects:**
+```js
+const user = { name: "Daniel" };
+const fullUser = { ...user, age: 30 };
+console.log(fullUser); // { name: "Daniel", age: 30 }
+```
+
+### 3. **In Function Calls:**
+```js
+const nums = [1, 2, 3];
+Math.max(...nums); // 3
+```
+
+---
+
+## 🔸 **Rest Operator (`...`)**
+
+**Use it to _collect_ values into an array or object** — often used in function parameters or object destructuring.
+
+### ✅ **Examples:**
+
+### 1. **In Function Parameters:**
+```js
+function sum(...args) {
+  return args.reduce((a, b) => a + b, 0);
+}
+sum(1, 2, 3); // 6
+```
+
+### 2. **In Array Destructuring:**
+```js
+const [first, ...rest] = [10, 20, 30];
+console.log(first); // 10
+console.log(rest);  // [20, 30]
+```
+
+### 3. **In Object Destructuring:**
+```js
+const user = { name: "Daniel", age: 30, city: "HCM" };
+const { name, ...details } = user;
+console.log(name);    // "Daniel"
+console.log(details); // { age: 30, city: "HCM" }
+```
+
+---
+
+### ⚠️ Quick Tip:
+Same syntax (`...`), **but usage depends on context**:
+- **Spread**: _on the right_ side → expands things
+- **Rest**: _on the left_ side → gathers things
+
+---
+
+Alright, let’s hit you with a **quick 3-question quiz** focused purely on **spread/rest operators**! 🧠✨
+
+---
+
+### **Q1. What does this code print?**
+```js
+const arr = [1, 2, 3];
+const newArr = [...arr, 4];
+console.log(newArr);
+```
+
+A. `[1, 2, 3]`  
+B. `[4, 1, 2, 3]`  
+C. `[1, 2, 3, 4]`  
+D. `undefined`  
+
+---
+
+### **Q2. What is the value of `rest`?**
+```js
+const [a, b, ...rest] = [10, 20, 30, 40];
+console.log(rest);
+```
+
+A. `30`  
+B. `[30, 40]`  
+C. `[20, 30, 40]`  
+D. `undefined`  
+
+---
+
+### **Q3. What does this log?**
+```js
+function greet(greeting, ...names) {
+  return `${greeting}, ${names.join(" and ")}`;
+}
+console.log(greet("Hello", "Alice", "Bob", "Carol"));
+```
+
+A. `"Hello, Alice"`  
+B. `"Hello, Alice and Bob"`  
+C. `"Hello, Alice and Bob and Carol"`  
+D. `"Hello, [object Object]"`  
+
+---
+
+Drop your answers and I’ll let you know how you did! 💯
