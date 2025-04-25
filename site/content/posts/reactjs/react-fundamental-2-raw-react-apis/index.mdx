@@ -11,15 +11,43 @@ featured: true
 React is the most widely used frontend framework in the world and it's using the
 same APIs that you're using when it creates DOM nodes. 
 
-- React: responsible for creating React elements (kinda like
-  `document.createElement()`)
-- ReactDOM: responsible for rendering React elements to the DOM (kinda like
-  `rootElement.append()`)
+## 🌱 Enter the Virtual DOM
+
+The **Virtual DOM (V-DOM)** is a **lightweight, in-memory representation** of the real DOM. Instead of updating the real DOM directly, frameworks like **React** update the Virtual DOM first.
+
+Here’s how it works:
+
+1. You trigger a change in your app (like clicking a button).
+2. React creates a new **virtual DOM tree** that represents the updated UI.
+3. React compares this new tree with the previous one using a **diffing algorithm**.
+4. React calculates the **minimal set of changes** needed.
+5. React updates only those specific parts of the real DOM.
+
+---
+
+## React and ReactDOM
+
+### React 
+
+Programmatic React features:
+
+- **Hooks** - Use different React features from your components.
+- **Components** - Built-in components that you can use in your JSX.
+- **APIs** - APIs that are useful for defining components.
+- **Directives** - Provide instructions to bundlers compatible with React Server Components.
+
+### React DOM 
+
+React-dom contains features that are only supported for web applications (which run in the browser DOM environment). This section is broken into the following:
+
+- **Hooks** - Hooks for web applications which run in the browser DOM environment.
+- **Components** - React supports all of the browser built-in HTML and SVG components.
+- **APIs** - The react-dom package contains methods supported only in web applications.
+- **Client APIs** - The react-dom/client APIs let you render React components on the client (in the browser).
+- **Server APIs** - The react-dom/server APIs let you render React components to HTML on the server.
 
 These files use a service called [esm.sh](https://esm.sh) to provide the React packages.
 Here's a simple example of how to use the React createElement API:
-
-> createElement(type, props, ...children)
 
 ```typescript
 import { createElement } from 'https://esm.sh/react'
@@ -32,6 +60,8 @@ const reactElement = createElement(elementType, elementProps)
 const root = createRoot(rootElement)
 root.render(reactElement)
 ```
+
+## Props
 
 The "props" in `elementProps` above is short for "properties". Props are a key concept
 in React - they're the way we pass data into our elements.
