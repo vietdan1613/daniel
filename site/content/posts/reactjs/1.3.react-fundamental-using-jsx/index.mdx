@@ -1,9 +1,9 @@
 ---
-title: "React Fundamental 3: Using JSX"
+title: "React Fundamental: Using JSX"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2024-05-03
+date: 2025-05-29
 thumbnail: image.png
 featured: true
 ---
@@ -30,14 +30,18 @@ called a code compiler. [Babel](https://babeljs.io) is one such tool.
 
 ## Interpolation
 
-"Interpolation" is defined as "the insertion of something of a different
-nature into something else."
+Interpolation means inserting variables or expressions into something, like a string or a piece of HTML.
 
 ```tsx
-const children = 'Hello World'
-const className = 'container'
-const element = <div className={className}>{children}</div>
+const name = "Daniel";
+const greeting = <h1>Hello, {name}!</h1>;
 ```
+
+###  You can use:
+
+- Variables: {name}
+- Expressions: {2 + 2}
+- Function calls: {getMessage()}
 
 ## Spread props
 
@@ -53,6 +57,15 @@ const user = {
 <MyComponent {...user} />
 ```
 
+### Watch out:
+
+- Be careful not to accidentally pass too many props.
+- You can still override values:
+
+```tsx
+<MyComponent {...user} name="John" />  // name will be "John"
+```
+
 ## Fragments
 
 Fragments let you group multiple elements in React without adding extra HTML to the DOM.
@@ -65,3 +78,8 @@ const element = (
   </>
 )
 ```
+
+### Think of it like:
+
+- Fragments = invisible wrapper
+- Groups elements together without actually adding HTML to the page.
