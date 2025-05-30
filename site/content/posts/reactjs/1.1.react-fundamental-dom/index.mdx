@@ -8,21 +8,16 @@ thumbnail: image.png
 featured: true
 ---
 
-## DOM 
+## Tree structure
 
-DOM stands for Document Object Model.
-
-It’s like a tree structure that represents everything on a web page — every tag, text, image, etc.
+DOM stands for Document Object Model. It’s like a tree structure that represents everything 
+on a web page — every tag, text, image, etc.
 
 The DOM is something like this:
 
 ![example](./1.png 'example')
 
-The browser has to parse the JavaScript code, execute it,
-and then generate the DOM from the JavaScript code before displaying things to
-the user.
-
-## Example
+## Nodes (element, attribute, text)
 
 If you have this HTML:
 
@@ -41,7 +36,7 @@ The DOM turns it into a tree of objects like this:
  └── <p>Welcome to the site.</p>
 ```
 
-## What can you do with the DOM?
+## JavaScript interaction
 
 - Change text: document.querySelector('h1').textContent = "Hi!"
 - Add/remove elements
@@ -59,3 +54,14 @@ The DOM turns it into a tree of objects like this:
 	</body>
 </html>
 ```
+
+The browser has to parse the JavaScript code, execute it,
+and then generate the DOM from the JavaScript code before displaying things to
+the user.
+
+## Browser API
+
+The DOM is not part of JavaScript itself — it's part of the Web APIs provided by the browser. 
+It's also worth noting that modifying the DOM can be performance-intensive, so minimizing direct 
+manipulation is important in large applications. That's why libraries like React use virtual 
+DOMs to optimize rendering.

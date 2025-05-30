@@ -1,0 +1,42 @@
+---
+title: "React Fundamental: Custom components"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactFundamental']
+date: 2025-05-30
+thumbnail: image.png
+featured: true
+---
+
+## Function component
+
+A **function component in ReactJS** is a plain JavaScript function that returns JSX (HTML-like code) 
+to define what the UI should look like.
+
+```jsx
+function Greeting() {
+  return <h1>Hello, world!</h1>;
+}
+```
+
+### Key Points:
+
+* It's **stateless** by default (but you can add state using hooks like `useState`).
+* Starts with a **capital letter** (React uses this to know it's a component).
+* Can accept **props** (inputs) to make it reusable.
+
+## Props
+
+```jsx
+function UserCard({ name, age }) {
+  return (
+    <div>
+      <h2>{name}</h2>
+      <p>Age: {age}</p>
+    </div>
+  );
+}
+
+// Usage
+<UserCard name="Daniel" age={30} />
+```

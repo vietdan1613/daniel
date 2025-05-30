@@ -8,6 +8,11 @@ thumbnail: image.png
 featured: true
 ---
 
+Updating the real DOM is slow because each change can trigger costly processes 
+like reflow and repaint. These affect layout, style, and rendering, which blocks 
+the main thread and slows down the user experience. That's why React uses the 
+Virtual DOM — to minimize direct DOM manipulation and update only what's necessary.
+
 ## Virtual DOM
 
 The Virtual DOM is like a blueprint or copy of the real web page (the actual DOM). 
