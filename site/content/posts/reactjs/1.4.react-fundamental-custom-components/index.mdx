@@ -10,33 +10,57 @@ featured: true
 
 ## Function component
 
-A **function component in ReactJS** is a plain JavaScript function that returns JSX (HTML-like code) 
-to define what the UI should look like.
+Just like in regular JavaScript, when you want to reuse code, you write
+functions. If you want to share JSX, you can do that as well. In React we call
+these functions "components" and they have some special properties.
 
-```jsx
-function Greeting() {
-  return <h1>Hello, world!</h1>;
+Components are functions which accept an object called "props" and return
+something that is renderable (more React elements, strings, `null`, numbers,
+etc.).
+
+Here's an example of that:
+
+```tsx
+function message({ children }) {
+  return <div className="message">{children}</div>
 }
+
+const element = (
+<div className="container">
+  {message({ children: 'Hello World' })}
+  {message({ children: 'Goodbye World' })}
+</div>
+)
 ```
 
-### Key Points:
+## JSX component
 
-* It's **stateless** by default (but you can add state using hooks like `useState`).
-* Starts with a **capital letter** (React uses this to know it's a component).
-* Can accept **props** (inputs) to make it reusable.
+You can also use JSX to create components. This is more common and makes the code cleaner and easier to read.
+
+```jsx
+function Message({ className, children }) {
+  return <div className={className}>{children}</div>;
+}
+
+const element = (
+  <div className="container">
+    <Message className="container">Hello World</Message>
+    <Message>Goodbye World</Message>
+  </div>
+);
+``` 
 
 ## Props
 
-```jsx
-function UserCard({ name, age }) {
-  return (
-    <div>
-      <h2>{name}</h2>
-      <p>Age: {age}</p>
-    </div>
-  );
-}
+We're going to use a `Calculator` component that can display an
+equation and its solution, like so:
 
-// Usage
-<UserCard name="Daniel" age={30} />
+```tsx
+element = <Calculator left={1} operator="+" right={2} />
+// should render:
+// <div>
+//   <code>
+//     1 + 2 = <output>3</output>
+//   </code>
+// </div>
 ```

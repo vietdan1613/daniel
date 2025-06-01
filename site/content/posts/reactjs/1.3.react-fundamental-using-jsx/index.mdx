@@ -33,8 +33,9 @@ called a code compiler. [Babel](https://babeljs.io) is one such tool.
 Interpolation means inserting variables or expressions into something, like a string or a piece of HTML.
 
 ```tsx
-const name = "Daniel";
-const greeting = <h1>Hello, {name}!</h1>;
+const children = 'Hello World'
+const className = 'container'
+const element = <div className={className}>{children}</div>
 ```
 
 ###  You can use:
@@ -49,12 +50,10 @@ Spread props let you pass all the properties of an object to a component
 at once, using the spread syntax (...).
 
 ```tsx
-const user = {
-  name: "Daniel",
-  age: 25,
-};
-
-<MyComponent {...user} />
+const children = 'Hello World'
+const className = 'container'
+const props = { children, className }
+const element = <div {...props} />
 ```
 
 ### Watch out:
@@ -73,13 +72,8 @@ Fragments let you group multiple elements in React without adding extra HTML to 
 ```tsx
 const element = (
   <>
-	<h1>Title</h1>
-	<p>Description</p>
+    <h1>Title</h1>
+    <p>Description</p>
   </>
 )
 ```
-
-### Think of it like:
-
-- Fragments = invisible wrapper
-- Groups elements together without actually adding HTML to the page.

@@ -1,100 +1,210 @@
 ---
-title: "React Fundamental 5: TypeScript"
+title: "React Fundamental: TypeScript"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2024-05-05
+date: 2025-05-31
 thumbnail: image.png
 featured: true
 ---
 
-TypeScript is an enormously valuable team productivity, code quality, and
-confidence tool that I strongly recommend you use to build any React application
-you plan making maintainable. As you're working with TypeScript and getting
-angry at all the red squiggles it puts in your code, keep this in mind:
+## Why TypeScript
 
-> TypeScript is not making your life terrible. It's just showing you how
-> terrible your life already is. 
+* In JavaScript, you can write anything — even if it’s wrong — and it won't show an error until the app runs.
+* Example:
 
-With that said, here's a quick intro to adding type annotations to functions:
+  ```js
+  const user = "John";
+  console.log(user.age); // no error... but user is a string!
+  ```
 
-```tsx
-// here's a regular JS function that accepts a user
-// which might have a name property
-function getName(user) {
-	return user.name ?? 'Unknown'
-}
+### Helps catch mistakes before you run the code.
 
-// here's how you'd type that user object to say it has an optional name property:
-type User = { name?: string }
+* TypeScript **knows the types of your variables**, and it warns you early.
+* Same example in TypeScript:
 
-// and here's how you'd tell TypeScript that the user parameter is a User object
-function getName(user: User) {
-	return user.name ?? 'Unknown'
-}
+  ```ts
+  const user: string = "John";
+  console.log(user.age); // ❌ Error: 'age' does not exist on type 'string'
+  ```
 
-// and if you'd like to, you can specify the return type explicitly as well
-// (though it is inferred):
-function getName(user: User): string {
-	return user.name ?? 'Unknown'
-}
-```
+## Narrow Types
 
-📜 Learn more about the syntax for functions in TypeScript here:
-[TypeScript Function Syntaxes](https://kentcdodds.com/blog/typescript-function-syntaxes)
-
-Let's look at a quick example of adding TypeScript to a simple (and familiar)
-React component:
+Our `CalculatorProps['operator']` type being set simply to `string` is not
+"narrow" enough to help users of our `Calculator` component. It allows _any_
+`string` value to be provided.
 
 ```tsx
-function Message(props) {
-	return <div className="message">{props.children}</div>
-}
+element = <Calculator left={2} operator="**" right={3} /> // 💥
+```
 
-// We could say:
-type MessageProps = { children: string }
-function Message(props: MessageProps) {
-	return <div className="message">{props.children}</div>
-}
-// that would allow: <Message>Hello World</Message>
-// but not: <Message><span>Hello</span> <span>World</span></Message>
+Type narrowing means TypeScript figures out a more specific type from a broader type based on your code.
 
-// The React types have a ReactNode, which is the recommended choice for the children prop:
-type MessageProps = { children: React.ReactNode }
-function Message(props: MessageProps) {
-	return <div className="message">{props.children}</div>
-}
+```tsx
+// Create a literal union type
+type KodyOrHannahString = 'Kody' | 'Hannah';
 
-// keep in mind that you don't *have* to give your props a name.
-// You can inline them as well. This works just the same as above:
-function Message(props: { children: React.ReactNode }) {
-	return <div className="message">{props.children}</div>
-}
+let assistant: KodyOrHannahString;
+// Now 'assistant' can only be 'Kody' or 'Hannah'
+assistant = 'Kody';    // ✅ OK
+assistant = 'Hannah';  // ✅ OK
+assistant = 'Bob';     // ❌ Error: Type '"Bob"' is not assignable to type 'KodyOrHannahString'
+```
 
-// and you can destructure as well (this is what I do most of the time):
-function Message({ children }: { children: React.ReactNode }) {
-	return <div className="message">{children}</div>
-}
+### 🧠 What Are **Derived Types** in TypeScript?
 
-// mix-and-match:
-type MessageProps = { children: React.ReactNode }
-function Message({ children }: MessageProps) {
-	return <div className="message">{children}</div>
+**Derived types** are types that are **created from existing types**, often using TypeScript's **utility types** or **type operators** like `typeof`, `keyof`, `in`, `extends`, and `as`.
+
+They help you keep your types **DRY**, **consistent**, and **type-safe**.
+
+---
+
+## Derive Types
+
+You may have noticed that we're duplicating our operators of `+`, `-`, `*`,
+and `/`. Any time we want to add a new operator, we have to add it in two places
+and if we miss one then we could either have a runtime error, or users won't be
+able to use our new operator at all.
+
+Derived types are types that are created from existing types, often using TypeScript's 
+utility types or type operators like typeof, keyof
+
+### 1. **Using `typeof` to derive from a variable**
+
+```ts
+const user = {
+  name: 'Alice',
+  age: 30,
+};
+
+// Derive a type from the value
+type User = typeof user;
+// Same as:
+// type User = { name: string; age: number }
+```
+
+### 2. **Using `keyof` to get keys of a type**
+
+```ts
+type User = { name: string; age: number };
+
+// Derive a union of keys
+type UserKeys = keyof User; 
+// type UserKeys = 'name' | 'age'
+```
+
+## Default Props
+
+Sometimes you want to allow the user of your component to skip providing a
+prop and use a default value instead. To do this, we can use destructuring default values syntax,
+but when users of our component try to skip a prop, TypeScript will complain
+because our type says all the elements of the `CalculatorProps` type are
+required.
+
+```tsx
+type ButtonProps = {
+  label: string;
+  color?: string; // optional
+};
+
+const Button = ({ label, color = "blue" }: ButtonProps) => {
+  return <button style={{ backgroundColor: color }}>{label}</button>;
+};
+
+// If you use <Button label="Click me" />, the button will default to a blue background.
+```
+
+## Reduce Duplication
+
+One last thing that bugs me is the repetition in the `operations` type. The
+type for every one of those functions is the same. They all accept two numbers
+and return a number.
+
+```ts
+const operations = {
+	// 🦺 remove all the ": number" from these functions
+	'+': (left: number, right: number): number => left + right,
+	'-': (left: number, right: number): number => left - right,
+	'*': (left: number, right: number): number => left * right,
+	'/': (left: number, right: number): number => left / right,
 }
 ```
 
-📜 Learn more about typing React components here:
-[How to write a React Component in TypeScript](https://kentcdodds.com/blog/how-to-write-a-react-component-in-typescript)
+Record is a utility type in TypeScript that helps you create an object type with 
+specific keys and value types.
 
-🦉 It's great to have your code type checked, but not at the expense of
-progressing and learning. If you get totally stuck on something, then I suggest
-you tell TypeScript to quiet down and come back to it later when you're more
-experienced or want to focus on it. You can do this like so:
+```ts
+type UserRoles = 'admin' | 'editor' | 'viewer';
 
-```typescript
-// @ts-expect-error TypeScript is complaining about this next line.
-// Something about magic not existing.
-// I don't know how to fix this right now and AI Assistants were unhelpful...
-// Come back later.
-make.magic()
+const roles: Record<UserRoles, boolean> = {
+  admin: true,
+  editor: false,
+  viewer: true,
+};
+
+// The object roles must have exactly the keys 'admin', 'editor', and 'viewer', each with a boolean value.
 ```
+
+## Satisfies
+
+The `**satisfies**` operator is a newer TypeScript feature (since v4.9) that:
+
+✅ Checks if a value **matches a type**
+🔒 Keeps the value’s **exact (narrow) type**
+
+### 🧾 Example:
+
+```ts
+const user = {
+  name: "Alice",
+  age: 30,
+} satisfies { name: string; age: number };
+```
+
+🟢 This means:
+
+* TypeScript checks: Does `user` have `name` and `age` with the right types?
+* ✅ If yes — no error
+* 🔒 But `user` still keeps its exact type: `{ name: "Alice"; age: 30 }`
+
+---
+
+### ❗ Why not just use `as`?
+
+```ts
+const user = {
+  name: "Alice",
+  age: 30,
+} as { name: string; age: number };
+```
+
+* `as` **forces** the type (could be unsafe)
+* `satisfies` **checks** the type (safer)
+
+---
+
+### 🔍 Real-world example with `Record`:
+
+```ts
+const colors = {
+  primary: "#00f",
+  secondary: "#0f0",
+} satisfies Record<string, string>;
+```
+
+* ✅ Checks all keys are strings and all values are strings
+* Keeps full IntelliSense for `"primary"` and `"secondary"`
+
+---
+
+### 🧠 Summary:
+
+| Feature          | What it does              |
+| ---------------- | ------------------------- |
+| `as`             | Forces a type (can lie)   |
+| `satisfies`      | Checks a type (safer)     |
+| `:` (annotation) | Sets the type (may widen) |
+
+---
+
+Let me know if you want visual examples or to see it used with React props, enums, or config objects!
