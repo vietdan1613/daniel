@@ -1,9 +1,9 @@
 ---
-title: "React Fundamental 6: Styling"
+title: "React Fundamental: Styling"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2024-05-06
+date: 2025-06-03
 thumbnail: image.png
 featured: true
 ---
@@ -12,9 +12,6 @@ There are two primary ways to style React components
 
 1. Inline styles with the `style` prop
 2. Regular CSS with the `className` prop
-
-Before we get into those, you need to know something about element properties
-and HTML attributes.
 
 ## Element properties and HTML attributes
 
@@ -35,10 +32,6 @@ This applies to a number of other attributes as well. For example, `for` in HTML
 is `htmlFor` in DOM (and JSX). Others include `tabindex` and `readonly` (which
 are, respectively, `tabIndex` and `readOnly` in JSX).
 
-Most differences between HTML attributes and JSX props are due to the fact that
-props are a reference to "properties" not "attributes", so understanding the
-difference is handy!
-
 ## Inline styles
 
 Inline styles are set differently in JSX from HTML as a result of how they are
@@ -47,17 +40,15 @@ object in the DOM:
 
 ```html
 <div id="my-div" style="margin-top: 20px; background-color: blue;"></div>
-<script>
-	const myDiv = document.getElementById('my-div')
-	console.log(myDiv.style.marginTop) // "20px"
-	console.log(myDiv.style.backgroundColor) // "blue"
-</script>
 ```
 
 As a result, in JSX, you pass an object of CSS rather than a string:
 
 ```tsx
 <div style={{ marginTop: 20, backgroundColor: 'blue' }} />
+
+const myStyles = {marginTop: 20, backgroundColor: 'blue'}
+<div style={myStyles} />
 ```
 
 ## Class names
@@ -65,24 +56,17 @@ As a result, in JSX, you pass an object of CSS rather than a string:
 The most common mechanism for styling web applications is through the use of CSS
 and class names.
 
-As mentioned earlier, in HTML, you apply a class name to an element with the
-`class` attribute. In JSX, you use the `className` prop:
-
-```tsx
-<div className="my-class" />
-```
-
-Then you'll load a CSS file onto the page:
-
-```html
-<link rel="stylesheet" href="styles.css" />
-```
-
-And that can contain the styles for `.my-class`:
-
 ```css
+/* styles.css */
 .my-class {
 	margin-top: 20px;
 	background-color: blue;
 }
+```
+
+Then you'll load a CSS file onto the page:
+
+```tsx
+import './styles.css';
+<div className="my-class" />
 ```
