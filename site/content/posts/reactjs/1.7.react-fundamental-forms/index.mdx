@@ -1,5 +1,5 @@
 ---
-title: "React Fundamental 7: Forms"
+title: "React Fundamental: Forms"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
@@ -8,47 +8,157 @@ thumbnail: image.png
 featured: true
 ---
 
-In React, there actually aren't a ton of things you have to learn to interact
-with forms beyond what you can do with regular DOM APIs and JavaScript. Which I
-think is pretty awesome.
+When building user interfaces with React, forms are a critical part of the experience. 
+Whether you're collecting user data or uploading files, understanding how to manage 
+forms effectively can drastically improve your app’s performance and user experience. 
+In this post, we’ll walk through the evolution of form handling in React—from basic 
+HTML forms to leveraging the modern `action` prop.
 
-You can attach a submit handler to a form element with the `onSubmit` prop. This
-will be called with the submit event which has a `currentTarget`. That
-`currentTarget` is a reference to the `<form>` DOM node which has a reference to
-the elements of the form which can be used to get the values out of the form!
+## Form Submission
 
-When you submit a form, the browser will do a full-page refresh by default.
+By default, a form submission in HTML sends the form data to the current page’s URL 
+using a `GET` request:
 
-```tsx
-<form
-	onSubmit={event => {
-		event.preventDefault() // prevent the default browser behavior
-		const formData = new FormData(event.currentTarget)
-		// do something with the form data
-	}}
->
-	{/* form fields go here */}
+```html
+<form>
+  <!-- input fields -->
 </form>
 ```
 
-This is so common, React provides a built-in way to handle form actions which
-we'll explore in this exercise.
+This leads to:
 
-Form fields also should be labeled appropriately as well to make them accessible
-to screen readers and improve the overall user experience as well. There are a
-few ways to do this. The easiest being to wrap the input within the label:
+* A **full page refresh**
+* User input appearing in the **URL** (not ideal for sensitive data)
 
-```tsx
-<label>
-	Name
-	<input name="name" type="text" />
-</label>
+We can change that by setting a custom `action`:
+
+```html
+<form action="/api/onboarding">
+  <!-- input fields -->
+</form>
 ```
 
-But often our design requirements don't allow for that. In that case, we can use
-the `htmlFor` prop on the label to associate it with the input:
+To send sensitive data like passwords securely and avoid putting it in the URL, 
+switch to a `POST` method:
 
 ```tsx
-<label htmlFor="nameInput">Name</label>
-<input id="nameInput" name="name" type="text" />
+<form action="api/onboarding" method="POST">
+  <!-- input fields -->
+</form>
 ```
+
+---
+
+## Input Fields and Types
+
+HTML provides a variety of input types that help with validation and user experience. 
+For this form, we add:
+
+```tsx
+<input type="password" name="password" />
+<input type="file" name="photo" />
+<input type="color" name="favoriteColor" />
+<input type="date" name="startDate" />
+```
+
+Each input type brings its own UI and behavior, enhancing the user experience with minimal 
+effort.
+
+---
+
+## Form Encoding (`enctype`)
+
+When uploading files, using `application/x-www-form-urlencoded` (the default) won’t 
+work because it doesn't send the actual file—just its filename.
+
+To upload files properly, use `multipart/form-data`:
+
+```tsx
+<form
+  action="api/onboarding"
+  method="POST"
+  encType="multipart/form-data"
+>
+  <!-- input fields -->
+</form>
+```
+
+This ensures the file is included in the request payload as a binary stream.
+
+---
+
+## Preventing Default Behavior
+
+To avoid the full-page refresh on submit, handle the form submission in JavaScript:
+
+```tsx
+<form
+  action="api/onboarding"
+  method="POST"
+  encType="multipart/form-data"
+  onSubmit={event => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    console.log(Object.fromEntries(formData))
+  }}
+>
+  <!-- input fields -->
+</form>
+```
+
+Here, `event.currentTarget` gives us the form element. We extract the data using 
+the `FormData` API and log it using `Object.fromEntries` to convert it to a plain 
+object for easier viewing.
+
+---
+
+## `action` Prop — A Modern API
+
+Handling form submissions with `onSubmit` is common, but React gives us a cleaner 
+way: the `action` **prop can accept a function**.
+
+```tsx
+function handleFormAction(formData: FormData) {
+  console.log(Object.fromEntries(formData))
+}
+
+export default function OnboardingForm() {
+  return (
+    <form action={handleFormAction}>
+      <input type="text" name="name" />
+      <input type="password" name="password" />
+      <input type="file" name="photo" />
+      <input type="color" name="favoriteColor" />
+      <input type="date" name="startDate" />
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+```
+
+### Benefits of the `action` prop:
+
+* **No need to prevent default**
+* **No need for manual `FormData` creation**
+* **No `method` or `encType` needed**
+* **Built-in support for file uploads**
+
+> 🔒 Note: HTML attributes don’t support functions—this is a special React feature.
+
+## 📦 Progressive Enhancement
+
+In production applications, you still want to ensure your backend supports traditional 
+form submissions in case JavaScript fails (progressive enhancement). Frameworks 
+like [Remix](https://remix.run) handle this beautifully out of the box.
+
+## 🧪 Pro Tip: Use the DevTools Network Tab
+
+When experimenting with form submission:
+
+* Open Chrome DevTools > Network tab
+* Submit the form
+* Inspect the request to see `Content-Type`, payload, and errors
+
+You’ll clearly see the difference between URL-encoded and multipart form data, especially when uploading files.
+
