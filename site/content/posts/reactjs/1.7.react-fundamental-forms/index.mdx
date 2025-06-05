@@ -1,101 +1,135 @@
 ---
-title: "React Fundamental: Forms"
+title: "React Fundamental: Forms & Inputs"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2024-05-07
+date: 2025-06-05
 thumbnail: image.png
 featured: true
 ---
 
-When building user interfaces with React, forms are a critical part of the experience. 
-Whether you're collecting user data or uploading files, understanding how to manage 
-forms effectively can drastically improve your app’s performance and user experience. 
-In this post, we’ll walk through the evolution of form handling in React—from basic 
-HTML forms to leveraging the modern `action` prop.
+React makes it easier than ever to handle form submissions, user input, 
+and even file uploads — all while staying declarative and modular. 
+But even with React’s power, many developers overlook how much of the heavy 
+lifting the browser already does with native HTML form elements.
 
-## Form Submission
+In this post, we’ll explore:
 
-By default, a form submission in HTML sends the form data to the current page’s URL 
-using a `GET` request:
+* Standard input types (and how to use them in React)
+* Handling file uploads with proper encoding
+* Avoiding default browser behavior with React
+* A modern API for form submission: `form action={function}`
 
-```html
-<form>
-  <!-- input fields -->
-</form>
-```
+Let’s dive in 👇
 
-This leads to:
+![example](./1.png 'example')
 
-* A **full page refresh**
-* User input appearing in the **URL** (not ideal for sensitive data)
+## Input Types
 
-We can change that by setting a custom `action`:
+The web platform gives us **dozens of built-in input types**, each tailored 
+to specific kinds of data. These save time and offer a better user experience 
+out-of-the-box — especially on mobile.
 
-```html
-<form action="/api/onboarding">
-  <!-- input fields -->
-</form>
-```
-
-To send sensitive data like passwords securely and avoid putting it in the URL, 
-switch to a `POST` method:
+Here are just a few types you can (and should) use:
 
 ```tsx
-<form action="api/onboarding" method="POST">
-  <!-- input fields -->
-</form>
-```
-
----
-
-## Input Fields and Types
-
-HTML provides a variety of input types that help with validation and user experience. 
-For this form, we add:
-
-```tsx
+<input type="text" name="name" />
 <input type="password" name="password" />
 <input type="file" name="photo" />
 <input type="color" name="favoriteColor" />
 <input type="date" name="startDate" />
 ```
 
-Each input type brings its own UI and behavior, enhancing the user experience with minimal 
-effort.
+Want more? Here's the full list of supported input types:
+🔗 [MDN: `<input>` types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#input_types)
 
----
+React handles these almost identically to plain HTML. You don’t need a bunch of extra code — just let the browser do its job. But, React adds some power under the hood, like controlled inputs (via `onChange`, which we’ll talk about later).
 
-## Form Encoding (`enctype`)
+## Checkboxes
 
-When uploading files, using `application/x-www-form-urlencoded` (the default) won’t 
-work because it doesn't send the actual file—just its filename.
+Checkboxes are one of the trickiest input types to get right when first working with 
+forms — especially when capturing their value in `FormData`.
 
-To upload files properly, use `multipart/form-data`:
+The good news? If you wrap a checkbox inside a `<label>`, you don’t need to worry about 
+matching `id` and `htmlFor` attributes:
 
 ```tsx
-<form
-  action="api/onboarding"
-  method="POST"
-  encType="multipart/form-data"
->
-  <!-- input fields -->
-</form>
+<label>
+  <input type="checkbox" name="waiverSigned" />
+  I have signed the waiver
+</label>
 ```
 
-This ensures the file is included in the request payload as a binary stream.
+If you want the checkbox to be selected by default, use:
+
+```tsx
+<input type="checkbox" name="waiverSigned" defaultChecked />
+```
+
+## Select Dropdowns
+
+Let’s say your app supports different user roles: Admin, Teacher, Parent, Student.
+
+You can use a `select` element like this:
+
+```tsx
+<select name="accountType" defaultValue="student">
+  <option value="admin">Admin</option>
+  <option value="teacher">Teacher</option>
+  <option value="parent">Parent</option>
+  <option value="student">Student</option>
+</select>
+```
+
+### Why use `defaultValue`?
+
+Because React treats `value` as a controlled input. If you use `value`, you also have to manage 
+its state explicitly. `defaultValue` is much simpler for uncontrolled inputs.
 
 ---
 
-## Preventing Default Behavior
+## Radio
 
-To avoid the full-page refresh on submit, handle the form submission in JavaScript:
+Radio buttons let users choose **one** option from a group. Unlike checkboxes, radio inputs
+with the same `name` are grouped by the browser automatically.
+
+For example, to choose between **Public** and **Private** account visibility:
+
+```tsx
+<fieldset>
+  <legend>Visibility</legend>
+
+  <label>
+    <input type="radio" name="visibility" value="public" defaultChecked />
+    Public
+  </label>
+
+  <label>
+    <input type="radio" name="visibility" value="private" />
+    Private
+  </label>
+</fieldset>
+```
+
+Only one can be selected. The `defaultChecked` prop ensures "Public" is selected by default.
+
+## Hidden Inputs
+
+Sometimes you need to submit values users shouldn't see or modify — like internal IDs or context.
+
+```tsx
+<input type="hidden" name="organizationId" value="123" />
+```
+
+This value will always be submitted with the form, without showing up in the UI.
+
+## Form Submission
+
+In plain HTML, forms submit and reload the page — not ideal in modern SPAs. React 
+lets us intercept that with `onSubmit`:
 
 ```tsx
 <form
-  action="api/onboarding"
-  method="POST"
-  encType="multipart/form-data"
   onSubmit={event => {
     event.preventDefault()
     const form = event.currentTarget
@@ -103,27 +137,44 @@ To avoid the full-page refresh on submit, handle the form submission in JavaScri
     console.log(Object.fromEntries(formData))
   }}
 >
-  <!-- input fields -->
+  <!-- your inputs here -->
 </form>
 ```
 
-Here, `event.currentTarget` gives us the form element. We extract the data using 
-the `FormData` API and log it using `Object.fromEntries` to convert it to a plain 
-object for easier viewing.
+This pattern is very common in React — but can feel verbose. You have to:
+
+* Prevent default behavior
+* Extract the form reference
+* Construct `FormData` manually
+* Convert to an object to inspect it
 
 ---
 
-## `action` Prop — A Modern API
+## Form Encoding: Why `enctype` Matters
 
-Handling form submissions with `onSubmit` is common, but React gives us a cleaner 
-way: the `action` **prop can accept a function**.
+If you're using `input type="file"` for uploads, you'll need to set `enctype="multipart/form-data"` 
+on your `<form>`:
+
+```tsx
+<form method="POST" encType="multipart/form-data">
+  <input type="file" name="photo" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+Without this, the file **won’t be included** in the submission.
+
+## `action` Prop
+
+React 18 introduced a more intuitive way to handle forms: instead of managing all the manual 
+boilerplate with `onSubmit`, you can now pass a **function directly to the `action` prop**.
 
 ```tsx
 function handleFormAction(formData: FormData) {
   console.log(Object.fromEntries(formData))
 }
 
-export default function OnboardingForm() {
+export default function MyForm() {
   return (
     <form action={handleFormAction}>
       <input type="text" name="name" />
@@ -137,28 +188,11 @@ export default function OnboardingForm() {
 }
 ```
 
-### Benefits of the `action` prop:
+🧠 **Why this is better:**
 
-* **No need to prevent default**
-* **No need for manual `FormData` creation**
-* **No `method` or `encType` needed**
-* **Built-in support for file uploads**
+* React prevents default automatically
+* Form data is passed directly to your handler
+* Works great with file uploads
+* Less boilerplate = cleaner code
 
-> 🔒 Note: HTML attributes don’t support functions—this is a special React feature.
-
-## 📦 Progressive Enhancement
-
-In production applications, you still want to ensure your backend supports traditional 
-form submissions in case JavaScript fails (progressive enhancement). Frameworks 
-like [Remix](https://remix.run) handle this beautifully out of the box.
-
-## 🧪 Pro Tip: Use the DevTools Network Tab
-
-When experimenting with form submission:
-
-* Open Chrome DevTools > Network tab
-* Submit the form
-* Inspect the request to see `Content-Type`, payload, and errors
-
-You’ll clearly see the difference between URL-encoded and multipart form data, especially when uploading files.
-
+> ⚠️ Note: HTML itself doesn’t allow functions in attributes. This feature is **unique to React**.
