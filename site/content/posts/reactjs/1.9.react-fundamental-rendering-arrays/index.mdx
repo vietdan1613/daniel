@@ -1,69 +1,74 @@
 ---
-title: "React Fundamental Section 10: Rendering Arrays"
+title: "React Fundamental: Rendering Arrays"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2024-05-10
+date: 2025-06-08
 thumbnail: image.png
 featured: true
 ---
 
-One of the more tricky things with React is the requirement of a `key` prop when
-you attempt to render a list of elements.
+When building dynamic lists in React, one small prop can make or break your app’s performance and 
+behavior: the `key` prop.
 
-If we want to render a list like this, then there's no problem:
+If you've ever removed an item from a list and noticed weird UI glitches — like focus jumping or 
+inputs keeping the wrong value — you're likely missing a properly configured `key`. In this post, we’ll 
+break down what the `key` prop really does, why it's important, and how you can even use it 
+to **reset component state**.
 
-```tsx
-const ui = (
-	<ul>
-		<li>One</li>
-		<li>Two</li>
-		<li>Three</li>
-	</ul>
-)
+## `key` Prop?
+
+In React, the `key` prop is a **unique identifier** used to help React track which items have 
+changed, been added, or been removed from a list.
+
+Here’s a simple example:
+
+```jsx
+<ul>
+  {items.map(item => (
+    <li key={item.id}>{item.name}</li>
+  ))}
+</ul>
 ```
 
-But rendering an array of elements is very common:
+Without a unique `key`, React may incorrectly reuse DOM elements, causing rendering bugs — especially when 
+components hold internal state like text inputs or animation states.
 
-```tsx
-const list = ['One', 'Two', 'Three']
+## Focus State
 
-const ui = (
-	<ul>
-		{list.map(listItem => (
-			<li>{listItem}</li>
-		))}
-	</ul>
-)
+React’s reconciliation algorithm compares the previous and current list of elements using `key`s. 
+If `key`s are unstable — like using the array `index` — React might:
+
+* Reuse the wrong DOM node
+* Retain old state (like focus or scroll position)
+* Result in confusing bugs where the UI doesn't match the data
+
+🔎 Try this:
+
+1. Type into an input field in a list.
+2. Remove an item above it.
+3. If you’re using the array index as the key, the input you typed in might **now show different data** but 
+retain the same cursor position or selected text. Weird, right?
+
+✅ Always use a stable, unique ID as the key (e.g., `item.id`), **especially when items can be 
+reordered, added, or removed.**
+
+## Key Reset
+
+React will **remount** a component when its `key` changes. You can use this behavior to your advantage 
+when you want to **reset a component’s state**.
+
+```jsx
+<MyForm key={formVersion} />
 ```
 
-Those will generate the same HTML, but what it actually does is slightly
-different. Let's re-write it to see that difference:
+Changing the value of `formVersion` (e.g. `setFormVersion(v => v + 1)`) will destroy the existing form 
+and create a fresh one with initial state.
 
-```tsx
-const list = ['One', 'Two', 'Three']
-const listUI = list.map(listItem => <li>{listItem}</li>)
-// notice that listUI is an array
-const ui = <ul>{listUI}</ul>
-```
+🎉 Use this pattern to:
 
-So we're interpolating an array of renderable elements. This is totally
-acceptable, but it has interesting implications for when things change over
-time.
+* Reset forms
+* Restart animations
+* Forcefully reinitialize a component
 
-We haven't covered things changing over time yet, but this warning's going to
-show up any time you render an array regardless of whether that array changes
-so we're going to address that here.
-
-If you were to somehow update that list with an added item and tell React to
-update the UI, React doesn't really know whether you added an item in the
-middle, beginning, or end. And the same goes for when you remove an item (it
-doesn't know whether that changes is in the middle, beginning, or end either).
-Or maybe you removed them all and replaced them with completely new values.
-React just doesn't have enough information to know what to do about what you've
-done to the array.
-
-In simple cases (like the `One`, `Two`, `Three` example above), it's not a big
-deal, because React's best-guess works out ok. However, if any of those React
-elements represent a component that is maintaining state, that can be pretty
-problematic, which this exercise demonstrates.
+> ⚠️ Be careful not to abuse it — excessive key resets can lead to unnecessary unmounts and performance issues.
