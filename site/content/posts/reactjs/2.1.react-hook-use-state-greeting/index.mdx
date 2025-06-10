@@ -1,0 +1,153 @@
+---
+title: "React Hooks: Managing UI State"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactHooks']
+date: 2025-06-10
+thumbnail: image.jpg
+featured: true
+---
+
+Hello friends! 👋 I’m Daniel, and I’m here to guide you through the wonderful 
+world of **React Hooks**. This guide will help you understand how and when to 
+use hooks, from the basics to some useful tricks.
+
+Whether you're building a search page or optimizing performance, hooks are the 
+tools that make it all happen. Let’s break it down step by step.
+
+![example](./1.png 'example')
+
+```tsx
+function Counter() {
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(count + 1)
+	return <button onClick={increment}>{count}</button>
+}
+```
+
+## Hooks
+
+In React, you use special functions called "hooks" to do this. Common built-in
+hooks include:
+
+- `useState`
+- `useRef`
+- `use`
+- `useReducer`
+- `useEffect`
+
+In this workshop, you’ll learn how to:
+
+* Manage state (`useState`)
+* Control form inputs
+* Derive state from other values
+* Read URL params
+* Optimize state initialization
+
+Let’s dive in!
+
+## `useState`
+
+Imagine a blog search page. You want to save the user's search input and update 
+it as they type.
+
+```tsx
+const [query, setQuery] = useState('')
+// const [query, setQuery] = useState({})
+// const [query, setQuery] = useState([])
+// const [query, setQuery] = useState(0)
+```
+
+Now `query` holds the value, and `setQuery` lets us update it. Pass this `query` to 
+a component like `<MatchingPosts />` to display results based on it.
+
+React's Strict Mode is enabled by default in many React apps (especially those created
+with Create React App or Vite). In development only, it intentionally double-invokes 
+certain lifecycle methods and render functions to help you identify unintended side effects.
+
+## Controlling Inputs
+
+We want to let users click on checkboxes to autofill the search field with relevant words.
+
+To do that, we make the input **controlled**:
+
+```tsx
+<input value={query} onChange={e => setQuery(e.target.value)} />
+```
+
+Then, when a checkbox is checked, we also call `setQuery(...)` to add the keyword to the search.
+
+## Deriving State
+
+Let’s say we have checkboxes labeled “cat” and “dog”. Instead of storing a separate 
+state for whether each one is checked, we can **derive** that from the `query` string:
+
+```tsx
+const isCatChecked = query.includes('cat')
+const isDogChecked = query.includes('dog')
+```
+
+No need to sync multiple states — React will figure it out from `query` alone. Fewer bugs, more fun. ✅
+
+## Initializing State from the URL
+
+Want to share a link that pre-fills the search input? Like this:
+
+```
+https://your-site.com/search?query=cat+dog
+```
+
+You can use `URLSearchParams` to read that value when the page loads:
+
+```tsx
+const params = new URLSearchParams(window.location.search)
+const initialQuery = params.get('query') ?? ''
+const [query, setQuery] = useState(initialQuery)
+```
+
+Now your app reads the `query` from the URL when it starts. Try opening 
+a link with a query and see it appear!
+
+## Performance Optimization with Init Callback
+
+When your initial value is a function (especially if it's slow), React will still call it 
+on **every render** if you're not careful:
+
+```tsx
+// ❌ Not ideal
+const [query, setQuery] = useState(getQueryParam()) 
+```
+
+Instead, pass the function itself — React will only call it **once**:
+
+```tsx
+// ✅ Better
+const [query, setQuery] = useState(getQueryParam)
+```
+
+Here's what your `getQueryParam` function might look like:
+
+```tsx
+function getQueryParam() {
+  const params = new URLSearchParams(window.location.search)
+  return params.get('query') ?? ''
+}
+```
+
+This is a small optimization, but it keeps your app fast and clean!
+
+## 💬 Final Thoughts
+
+With just a few hooks, you’ve learned how to:
+
+* Track and update input state
+* Let checkboxes control input values
+* Derive state instead of duplicating it
+* Load values from the URL
+* Optimize initial state setup
+
+These patterns are super common in real-world apps and will make your React code 
+more powerful and easier to maintain.
+
+Now that you’ve mastered the basics, you’re ready to go deeper! 💪
+
