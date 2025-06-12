@@ -17,16 +17,6 @@ tools that make it all happen. Let’s break it down step by step.
 
 ![example](./1.png 'example')
 
-```tsx
-function Counter() {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount(count + 1)
-	return <button onClick={increment}>{count}</button>
-}
-```
-
-## Hooks
-
 In React, you use special functions called "hooks" to do this. Common built-in
 hooks include:
 
@@ -36,17 +26,20 @@ hooks include:
 - `useReducer`
 - `useEffect`
 
-In this workshop, you’ll learn how to:
+![example](./2.png 'example')
 
-* Manage state (`useState`)
-* Control form inputs
-* Derive state from other values
-* Read URL params
-* Optimize state initialization
+## Hooks
 
-Let’s dive in!
 
-## `useState`
+```tsx
+function Counter() {
+	const [count, setCount] = useState(0)
+	const increment = () => setCount(count + 1)
+	return <button onClick={increment}>{count}</button>
+}
+```
+
+## useState
 
 Imagine a blog search page. You want to save the user's search input and update 
 it as they type.
