@@ -1,337 +1,187 @@
 ---
-title: "React Hook Section 6: Tic Tac Toe"
+title: "React Hook: Tic Tac Toe"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactHooks']
-date: 2024-05-16
+date: 2025-06-15
 thumbnail: image.jpg
 featured: true
 ---
-# Tic Tac Toe
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/intro-to-tic-tac-toe" />
+Tic Tac Toe might be a simple game on the surface, but it's a brilliant playground for 
+practicing **React fundamentals**. In this tutorial, you'll build a smart, persistent, 
+and interactive version of Tic Tac Toe using:
 
-This exercise is just to give you more practice with `useState` and `useEffect`.
-For the most part, this is just review, but there is one thing we'll be doing
-in this exercise we haven't done yet with `useState` and that is, it can
-actually accept a function. For example:
+* ✅ `useState` with functional updates and lazy initialization
+* 🔁 `useEffect` to synchronize state with `localStorage`
+* 🧠 Derived state for game logic
+* 🕹️ Game history (aka “time travel”)
 
-```tsx
-const [count, setCount] = useState(0)
+Let’s break down everything step by step.
 
-// then in a click event handler or something:
-setCount(count + 1)
+---
 
-// but this is the exact same thing:
-setCount(previousCount => previousCount + 1)
-```
+## 🧱 Phase 1: Managing Game State with `useState`
 
-Because there are two ways to do the same thing, it's nice to know why/when
-you'd use one over the other. Here's the "rule":
-
-**If your new value for state is calculated based on the previous value of
-state, use the function form. Otherwise, either works fine.**
-
-For a deeper dive on this, read
-[useState lazy initialization and function updates](https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates).
-
-This one's a bit tougher than some of the other exercises, so make sure you're
-well hydrated and do a bit of stretching before starting this.
-# setState callback
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/setstate-callback" />
-
-👨‍💼 Our users want to play tic-tac-toe.
-
-<callout-info class="aside">
-	If you've gone through React's official tutorial, this was originally lifted
-	from that.
-</callout-info>
-
-You're going to need some managed state and some derived state. Remember from
-exercise 1:
-
-- **Managed State:** State that you need to explicitly manage
-- **Derived State:** State that you can calculate based on other state
-
-`squares` is the managed state and it's the state of the board in a
-single-dimensional array:
-
-```
-[
-  'X', 'O', 'X',
-  'X', 'O', 'O',
-  'X', 'X', 'O'
-]
-```
-
-This will start out as an empty array because it's the start of the game.
-
-`nextValue` will be either the string `X` or `O` and is derived state which you
-can determine based on the value of `squares`. We can determine whose turn it is
-based on how many "X" and "O" squares there are. We've written this out for you
-in a `calculateNextValue` function in the `tic-tac-toe-utils.tsx` file.
-
-`winner` will be either the string `X` or `O` and is derived state which can
-also be determined based on the value of `squares` and we've provided a
-`calculateWinner` function you can use to get that value.
-
-If you want to try this exercise on beast mode then you can ignore
-`calculateNextValue` and `calculateWinner` and write your own version of those
-utilities.
-
-Another important thing you'll need to do for this step of the exercise is to
-use the callback version of `setState` to ensure that the state is updated
-correctly. This is because the state is updated based on the previous state and
-you want to make sure that you're always using the most up-to-date state.
+To start, we manage our game board using `useState`. Instead of using a 2D array, we 
+use a 1D array with 9 slots (like a flat 3x3 grid):
 
 ```tsx
-setCount(currentCount => {
-	return currentCount + 1
+const [squares, setSquares] = useState(Array(9).fill(null))
+```
+
+Each square can be `"X"`, `"O"`, or `null`.
+
+### ✅ Functional Updates with `setState`
+
+```tsx
+setCount(count + 1) 
+// ✅ becomes:
+setCount(prevCount => prevCount + 1)
+```
+
+> 🧠 **Rule of Thumb**:
+> Use the **function form** of `setState` when the next state depends on the **previous state**.
+
+---
+
+## 🧠 Phase 2: Derived State – `nextValue` and `winner`
+
+Some values in your app don’t need to be stored explicitly. Instead, you **derive** them from existing state:
+
+### `nextValue`
+
+```tsx
+function calculateNextValue(squares) {
+  const xCount = squares.filter(s => s === 'X').length
+  const oCount = squares.filter(s => s === 'O').length
+  return xCount === oCount ? 'X' : 'O'
+}
+```
+
+### `winner`
+
+This is derived using a helper:
+
+```tsx
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6],
+  ]
+  for (const [a, b, c] of lines) {
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a]
+    }
+  }
+  return null
+}
+```
+
+---
+
+## 💾 Phase 3: Persist State in `localStorage`
+
+We want to make sure that the player can **resume their game** after closing the tab.
+
+### 🎈 Lazy Initialization from `localStorage`
+
+```tsx
+const [squares, setSquares] = useState(() => {
+  const stored = window.localStorage.getItem('tic-tac-toe:squares')
+  return stored ? JSON.parse(stored) : Array(9).fill(null)
 })
 ```
 
-Finally, something you need to know about state in React is it's important that
-you not mutate state directly. So instead of setting `squares[0] = 'X'` you will
-need to make a copy of the array with the modifications, for example, using
-[`with`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/with):
+Using a function here means this runs only once — during the initial render.
+
+### 🔁 Save to `localStorage` on Updates
 
 ```tsx
-const newSquares = squares.with(index, 'X')
+useEffect(() => {
+  window.localStorage.setItem('tic-tac-toe:squares', JSON.stringify(squares))
+}, [squares])
 ```
 
-The emoji should guide you well! Enjoy the exercise!
-# Preserve State in localStorage
+> ✅ This keeps our `localStorage` in sync every time the board updates.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/preserve-state-in-localstorage" />
+---
 
-👨‍💼 Our customers want to be able to close the tab in the middle of a game and
-then resume the game later. Can you store the game's state in `localStorage`?
+## 🧭 Phase 4: Add Game History ("Time Travel")
 
-I think you can! You're going to need to use `useEffect` to coordinate things
-with `localStorage`. Luckily for us, `localStorage` is synchronous, so
-initializing our state from `localStorage` is straightforward (you should
-definitely use the callback form of `useState` for initialization though!).
+Now comes the fun part — implementing game history so users can:
 
-For keeping the squares up-to-date in `localStorage`, you'll want to use
-`useEffect` with a dependency array that includes the squares.
+* Go back to previous moves
+* Replay the game
+* Modify past turns
 
-📜 If you need to learn a bit about the `localStorage` API, you can check out the
-[MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
-
-<callout-warning>
-	🚨 Note this exercise depends on `localStorage` and so the tests could
-	interfer with your work by changing the `localStorage` you're working with.
-</callout-warning>
-# Add Game History Feature
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/add-game-history-feature" />
-
-👨‍💼 Sometimes users are playing tic-tac-toe against their children and their kids
-want to change their move when they lose 😆 So we're going to add a feature that
-allows users to go backward through the game and change moves.
-
-As usual, you can check <Link to=".?preview=solution">the solution</Link> to
-check what the final experience should be like.
-
-🧝‍♂️ I made a couple changes you can <DiffLink app1={-1} app2={0}>check here</DiffLink> if
-you'd like. I mostly just refactored things a bit to get it ready for your work.
-Should be a fun feature to add! Enjoy!
+### 📚 Store All Past States
 
 ```tsx
-import { useEffect, useState } from 'react'
-import { createRoot } from 'react-dom/client'
-import {
-	calculateNextValue,
-	calculateStatus,
-	calculateWinner,
-	isValidGameState,
-	type GameState,
-	type Squares,
-} from '#shared/tic-tac-toe-utils'
-
-function Board({
-	squares,
-	onClick,
-}: {
-	squares: Squares
-	onClick: (index: number) => void
-}) {
-	function renderSquare(i: number) {
-		const value = squares[i]
-		const label = value ? `square ${i}, ${value}` : `square ${i} empty`
-
-		return (
-			<button className="square" onClick={() => onClick(i)} aria-label={label}>
-				{squares[i]}
-			</button>
-		)
-	}
-
-	return (
-		<div>
-			<div className="board-row">
-				{renderSquare(0)}
-				{renderSquare(1)}
-				{renderSquare(2)}
-			</div>
-			<div className="board-row">
-				{renderSquare(3)}
-				{renderSquare(4)}
-				{renderSquare(5)}
-			</div>
-			<div className="board-row">
-				{renderSquare(6)}
-				{renderSquare(7)}
-				{renderSquare(8)}
-			</div>
-		</div>
-	)
-}
-
-const defaultState: GameState = {
-	history: [Array(9).fill(null)],
-	currentStep: 0,
-}
-
-const localStorageKey = 'tic-tac-toe'
-function App() {
-	const [state, setState] = useState<GameState>(() => {
-		let localStorageValue
-		try {
-			localStorageValue = JSON.parse(
-				window.localStorage.getItem(localStorageKey) ?? 'null',
-			)
-		} catch {
-			// something is wrong in localStorage, so don't use it
-		}
-		return isValidGameState(localStorageValue)
-			? localStorageValue
-			: defaultState
-	})
-	const currentSquares = state.history[state.currentStep]
-
-	const winner = calculateWinner(currentSquares)
-	const nextValue = calculateNextValue(currentSquares)
-	const status = calculateStatus(winner, currentSquares, nextValue)
-
-	useEffect(() => {
-		window.localStorage.setItem(localStorageKey, JSON.stringify(state))
-	}, [state])
-
-	function selectSquare(index: number) {
-		if (winner || currentSquares[index]) return
-
-		setState(previousState => {
-			const { currentStep, history } = previousState
-			const newHistory = history.slice(0, currentStep + 1)
-			const squares = history[currentStep].with(index, nextValue)
-
-			return {
-				history: [...newHistory, squares],
-				currentStep: newHistory.length,
-			}
-		})
-	}
-
-	function restart() {
-		setState(defaultState)
-	}
-
-	const moves = state.history.map((_stepSquares, step) => {
-		const desc = step ? `Go to move number ${step}` : 'Go to game start'
-		const isCurrentStep = step === state.currentStep
-		return (
-			<li key={step}>
-				<button
-					onClick={() =>
-						setState(previousState => ({ ...previousState, currentStep: step }))
-					}
-					disabled={isCurrentStep}
-				>
-					{desc} {isCurrentStep ? '(current)' : null}
-				</button>
-			</li>
-		)
-	})
-
-	return (
-		<div className="game">
-			<div className="game-board">
-				<Board onClick={selectSquare} squares={currentSquares} />
-				<button className="restart" onClick={restart}>
-					restart
-				</button>
-			</div>
-			<div className="game-info">
-				<div aria-live="polite">{status}</div>
-				<ol>{moves}</ol>
-			</div>
-		</div>
-	)
-}
-
-const rootEl = document.createElement('div')
-document.body.append(rootEl)
-createRoot(rootEl).render(<App />)
+const [history, setHistory] = useState([Array(9).fill(null)])
+const [currentStep, setCurrentStep] = useState(0)
 ```
 
-```css
-.game {
-	font:
-		14px 'Century Gothic',
-		Futura,
-		sans-serif;
-	margin: 20px;
-	min-height: 260px;
-}
+### 🧮 Current Board is Derived
 
-.game ol,
-.game ul {
-	padding-left: 30px;
-}
+```tsx
+const currentSquares = history[currentStep]
+```
 
-.board-row:after {
-	clear: both;
-	content: '';
-	display: table;
-}
+You no longer manage `squares` directly. Instead, the game renders from `currentSquares`.
 
-.status {
-	margin-bottom: 10px;
-}
+### 🎯 Make a Move
 
-.restart {
-	margin-top: 10px;
-}
+```tsx
+function selectSquare(squareIndex) {
+  if (winner || currentSquares[squareIndex]) return
 
-.square {
-	background: #fff;
-	border: 1px solid #999;
-	float: left;
-	font-size: 24px;
-	font-weight: bold;
-	line-height: 34px;
-	height: 34px;
-	margin-right: -1px;
-	margin-top: -1px;
-	padding: 0;
-	text-align: center;
-	width: 34px;
-}
+  const newHistory = history.slice(0, currentStep + 1)
+  const newSquares = [...currentSquares]
+  newSquares[squareIndex] = calculateNextValue(currentSquares)
 
-.square:focus {
-	outline: none;
-	background: #ddd;
-}
-
-.game {
-	display: flex;
-	flex-direction: row;
-}
-
-.game-info {
-	margin-left: 20px;
-	min-width: 190px;
+  setHistory([...newHistory, newSquares])
+  setCurrentStep(newHistory.length)
 }
 ```
+
+This approach ensures that if the user has time-traveled back and makes a move, it **overwrites** future moves.
+
+### 🔙 Jump to a Previous Move
+
+```tsx
+function jumpTo(step) {
+  setCurrentStep(step)
+}
+```
+
+### 🧹 Reset Game
+
+```tsx
+function restart() {
+  setHistory([Array(9).fill(null)])
+  setCurrentStep(0)
+  window.localStorage.removeItem('tic-tac-toe:squares')
+}
+```
+
+---
+
+## 🖥️ UI: Time Travel Buttons
+
+```tsx
+<ul>
+  {history.map((_, step) => (
+    <li key={step}>
+      <button disabled={step === currentStep} onClick={() => jumpTo(step)}>
+        {step === 0 ? 'Go to game start' : `Go to move #${step}`}
+      </button>
+    </li>
+  ))}
+</ul>
+```
+
+This list gives players full control over the move timeline.
+
+---

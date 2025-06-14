@@ -1,321 +1,195 @@
 ---
-title: "React Hooks 4: DOM Side-Effects"
+title: "React Hooks: DOM Side-Effects"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactHooks']
-date: 2024-05-14
+date: 2025-06-13
 thumbnail: image.jpg
 featured: true
 ---
 
-# DOM Side-Effects
+Working with the DOM is inevitable in real-world React applications. Whether 
+you're integrating with third-party libraries or managing focus accessibility,
+knowing **how to interact with the DOM correctly in React** is a must-have skill.
 
-Often when working with React you'll need to interact with the DOM directly. You
-may need to use a vanilla-js (non-framework-specific) library that needs to
-interact directly with the DOM. Often to make a UI accessible you need to
-consider focus management requiring you to call `.focus()` on an input.
+In this post, we’ll walk through key concepts like:
 
-Remember that when you do: `<div>hi</div>` that's actually syntactic sugar for a
-`React.createElement` so you don't actually have access to DOM nodes in your
-render method. In fact, DOM nodes aren't created at all until the
-`ReactDOM.createRoot().render()` method is called. Your component's render
-method is really just responsible for creating and returning React Elements and
-has nothing to do with the DOM in particular.
+* React's rendering model
+* DOM side-effects
+* `ref` usage patterns
+* `useEffect` with dependency arrays
+* Primitive vs. object dependencies
 
-So to get access to the DOM, you need to ask React to give you access to a
-particular DOM node when it renders your component. The way this happens is
-through a special prop called `ref`.
+Let’s dive in. 🏊‍♂️
 
-There are two ways to use the `ref` prop. A callback and the `useRef` hook.
+## 🏗️ React Elements vs. DOM Elements
 
-**ref callback:**
+When you write:
 
-The simplest way is to use the `ref` prop is by passing a callback:
+```jsx
+<div>Hello</div>
+```
+
+This is not a DOM element — it's **React Element syntax**, which eventually gets converted using:
+
+```js
+React.createElement('div', null, 'Hello')
+```
+
+React elements describe **what the UI should look like**, but **they aren’t real DOM nodes** 
+until `ReactDOM.createRoot().render()` is called.
+
+👉 This means you can't access DOM nodes directly in the render phase. 
+Instead, you need to use **refs**.
+
+## ref
+
+React provides a special prop called `ref` to access real DOM nodes after 
+they are rendered. There are two primary patterns:
+
+### 1. 🔁 Ref Callback (Preferred for Simple Use)
 
 ```tsx
 function MyDiv() {
-	return (
-		<div
-			ref={myDiv => {
-				console.log(`here's my div!`, myDiv)
-				return function cleanup() {
-					console.log(`my div is getting removed from the page!`, myDiv)
-				}
-			}}
-		>
-			Hey, this is my div!
-		</div>
-	)
+  return (
+    <div
+      ref={node => {
+        console.log("Here's my div!", node)
+        return () => console.log("Cleaning up", node)
+      }}
+    >
+      Hello from my div!
+    </div>
+  )
 }
 ```
 
-This is the preferred approach.
+⚠️ TypeScript may warn you that `node` can be `null`. You can safely check that before acting.
 
-<callout-warning>
-	For backward compatibility reasons, TypeScript will tell you that myDiv can be
-	a `HTMLDivElement` or `null`. So you may need to handle the `null` case
-	(normally, just return early). In the future, it will never be `null`.
-</callout-warning>
-
-**ref object:**
-
-For a more complex use case (like you need to interact with the DOM after the
-initial render) you can use the `useRef` hook.
-
-Here's a simple example of using the `ref` prop with `useRef`:
+### 2. 📦 Ref Object (Using `useRef` Hook)
 
 ```tsx
+import { useRef, useEffect } from 'react'
+
 function MyDiv() {
-	const myDivRef = useRef<HTMLDivElement>(null)
-	useEffect(() => {
-		const myDiv = myDivRef.current
-		// myDiv is the div DOM node!
-		console.log(myDiv)
-	}, [])
-	return <div ref={myDivRef}>hi</div>
+  const divRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    console.log(divRef.current) // The actual DOM node!
+  }, [])
+
+  return <div ref={divRef}>Hi</div>
 }
 ```
 
-The benefit of this API over the `ref` callback approach is that you can
-store the ref object in a variable and safely access it later within a
-`useEffect` callback or event handlers.
+This pattern is powerful when you need to access the DOM in `useEffect`, 
+event handlers, or other logic **after initial render**.
 
-After the component has been rendered, it's considered "mounted." That's when
-the useEffect callback is called and so by that point, the ref should have
-its `current` property set to the DOM node. So often you'll do direct DOM
-interactions/manipulations in the `useEffect` callback.
+🧠 `useRef` gives you a **mutable object** with a `.current` property that 
+persists across renders — but updating it **does not cause a re-render**.
 
-Every element has a special `ref` prop (as shown above). You pass a ref to that
-prop and React will give you a reference to the thing that's created for that
-element.
+## 💡 Real-World Example: Using `vanilla-tilt`
 
-You can also pass `ref` to a function component and that component can forward
-the `ref` onto another element, or it can add handy methods onto it using
-`useImperativeHandle` which we'll cover in the "Advanced React APIs" workshop.
+Imagine you want to use [`vanilla-tilt`](https://micku7zu.github.io/vanilla-tilt.js/) 
+to add some fancy tilt effects to a div.
 
-📜 Learn more about `useRef` from the docs:
-https://react.dev/reference/react/useRef
-
-🦉 Note, sometimes the DOM interaction will make observable changes to the UI.
-In those cases you'll want to use `useLayoutEffect` and we cover that in the
-"Advanced React APIs" workshop.
-
-🦉 A ref is basically state that's associated to a React component that will not
-trigger a rerender when changed. So you can store whatever you'd like in a ref,
-not just DOM nodes.
-
-Keep in mind, React can't track when you change a ref value. That's part of it's
-appeal in some cases and it can cause trouble in others. You'll develop the
-intuition of when to use which over time, but in general it's best to start with
-state if you're unsure and then move to a ref if you decide you don't want a
-rerender when it's updated. We'll dive deeper into non-DOM refs in future
-workshops.
-# Dependencies
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/dependencies" />
-
-👨‍💼 Our users wanted to be able to control `vanilla-tilt` a bit. Some of them
-like the speed and glare to look different. So Kellie 🧝‍♂️ added a form that will
-allow them to control those values. This is working great, but something we
-noticed is the tilt effect is getting reset whenever you click the count button!
-
-🦉 The reason this happens is because the ref callback is called every time the
-component is rendered (and the cleanup runs between renders). So we're
-re-initializing the tilt effect on every render.
-
-👨‍💼 This is inefficient and it's a jarring experience if the user clicks on the
-corner of the count button. We want the effect to only re-initialize when the
-options change.
-
-The trick is we want the effect to re-initialize when the `vanillaTiltOptions`
-change, but nothing else. So we can use `useEffect` to do that:
+Here’s how you can do it:
 
 ```tsx
-useEffect(
-	() => {
-		// set up stuff
-		return function cleanup() {
-			// clean up stuff
-		}
-	},
-	// depend on stuff:
-	[],
-)
-```
-
-🦉 React needs to know when it needs to run your effect callback function again.
-We do this using the dependency array which is the second argument to
-`useEffect`. Whenever values in that array changes, React will call the returned
-cleanup function and then invoke the effect callback again.
-
-By default, if you don't provide a second argument, `useEffect` runs after every
-render (similar to what we're currently experiencing with the `ref` callback).
-While this is probably the right default for correctness, it's far from optimal
-in most `useEffect` cases. If you're not careful, it's easy to end up with
-infinite loops (imagine if you're calling `setState` in the effect which
-triggers another render, which calls the effect, which calls `setState` and so
-on).
-
-👨‍💼 So what we need to do in this step is move our `ref` callback stuff to
-`useEffect`, create a `useRef` so we can access the DOM node in the `useEffect`
-callback, and let React know that our effect callback depends on the
-`vanillaTiltOptions` the user is providing. Let's do that by passing the
-`vanillaTiltOptions` in the dependency array.
-
-<callout-warning class="aside">
-	You'll notice an issue when you've finished this step. If you click the button
-	to increment the count, the tilt effect is still reset! We'll fix this in the
-	next step.
-</callout-warning>
-# Primitive Dependencies
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/primitive-dependencies" />
-
-👨‍💼 Our users are annoyed. Whenever they click the incrementing button in the
-middle, the tilt effect is reset. You can reproduce this more easily by clicking
-one of the corners of the button.
-
-Moving things into a `useEffect` was supposed to help this because we can be
-explicit about which dependencies trigger the `cleanup` and effect to be run
-again. But we're still having the problem.
-
-If you add a `console.log` to the `useEffect`, you'll notice that it runs even
-when the button is clicked, even if the actual options are unchanged. The reason
-is because the `options` object actually _did_ change! This is because the
-`options` object is a new object every time the component renders. This is
-because of the way we're using the `...` spread operator to collect the options
-into a single (brand new) object. This means that the dependency array will
-always be different and the effect will always run!
-
-`useEffect` iterates through each of our dependencies and checks whether they
-have changed and it uses `Object.is` to do so (this is effectively the same
-as `===`). This means that even if two objects have the same properties, they
-will not be considered equal if they are different objects.
-
-```tsx
-const options1 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
-const options2 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
-Object.is(options1, options2) // false!!
-```
-
-So the easiest way to fix this is by switching from using an object to using the
-primitive values directly. This way, the dependency array will only change when
-the actual values change.
-
-So please update the `useEffect` to use the primitive values directly. Thanks!
-
-```tsx
-import { useEffect, useRef, useState } from 'react'
-import { createRoot } from 'react-dom/client'
 import VanillaTilt from 'vanilla-tilt'
 
-interface HTMLVanillaTiltElement extends HTMLDivElement {
-	vanillaTilt?: VanillaTilt
+function Tilt({ children }) {
+  const tiltRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const node = tiltRef.current
+    if (!node) return
+
+    VanillaTilt.init(node, {
+      max: 25,
+      speed: 400,
+      glare: true,
+      'max-glare': 0.5,
+    })
+
+    return () => node.vanillaTilt?.destroy()
+  }, [])
+
+  return <div ref={tiltRef}>{children}</div>
 }
-
-function Tilt({
-	children,
-	max = 25,
-	speed = 400,
-	glare = true,
-	maxGlare = 0.5,
-}: {
-	children: React.ReactNode
-	max?: number
-	speed?: number
-	glare?: boolean
-	maxGlare?: number
-}) {
-	const tiltRef = useRef<HTMLVanillaTiltElement>(null)
-
-	useEffect(() => {
-		const { current: tiltNode } = tiltRef
-		if (!tiltNode) return
-		const vanillaTiltOptions = {
-			max,
-			speed,
-			glare,
-			'max-glare': maxGlare,
-		}
-		VanillaTilt.init(tiltNode, vanillaTiltOptions)
-		return () => tiltNode.vanillaTilt?.destroy()
-	}, [glare, max, maxGlare, speed])
-
-	return (
-		<div ref={tiltRef} className="tilt-root">
-			<div className="tilt-child">{children}</div>
-		</div>
-	)
-}
-
-function App() {
-	const [showTilt, setShowTilt] = useState(true)
-	const [count, setCount] = useState(0)
-	const [options, setOptions] = useState({
-		max: 25,
-		speed: 400,
-		glare: true,
-		maxGlare: 0.5,
-	})
-	return (
-		<div>
-			<button onClick={() => setShowTilt(s => !s)}>Toggle Visibility</button>
-			{showTilt ? (
-				<div className="app">
-					<form
-						onSubmit={e => e.preventDefault()}
-						onChange={event => {
-							const formData = new FormData(event.currentTarget)
-							setOptions({
-								max: Number(formData.get('max')),
-								speed: Number(formData.get('speed')),
-								glare: formData.get('glare') === 'on',
-								maxGlare: Number(formData.get('maxGlare')),
-							})
-						}}
-					>
-						<div>
-							<label htmlFor="max">Max:</label>
-							<input id="max" name="max" type="number" defaultValue={25} />
-						</div>
-						<div>
-							<label htmlFor="speed">Speed:</label>
-							<input id="speed" name="speed" type="number" defaultValue={400} />
-						</div>
-						<div>
-							<label>
-								<input id="glare" name="glare" type="checkbox" defaultChecked />
-								Glare
-							</label>
-						</div>
-						<div>
-							<label htmlFor="maxGlare">Max Glare:</label>
-							<input
-								id="maxGlare"
-								name="maxGlare"
-								type="number"
-								defaultValue={0.5}
-							/>
-						</div>
-					</form>
-					<br />
-					<Tilt {...options}>
-						<div className="totally-centered">
-							<button
-								className="count-button"
-								onClick={() => setCount(c => c + 1)}
-							>
-								{count}
-							</button>
-						</div>
-					</Tilt>
-				</div>
-			) : null}
-		</div>
-	)
-}
-
-const rootEl = document.createElement('div')
-document.body.append(rootEl)
-createRoot(rootEl).render(<App />)
 ```
+
+This approach ensures the DOM is available before initializing the effect, 
+and it cleans up properly when the component unmounts.
+
+## Dependency Arrays
+
+Now let’s say we allow users to customize `speed` and `glare`. We might write:
+
+```tsx
+const options = {
+  max: 25,
+  speed: speed,
+  glare: true,
+  'max-glare': glare,
+}
+
+useEffect(() => {
+  VanillaTilt.init(ref.current, options)
+  return () => ref.current.vanillaTilt?.destroy()
+}, [options]) // ⚠️ BAD!
+```
+
+🚨 Problem: Even when `speed` and `glare` are unchanged, `options` 
+is a **new object** every render — triggering the effect again.
+
+```js
+Object.is({ speed: 400 }, { speed: 400 }) // false
+```
+
+---
+
+## Primitive Dependencies
+
+Destructure the values and use **primitives directly** in the dependency array:
+
+```tsx
+useEffect(() => {
+  const node = tiltRef.current
+  if (!node) return
+
+  VanillaTilt.init(node, {
+    max: 25,
+    speed,
+    glare: true,
+    'max-glare': glare,
+  })
+
+  return () => node.vanillaTilt?.destroy()
+}, [speed, glare])
+```
+
+Now, the effect will only run if the actual **primitive values** change.
+
+---
+
+## 🧠 Final Thoughts
+
+### When to Use `ref`?
+
+Use `ref` when:
+
+* You need to interact with the DOM (focus, measure, scroll, etc.)
+* You're integrating with a non-React library that needs a DOM node.
+
+### When to Use `useEffect`?
+
+Use `useEffect` to:
+
+* Perform side-effects like subscriptions, DOM manipulation, or API calls.
+* Clean up when the component unmounts or before re-running effects.
+
+### Be Mindful of Dependencies
+
+* Use **primitive values** in dependency arrays when possible.
+* Avoid depending on **new object literals** unless memoized with `useMemo`.
