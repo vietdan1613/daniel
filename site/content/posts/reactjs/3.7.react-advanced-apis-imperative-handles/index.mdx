@@ -1,0 +1,187 @@
+---
+title: "Advanced React APIs: Imperative Handles"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-22
+thumbnail: image.jpg
+featured: true
+---
+
+React encourages a **declarative** way of building UIs, where you describe *what* you want to happen and let React figure out *how* to do it. But sometimes, especially when working with low-level DOM behaviors, you might need a way to imperatively interact with a child component. That’s where **imperative handles** and the `useImperativeHandle` hook come in handy.
+
+In this post, you’ll learn:
+
+* Why and when to use imperative handles
+* How `useImperativeHandle` works
+* A real-world example using a `Scrollable` component
+* Why imperative code should be your last resort
+
+---
+
+## 🧠 What’s an Imperative Handle?
+
+Sometimes a parent component needs to directly interact with a child — like focusing an input or triggering a scroll — from outside the child’s render cycle.
+
+To do that, you pass a **ref** to the child and let the child expose specific methods on that ref. These methods allow the parent to imperatively control the child without breaking React’s render model.
+
+---
+
+## 🧪 Basic Example: Focus an Input Imperatively
+
+Let’s look at an example where we want to focus an input element when a button is clicked:
+
+### ❌ The “Ref Assignment” Way (Not Recommended)
+
+```tsx
+type InputAPI = { focusInput: () => void }
+
+function MyInput({
+  ref,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  ref: React.RefObject<InputAPI>
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  ref.current = {
+    focusInput: () => inputRef.current?.focus(),
+  }
+
+  return <input ref={inputRef} {...props} />
+}
+```
+
+This works… **but** it has some problems:
+
+* Breaks with **concurrent features** (e.g. React Suspense)
+* Doesn’t support **callback refs**
+* Might behave inconsistently across re-renders
+
+👉 That’s why React provides the `useImperativeHandle` hook.
+
+---
+
+## ✅ The Right Way: `useImperativeHandle`
+
+```tsx
+import React, { useRef, useImperativeHandle, forwardRef } from 'react'
+
+type InputAPI = { focusInput: () => void }
+
+const MyInput = forwardRef<InputAPI, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    focusInput: () => inputRef.current?.focus(),
+  }), []) // no need to include refs in dependencies
+
+  return <input ref={inputRef} {...props} />
+})
+```
+
+### ✅ Benefits:
+
+* Works well with concurrent features
+* Supports callback refs
+* Safe and clean
+
+---
+
+## 🧙 Real-World Challenge: Scrollable Content
+
+Imagine we have a `Scrollable` component that wraps a div with a lot of content. It has two functions: `scrollToTop()` and `scrollToBottom()`, and we want to expose them to a parent component.
+
+### 🎯 Goal:
+
+Use `useImperativeHandle` to let the parent call `scrollToTop()` and `scrollToBottom()` via a ref.
+
+### 🧩 Step-by-Step Solution:
+
+```tsx
+import React, { useRef, useImperativeHandle, forwardRef } from 'react'
+
+type ScrollableAPI = {
+  scrollToTop: () => void
+  scrollToBottom: () => void
+}
+
+const Scrollable = forwardRef<ScrollableAPI>((_, ref) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  function scrollToTop() {
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function scrollToBottom() {
+    containerRef.current?.scrollTo({ top: containerRef.current.scrollHeight, behavior: 'smooth' })
+  }
+
+  useImperativeHandle(ref, () => ({
+    scrollToTop,
+    scrollToBottom,
+  }))
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc' }}
+    >
+      {/* Lots of content here */}
+      {Array.from({ length: 50 }, (_, i) => (
+        <p key={i}>Line {i + 1}</p>
+      ))}
+    </div>
+  )
+})
+```
+
+### 🚀 Using the Component in `App`
+
+```tsx
+function App() {
+  const scrollableRef = useRef<ScrollableAPI>(null)
+
+  return (
+    <div>
+      <button onClick={() => scrollableRef.current?.scrollToTop()}>Scroll to Top</button>
+      <button onClick={() => scrollableRef.current?.scrollToBottom()}>Scroll to Bottom</button>
+      <Scrollable ref={scrollableRef} />
+    </div>
+  )
+}
+```
+
+---
+
+## 📌 Don’t Overuse `useImperativeHandle`
+
+React is designed to be **declarative**, and imperative code can:
+
+* Be harder to read and test
+* Introduce side effects outside the React lifecycle
+* Lead to tightly coupled components
+
+> ✅ Before reaching for `useImperativeHandle`, ask:
+> *Can I achieve this declaratively?*
+> If the answer is no — and the case involves DOM control like focus, scroll, or animation triggers — then go ahead.
+
+📚 Further Reading:
+
+* [Why you shouldn’t put refs in a dependency array](https://epicreact.dev/why-you-shouldnt-put-refs-in-a-dependency-array)
+* [Imperative vs Declarative Programming](https://tylermcginnis.com/imperative-vs-declarative-programming/)
+
+---
+
+## 🧠 Summary
+
+* `useRef` holds a mutable object across renders
+* `useImperativeHandle` lets child components expose functions to parent via `ref`
+* `forwardRef` is required to pass the ref to the child
+* Use this only when absolutely necessary
+
+Imperative handles give you powerful control — use them wisely.
+
+---
+
+

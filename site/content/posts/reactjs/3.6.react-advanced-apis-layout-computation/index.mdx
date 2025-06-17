@@ -1,528 +1,119 @@
 ---
-title: "Advanced React APIs 6: Layout Computation"
+title: "Advanced React APIs: Layout Computation"
 category: React JS
 author: Daniel Nguyen
 tags: ['#React']
-date: 2024-05-26
+date: 2025-06-21
 thumbnail: image.jpg
 featured: true
 ---
 
-# Layout Computation
+When building modern UIs with React, layout matters. A lot. In some cases, your UI needs to *measure* the size or position of an element **before** rendering it the right way. Think about dropdowns, tooltips, or popovers—they often need to know where they are on the page **before** deciding where to render.
 
-Sometimes you need to compute the layout of some UI before it is actually
-displayed. This is often necessary if the size, position, or location of your UI
-depends on the size, position, or location of the other elements on the page or
-even itself (like the contents of a tooltip).
+But what happens when you can’t know the layout until *after* the DOM is painted?
 
-The trouble is, sometimes you don't know the size, position, or location of the
-other elements on the page until the layout has been computed. So what happens
-is you render the UI, then you make your measurements, then you re-render the UI
-with the new measurements. This is inefficient and can cause flickering.
+That’s where layout computation—and `useLayoutEffect`—comes into play.
 
-To avoid this problem in React, you can use the `useLayoutEffect` hook. This
-hook is designed with this specific use case in mind and is not a hook you'll
-find yourself needing very often.
+---
 
-It literally has the same API as `useEffect`, but it runs synchronously after
-the DOM has been updated. You may recall from the `useEffect` exercise, the
-[React flow diagram](https://github.com/donavon/hook-flow):
+## 📐 What Is Layout Computation?
 
-![React Flow diagram showing mount, update, unmount](/hook-flow.png)
+Layout computation is the process of measuring the dimensions or position of UI elements *before* displaying them correctly on the screen. For example:
 
-The `useLayoutEffect` hook runs after the DOM has been updated but before the
-browser has had a chance to paint the screen. This means you can make your
-measurements and then render the UI with the correct measurements before the
-user sees anything.
+* A tooltip should appear **above** or **below** the target element depending on available space.
+* A modal or popover should be centered based on the viewport size.
+* A list should scroll to the right item after mount.
 
-# useLayoutEffect
+These measurements need to happen **before** the browser paints the screen. Otherwise, you'll get what's known as **flickering**—the component is rendered incorrectly at first, then "jumps" to the correct position once the measurements are in.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-apis/uselayouteffect" />
+---
 
-👨‍💼 Our tooltip is great, but we do need to make measurements when we display it.
-We do this in a `useEffect` hook now with code like this:
+## 🐛 What Causes UI Flickering?
+
+Imagine you render a tooltip based on the target element’s position:
 
 ```tsx
 useEffect(() => {
-	const rect = ref.current?.getBoundingClientRect()
-	if (!rect) return
-	const { height } = rect
-	setTooltipHeight(height)
+  const rect = ref.current?.getBoundingClientRect()
+  if (!rect) return
+  const { height } = rect
+  setTooltipHeight(height)
 }, [])
 ```
 
-That `height` is used to determine whether the tooltip should appear above or
-below the target element (the heart in our case).
+At first glance, this looks fine. But `useEffect` runs **after** the screen is painted. So on low-end devices or slower environments, users might briefly see the tooltip in the wrong place (say, below the element), before it repositions itself (to above).
 
-Kellie 🧝‍♂️ noticed on low-end devices, they're seeing a little flicker
-so <PrevDiffLink>she's added</PrevDiffLink> an arbitrary slowdown to our
-component to simulate that problem. To reproduce the problem, simply hover over
-a heart and you'll notice it starts at the bottom of the heart and then flickers
-to the top (if there's room on the top of the heart).
+This creates a visual flicker that affects user experience.
 
-So your job is simple. Change `useEffect` to `useLayoutEffect` and that should
-fix things.
+---
 
-📜 Parts of this exercise was lifted from [the React docs](https://react.dev/reference/react/useLayoutEffect#measuring-layout-before-the-browser-repaints-the-screen)
+## 💊 The Fix: `useLayoutEffect`
 
-📜 Learn more about the difference between `useEffect` and `useLayoutEffect` in
-[useEffect vs useLayoutEffect](https://kentcdodds.com/blog/useeffect-vs-uselayouteffect).
-
-## form.tsx
+The fix is simple: switch from `useEffect` to `useLayoutEffect`.
 
 ```tsx
-import { getQueryParam, useSearchParams } from './params'
-
-export function Form() {
-	const [searchParams, setSearchParams] = useSearchParams()
-	const query = getQueryParam(searchParams)
-
-	const words = query.split(' ').map((w) => w.trim())
-
-	const dogChecked = words.includes('dog')
-	const catChecked = words.includes('cat')
-	const caterpillarChecked = words.includes('caterpillar')
-
-	function handleCheck(tag: string, checked: boolean) {
-		const newWords = checked ? [...words, tag] : words.filter((w) => w !== tag)
-		setSearchParams(
-			{ query: newWords.filter(Boolean).join(' ').trim() },
-			{ replace: true },
-		)
-	}
-
-	return (
-		<form onSubmit={(e) => e.preventDefault()}>
-			<div>
-				<label htmlFor="searchInput">Search:</label>
-				<input
-					id="searchInput"
-					name="query"
-					type="search"
-					value={query}
-					onChange={(e) =>
-						setSearchParams({ query: e.currentTarget.value }, { replace: true })
-					}
-				/>
-			</div>
-			<div>
-				<label>
-					<input
-						type="checkbox"
-						checked={dogChecked}
-						onChange={(e) => handleCheck('dog', e.currentTarget.checked)}
-					/>{' '}
-					🐶 dog
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={catChecked}
-						onChange={(e) => handleCheck('cat', e.currentTarget.checked)}
-					/>{' '}
-					🐱 cat
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={caterpillarChecked}
-						onChange={(e) =>
-							handleCheck('caterpillar', e.currentTarget.checked)
-						}
-					/>{' '}
-					🐛 caterpillar
-				</label>
-			</div>
-		</form>
-	)
-}
+useLayoutEffect(() => {
+  const rect = ref.current?.getBoundingClientRect()
+  if (!rect) return
+  const { height } = rect
+  setTooltipHeight(height)
+}, [])
 ```
 
-## index.css
+Here’s what makes `useLayoutEffect` powerful:
 
-```css
-html,
-body {
-	margin: 0;
-}
+* It **runs synchronously** after the DOM has been updated.
+* It **blocks the browser** from painting until your code runs.
+* You can **safely measure layout** and apply styles **before** the user sees anything.
 
-.app {
-	margin: 40px auto;
-	max-width: 1024px;
-	form {
-		text-align: center;
-	}
-}
+This small change eliminates flickering by ensuring the UI is in its final position *before* the screen updates.
 
-.post-list {
-	list-style: none;
-	padding: 0;
-	display: flex;
-	gap: 20px;
-	flex-wrap: wrap;
-	justify-content: center;
-	li {
-		position: relative;
-		border-radius: 0.5rem;
-		overflow: hidden;
-		border: 1px solid #ddd;
-		width: 320px;
-		transition: transform 0.2s ease-in-out;
-		a {
-			text-decoration: none;
-			color: unset;
-		}
+---
 
-		&:hover,
-		&:has(*:focus),
-		&:has(*:active) {
-			transform: translate(0px, -6px);
-		}
+## ⚖️ `useEffect` vs `useLayoutEffect`
 
-		.post-image {
-			display: block;
-			width: 100%;
-			height: 200px;
-		}
+| Feature             | `useEffect`                        | `useLayoutEffect`                           |
+| ------------------- | ---------------------------------- | ------------------------------------------- |
+| Timing              | After the paint                    | Before the paint                            |
+| Use case            | Async data, logging, subscriptions | Measuring layout, synchronously reading DOM |
+| Performance concern | Doesn’t block rendering            | Might delay painting                        |
+| Common usage        | Most side effects                  | Rare, layout-specific effects               |
 
-		button {
-			position: absolute;
-			font-size: 1.5rem;
-			top: 20px;
-			right: 20px;
-			background: transparent;
-			border: none;
-			outline: none;
-			&:hover,
-			&:focus,
-			&:active {
-				animation: pulse 1.5s infinite;
-			}
-		}
+So, unless you're dealing with **layout-based** side effects, prefer `useEffect`. But when measurements and positions matter—like with tooltips—`useLayoutEffect` is your friend.
 
-		a {
-			padding: 10px 10px;
-			display: flex;
-			gap: 8px;
-			flex-direction: column;
-			h2 {
-				margin: 0;
-				font-size: 1.5rem;
-				font-weight: bold;
-			}
-			p {
-				margin: 0;
-				font-size: 1rem;
-				color: #666;
-			}
-		}
-	}
-}
+---
 
-@keyframes pulse {
-	0% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.3);
-	}
-	100% {
-		transform: scale(1);
-	}
-}
+## 💡 A Real Example: Tooltip Positioning
 
-.tooltip-container {
-	position: absolute;
-	pointer-events: none;
-	left: 0;
-	top: 0;
-	transform: translate3d(var(--x), var(--y), 0);
-	z-index: 10;
-}
+In the [Epic React](https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-layout-computation) workshop, there's a tooltip that sometimes flickers. Here's what happens:
 
-.tooltip {
-	color: white;
-	background: #222;
-	border-radius: 4px;
-	padding: 4px;
-}
-```
+1. Tooltip first renders **below** the heart icon.
+2. After measuring, it realizes there's space **above**, and jumps up.
+3. That *jump* causes a distracting flicker.
 
-## index.tsx
+By switching to `useLayoutEffect`, the measurement is complete before the screen is painted, so the tooltip just appears in the right place—**no flicker**.
 
-```tsx
-import * as ReactDOM from 'react-dom/client'
-import { Form } from './form'
-import { SearchParamsProvider } from './params'
-import { MatchingPosts } from './posts'
+---
 
-export function App() {
-	return (
-		<SearchParamsProvider>
-			<div className="app">
-				<Form />
-				<MatchingPosts />
-			</div>
-		</SearchParamsProvider>
-	)
-}
+## 📚 Resources
 
-const rootEl = document.createElement('div')
-document.body.append(rootEl)
-ReactDOM.createRoot(rootEl).render(<App />)
-```
+* 📘 [React Docs – useLayoutEffect](https://react.dev/reference/react/useLayoutEffect)
+* 🧵 [Blog: `useEffect` vs `useLayoutEffect`](https://kentcdodds.com/blog/useeffect-vs-uselayouteffect)
+* 🎥 [Epic React Advanced APIs Workshop](https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-layout-computation)
 
-## params.tsx
+---
 
-```tsx
-import { createContext, useCallback, use, useEffect, useState } from 'react'
-import { setGlobalSearchParams } from '#shared/utils'
+## ✅ Key Takeaways
 
-type SearchParamsTuple = readonly [
-	URLSearchParams,
-	typeof setGlobalSearchParams,
-]
-const SearchParamsContext = createContext<SearchParamsTuple | null>(null)
+* Use `useLayoutEffect` when your UI depends on DOM measurements before the browser paints.
+* Avoid using it unless necessary—it blocks painting and may impact performance.
+* For layout-sensitive UIs like tooltips, popovers, or modals, it's the right tool for the job.
+* For all other side effects (like fetching data), stick to `useEffect`.
 
-export function SearchParamsProvider({
-	children,
-}: {
-	children: React.ReactNode
-}) {
-	const [searchParams, setSearchParamsState] = useState(
-		() => new URLSearchParams(window.location.search),
-	)
+---
 
-	useEffect(() => {
-		function updateSearchParams() {
-			setSearchParamsState((prevParams) => {
-				const newParams = new URLSearchParams(window.location.search)
-				return prevParams.toString() === newParams.toString()
-					? prevParams
-					: newParams
-			})
-		}
-		window.addEventListener('popstate', updateSearchParams)
-		return () => window.removeEventListener('popstate', updateSearchParams)
-	}, [])
+React gives us powerful hooks, and choosing the right one makes a big difference in user experience. So next time you're debugging a mysterious flicker—ask yourself:
 
-	const setSearchParams = useCallback(
-		(...args: Parameters<typeof setGlobalSearchParams>) => {
-			const searchParams = setGlobalSearchParams(...args)
-			setSearchParamsState((prevParams) => {
-				return prevParams.toString() === searchParams.toString()
-					? prevParams
-					: searchParams
-			})
-			return searchParams
-		},
-		[],
-	)
+> Should this be in `useLayoutEffect`?
 
-	const searchParamsTuple = [searchParams, setSearchParams] as const
-
-	return (
-		<SearchParamsContext value={searchParamsTuple}>
-			{children}
-		</SearchParamsContext>
-	)
-}
-
-export function useSearchParams() {
-	const context = use(SearchParamsContext)
-	if (!context) {
-		throw new Error(
-			'useSearchParams must be used within a SearchParamsProvider',
-		)
-	}
-	return context
-}
-
-export const getQueryParam = (params: URLSearchParams) =>
-	params.get('query') ?? ''
-```
-
-## posts.tsx
-
-```tsx
-import { useState } from 'react'
-import {
-	type BlogPost,
-	generateGradient,
-	getMatchingPosts,
-} from '#shared/blog-posts'
-import { getQueryParam, useSearchParams } from './params'
-import { ButtonWithTooltip } from './tooltip'
-
-export function MatchingPosts() {
-	const [searchParams] = useSearchParams()
-	const query = getQueryParam(searchParams)
-	const matchingPosts = getMatchingPosts(query)
-
-	return (
-		<ul className="post-list">
-			{matchingPosts.map((post) => (
-				<Card key={post.id} post={post} />
-			))}
-		</ul>
-	)
-}
-
-function Card({ post }: { post: BlogPost }) {
-	const [isFavorited, setIsFavorited] = useState(false)
-	return (
-		<li>
-			{isFavorited ? (
-				<ButtonWithTooltip
-					tooltipContent="Remove favorite"
-					onClick={() => setIsFavorited(false)}
-				>
-					❤️
-				</ButtonWithTooltip>
-			) : (
-				<ButtonWithTooltip
-					tooltipContent="Add favorite"
-					onClick={() => setIsFavorited(true)}
-				>
-					🤍
-				</ButtonWithTooltip>
-			)}
-			<div
-				className="post-image"
-				style={{ background: generateGradient(post.id) }}
-			/>
-			<a
-				href={post.id}
-				onClick={(event) => {
-					event.preventDefault()
-					alert(`Great! Let's go to ${post.id}!`)
-				}}
-			>
-				<h2>{post.title}</h2>
-				<p>{post.description}</p>
-			</a>
-		</li>
-	)
-}
-```
-
-## tooltip.tsx
-
-```tsx
-import { useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-
-type Position = {
-	left: number
-	top: number
-	right: number
-	bottom: number
-}
-
-export default function Tooltip({
-	children,
-	targetRect,
-}: {
-	children: React.ReactNode
-	targetRect: Position | null
-}) {
-	const ref = useRef<HTMLDivElement | null>(null)
-	const [tooltipHeight, setTooltipHeight] = useState(0)
-
-	useLayoutEffect(() => {
-		const rect = ref.current?.getBoundingClientRect()
-		if (!rect) return
-		const { height } = rect
-		setTooltipHeight(height)
-	}, [])
-
-	let tooltipX = 0
-	let tooltipY = 0
-	if (targetRect !== null) {
-		tooltipX = targetRect.left
-		tooltipY = targetRect.top - tooltipHeight
-		if (tooltipY < 0) {
-			tooltipY = targetRect.bottom
-		}
-
-		tooltipX += window.scrollX
-		tooltipY += window.scrollY
-	}
-
-	// This artificially slows down rendering
-	let now = performance.now()
-	while (performance.now() - now < 100) {
-		// Do nothing for a bit...
-	}
-
-	return createPortal(
-		<TooltipContainer x={tooltipX} y={tooltipY} contentRef={ref}>
-			{children}
-		</TooltipContainer>,
-		document.body,
-	)
-}
-
-function TooltipContainer({
-	children,
-	x,
-	y,
-	contentRef,
-}: {
-	children: React.ReactNode
-	x: number
-	y: number
-	contentRef: React.RefObject<HTMLDivElement | null>
-}) {
-	return (
-		<div
-			className="tooltip-container"
-			style={{ '--x': `${x}px`, '--y': `${y}px` }}
-		>
-			<div ref={contentRef} className="tooltip">
-				{children}
-			</div>
-		</div>
-	)
-}
-
-export function ButtonWithTooltip({
-	tooltipContent,
-	...rest
-}: React.DetailedHTMLProps<
-	React.ButtonHTMLAttributes<HTMLButtonElement>,
-	HTMLButtonElement
-> & { tooltipContent: React.ReactNode }) {
-	const [targetRect, setTargetRect] = useState<Position | null>(null)
-	const buttonRef = useRef<HTMLButtonElement | null>(null)
-
-	function displayTooltip() {
-		const rect = buttonRef.current?.getBoundingClientRect()
-		if (!rect) return
-		setTargetRect({
-			left: rect.left,
-			top: rect.top,
-			right: rect.right,
-			bottom: rect.bottom,
-		})
-	}
-
-	const hideTooltip = () => setTargetRect(null)
-
-	return (
-		<>
-			<button
-				{...rest}
-				ref={buttonRef}
-				onPointerEnter={displayTooltip}
-				onPointerLeave={hideTooltip}
-				onFocus={displayTooltip}
-				onBlur={hideTooltip}
-			/>
-			{targetRect ? (
-				<Tooltip targetRect={targetRect}>{tooltipContent}</Tooltip>
-			) : null}
-		</>
-	)
-}
-```
+🧑‍🏫 Happy coding and layout measuring!

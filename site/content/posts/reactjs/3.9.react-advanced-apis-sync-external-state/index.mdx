@@ -1,0 +1,163 @@
+---
+title: "Advanced React APIs: Sync Exernal Store"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-24
+thumbnail: image.jpg
+featured: true
+---
+
+> “Design is not just what it looks like and feels like. Design is how it works.” – Steve Jobs
+
+In modern web development, responsive design is critical. But what happens when your app needs to *know* whether a media query matches — **in JavaScript**, not just CSS? And what if you eventually want to support **server rendering**? Let’s walk through how to build a **future-proof media query hook** using `useSyncExternalStore` — and handle SSR (Server-Side Rendering) with grace.
+
+---
+
+## 🏗️ The Problem: CSS Isn't Always Enough
+
+Sure, CSS media queries are perfect for changing layout based on screen size. But sometimes your application **logic** needs to react to the screen width — maybe to avoid rendering a component or fetch different data. That’s where JavaScript’s `window.matchMedia()` API comes in:
+
+```tsx
+const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+console.log(prefersDarkMode) // true or false
+```
+
+Great! But that alone doesn’t **reactively update** when the media query state changes. We need something more powerful.
+
+---
+
+## 🔧 Enter: `useSyncExternalStore`
+
+React introduced [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore) for exactly these kinds of external subscriptions — like `matchMedia`.
+
+Let’s build a hook that uses it, but make it **reusable** for any media query.
+
+---
+
+## 🛠️ The General Utility: `makeMediaQueryStore`
+
+We want a **factory function** that generates hooks for any media query string.
+
+```tsx
+export function makeMediaQueryStore(mediaQuery: string) {
+  const mediaQueryList = typeof window !== 'undefined'
+    ? window.matchMedia(mediaQuery)
+    : null
+
+  return function useMediaQueryMatch() {
+    return React.useSyncExternalStore(
+      (callback) => {
+        if (!mediaQueryList) return () => {}
+
+        mediaQueryList.addEventListener('change', callback)
+        return () => mediaQueryList.removeEventListener('change', callback)
+      },
+      () => mediaQueryList?.matches ?? false
+    )
+  }
+}
+```
+
+Now you can create specific hooks like this:
+
+```tsx
+const useNarrowScreen = makeMediaQueryStore('(max-width: 600px)')
+```
+
+And use it in your component:
+
+```tsx
+function App() {
+  const isNarrow = useNarrowScreen()
+  return <div>{isNarrow ? 'Narrow screen' : 'Wide screen'}</div>
+}
+```
+
+---
+
+## 🧙 Handling Server-Side Rendering (SSR)
+
+> We don’t use SSR now, but let’s **future-proof** for when we do.
+
+### The SSR Problem
+
+During SSR, there’s no access to `window.matchMedia`, so React **doesn’t know** whether the media query matches. This leads to a mismatch between server-rendered content and client-rendered hydration — and React logs a warning.
+
+### The Solution
+
+When using `useSyncExternalStore`, you normally provide a third `getServerSnapshot` argument to tell React what value to use **on the server**. But for media queries, we **can’t know** on the server — so we skip it and defer rendering using `<Suspense>`.
+
+```tsx
+<Suspense fallback="">
+  <NarrowScreenNotifier />
+</Suspense>
+```
+
+This tells React: “Don’t render anything until the client can figure it out.”
+
+---
+
+## 🧪 Simulating SSR for Testing
+
+You can simulate a server-rendered environment directly in the browser:
+
+```tsx
+const rootEl = document.createElement('div')
+document.body.append(rootEl)
+
+// Simulate SSR by pre-rendering <App />
+rootEl.innerHTML = (await import('react-dom/server')).renderToString(<App />)
+
+// Simulate JS taking time to load
+await new Promise((resolve) => setTimeout(resolve, 1000))
+
+// Hydrate the app
+ReactDOM.hydrateRoot(rootEl, <App />)
+```
+
+This mimics what a real server-rendered app would go through.
+
+---
+
+## 🧯 Cleaning Up: Recovering Gracefully from Hydration Warnings
+
+React may log this warning:
+
+```
+Warning: useSyncExternalStore does not support server rendering.
+```
+
+Even though this is expected, you can filter it out by passing `onRecoverableError` to `hydrateRoot`:
+
+```tsx
+hydrateRoot(document.getElementById('root'), <App />, {
+  onRecoverableError: (error, errorInfo) => {
+    if (error.message.includes('Missing getServerSnapshot')) return
+    console.error('Caught error', error, errorInfo.componentStack)
+  },
+})
+```
+
+Now your console won’t be spammed with unnecessary warnings.
+
+---
+
+## 🧩 Final Thoughts
+
+We’ve built a flexible and robust hook for detecting media query matches in JavaScript using `useSyncExternalStore`. By abstracting it into a utility (`makeMediaQueryStore`), your app stays modular and scalable. And by anticipating future SSR needs, your code is ready for tomorrow.
+
+### ✅ Key Takeaways:
+
+* `useSyncExternalStore` is perfect for external state like media queries.
+* You can’t safely read media queries during SSR — delay rendering with `<Suspense>`.
+* Filter hydration warnings with `onRecoverableError` to keep logs clean.
+* Always think ahead — design your hooks and utilities with SSR in mind.
+
+---
+
+🔗 **Resources**:
+
+* [React: useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore)
+* [React: Suspense](https://react.dev/reference/react/Suspense)
+* [MDN: matchMedia](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia)
