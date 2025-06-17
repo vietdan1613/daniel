@@ -1,53 +1,196 @@
 ---
-title: "React Fundamental: React Virtual DOM"
+title: "React Fundamental: Raw React APIs"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2025-05-28
+date: 2025-05-03
 thumbnail: 1image.jpg
 featured: true
 ---
 
-Updating the real DOM is slow because each change can trigger costly processes 
-like reflow and repaint. These affect layout, style, and rendering, which blocks 
-the main thread and slows down the user experience. That's why React uses the 
-Virtual DOM — to minimize direct DOM manipulation and update only what's necessary.
+**🧠 Learning React from the Ground Up: Understanding Raw React APIs**
 
-## Virtual DOM
+React is the most widely used frontend framework in the world—and it’s not just for the web. It powers mobile, desktop, VR, and even terminal interfaces. But before we get into the fancy tooling or JSX syntax, let’s take a step back and understand how React works under the hood—starting with the **raw React APIs**.
 
-The Virtual DOM is like a blueprint or copy of the real web page (the actual DOM). 
-React uses it to figure out what changed before updating the real page.
+In this post, we’ll break down the basics of React’s core building blocks and how they map to what the browser does. This foundational knowledge will make you a stronger React developer, and help demystify what’s really happening behind the scenes.
 
-![example](./1.png 'example')
+---
 
-### How does it work?
+## 🔧 React Behind the Scenes
 
-- **You update something** in your app (like typing in a box).
-- React **updates the Virtual DOM** first.
-- It finds only the **parts that changed**.
-- React updates just those parts in the real DOM — not the whole page.
+React abstracts the imperative browser APIs (like `document.createElement`) to give developers a **declarative** way to build user interfaces. This distinction between **imperative** and **declarative** programming is key to understanding why React is so powerful.
 
-## Raw React APIs
+> 🧠 **Imperative vs Declarative Programming**
+> Want to understand the difference? Check out [Imperative vs Declarative Programming](https://ui.dev/imperative-vs-declarative-programming/)
 
-It's using the same APIs that you're using when it creates DOM nodes.
-With that in mind, you need two JavaScript files to write React applications for
-the web:
+Even though React gives us a high-level API, underneath it still relies on the same low-level DOM manipulation we’re used to.
+In fact, [you can see where that happens in the React source code here](https://github.com/facebook/react/blob/fb10a2c66a923d218471b535fdaf0dbc530417ee/packages/react-dom-bindings/src/client/ReactFiberConfigDOM.js#L480).
 
-- React: responsible for creating React elements (kinda like
-  `document.createElement()`)
-- ReactDOM: responsible for rendering React elements to the DOM (kinda like
-  `rootElement.append()`)
+---
 
-Here's a simple example of how to use the React createElement API:
+## 🛠️ React vs ReactDOM
 
-```typescript
+To build a web app with React, we need two JavaScript files:
+
+* **React**: For creating *React elements* (similar to `document.createElement`)
+* **ReactDOM**: For rendering those elements into the DOM (like `appendChild`)
+
+In a real-world app, you'd usually import these from npm:
+
+```ts
+import { createElement } from 'react'
+import { createRoot } from 'react-dom/client'
+```
+
+But for simplicity, in our learning environment, we’ll use pre-bundled files served from the `/public` folder:
+
+* `/react.js`
+* `/react-dom/client.js`
+
+These files are delivered via [esm.sh](https://esm.sh)—a service that helps us load React modules directly in the browser.
+
+---
+
+## 🧬 Creating React Elements (Without JSX)
+
+React has a core function for building UI components: `createElement`. This is what JSX compiles to under the hood.
+
+Let’s build a simple example:
+
+```ts
 import { createElement } from '/react.js'
 import { createRoot } from '/react-dom/client.js'
 
-const elementProps = { id: 'element-id', children: 'Hello world!' }
 const elementType = 'h1'
+const elementProps = { id: 'element-id', children: 'Hello world!' }
+
 const reactElement = createElement(elementType, elementProps)
 
 const root = createRoot(rootElement)
 root.render(reactElement)
 ```
+
+> 💡 **Tip:** Try running `console.log(reactElement)` to see how it’s structured!
+
+---
+
+## 🧩 Understanding `props` and `children`
+
+In React, props are short for “properties.” They’re the way we customize elements—just like setting attributes in HTML.
+
+One special prop is `children`, which represents the content nested inside the component.
+
+There are multiple ways to define children:
+
+### Method 1: As a `children` prop
+
+```ts
+createElement('h1', { children: 'Hello world!' })
+```
+
+### Method 2: As additional arguments
+
+```ts
+createElement('h1', null, 'Hello', ' ', 'world!')
+```
+
+### Method 3: As an array
+
+```ts
+createElement('h1', null, ['Hello', ' ', 'world!'])
+```
+
+All these methods are equivalent from React’s perspective!
+
+---
+
+## 🧱 Nesting Elements
+
+Let’s create a DOM structure like this:
+
+```html
+<div class="container">
+  <span>Hello</span>
+  <span>World</span>
+</div>
+```
+
+To do this in raw React, we write:
+
+```ts
+const hello = createElement('span', null, 'Hello')
+const space = ' '
+const world = createElement('span', null, 'World')
+
+const container = createElement(
+  'div',
+  { className: 'container' },
+  hello,
+  space,
+  world
+)
+
+createRoot(rootElement).render(container)
+```
+
+> ⚠️ If you try to pass `children` as a prop object with multiple elements, React might warn you to use a `key`—more on that later!
+
+---
+
+## 🍱 Deep Nesting Example
+
+Here’s a more complex example:
+
+```html
+<div class="container">
+  <p>Here's Sam's favorite food:</p>
+  <ul class="sams-food">
+    <li>Green eggs</li>
+    <li>Ham</li>
+  </ul>
+</div>
+```
+
+Using React’s APIs:
+
+```ts
+const paragraph = createElement('p', null, "Here's Sam's favorite food:")
+
+const list = createElement(
+  'ul',
+  { className: 'sams-food' },
+  createElement('li', null, 'Green eggs'),
+  createElement('li', null, 'Ham')
+)
+
+const container = createElement(
+  'div',
+  { className: 'container' },
+  paragraph,
+  list
+)
+
+createRoot(rootElement).render(container)
+```
+
+---
+
+## 🎉 Wrapping Up
+
+Understanding how React works at its core—before introducing JSX or build tools—is a fantastic way to develop a strong foundation. You now know:
+
+* How to use `createElement` to build components
+* How `children` work in different forms
+* How to nest elements manually
+* What ReactDOM does when rendering to the browser
+
+And remember: this is exactly how React works behind the scenes, even when you're writing JSX!
+
+> ✨ Next time, we’ll look at how JSX simplifies all of this syntax while doing exactly the same thing under the hood.
+
+---
+
+**Happy coding! 🚀**
+If you want to dig deeper, [check out the official React docs](https://react.dev/reference/react).
+And stay tuned—we’ll soon build more complex UI with actual interactivity!
+

@@ -3,77 +3,191 @@ title: "React Fundamental: Using JSX"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2025-05-29
+date: 2025-05-04
 thumbnail: image.jpg
 featured: true
 ---
 
-## Using JSX
+**🧠 Mastering JSX: From Syntax Sugar to React Power Tool**
 
-JSX is more intuitive than the raw React API and is easier to understand when
-reading the code. It's fairly simple HTML-like syntactic sugar on top of the raw
-React APIs:
+JSX is often one of the first things developers encounter when learning React—and for good reason. It makes working with the DOM in JavaScript feel almost like writing HTML. But what exactly *is* JSX? And how does it work under the hood? Let’s explore JSX from the ground up and get familiar with the real power behind this syntax.
+
+---
+
+## 🧩 What is JSX?
+
+JSX (JavaScript XML) is a syntax extension for JavaScript that allows you to write what looks like HTML inside your JavaScript code. While it might *look* like HTML, JSX is actually syntactic sugar for `React.createElement()` calls.
+
+For example:
 
 ```tsx
 const element = <h1 id="greeting">Hey there</h1>
+```
 
-// ↓ ↓ ↓ ↓ compiles to ↓ ↓ ↓ ↓
+...is equivalent to:
 
+```tsx
 const element = createElement('h1', {
 	id: 'greeting',
 	children: 'Hey there',
 })
 ```
 
-Because JSX is not actually JavaScript, you have to convert it using something
-called a code compiler. [Babel](https://babeljs.io) is one such tool.
+This transformation is handled by a **code compiler**, such as [Babel](https://babeljs.io), which translates your JSX into standard JavaScript that browsers can understand.
 
-## Interpolation
+🧪 **Try it yourself:** See how JSX compiles using the [Babel REPL](https://babeljs.io/repl#?presets=react&prettier=true)!
 
-Interpolation means inserting variables or expressions into something, like a string or a piece of HTML.
+---
+
+## 🛠️ How JSX is Compiled
+
+JSX isn't valid JavaScript by itself—it must be compiled before it can run in a browser. Typically, this happens at build time using Babel and a bundler like Webpack or Vite.
+
+But during development or for educational purposes, you can also compile JSX in the browser using Babel’s in-browser script:
+
+```html
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+	// JSX goes here and gets compiled on the fly!
+</script>
+```
+
+🧠 **Note:** When JSX is compiled in the browser, you'll notice a script injected into the `<head>` of your HTML that contains the compiled output.
+
+---
+
+## 🌀 JSX Interpolation
+
+Interpolation allows you to inject dynamic JavaScript expressions inside your JSX using **curly braces** `{}`.
+
+For instance:
 
 ```tsx
-const children = 'Hello World'
 const className = 'container'
+const children = 'Hello World'
+
 const element = <div className={className}>{children}</div>
 ```
 
-###  You can use:
+Without interpolation, you’d be stuck hardcoding everything. With it, you make your UI dynamic and reusable.
 
-- Variables: {name}
-- Expressions: {2 + 2}
-- Function calls: {getMessage()}
+📚 Learn more:
 
-## Spread props
+* [JavaScript in JSX with Curly Braces](https://react.dev/learn/javascript-in-jsx-with-curly-braces)
+* [Passing strings with quotes](https://react.dev/learn/javascript-in-jsx-with-curly-braces#passing-strings-with-quotes)
 
-Spread props let you pass all the properties of an object to a component 
-at once, using the spread syntax (...).
+---
+
+## 🔁 Spread Props in JSX
+
+Sometimes, you have a props object that you want to apply to a JSX element. Instead of passing each prop manually, JSX supports **spread syntax** using `{...}`.
 
 ```tsx
-const children = 'Hello World'
-const className = 'container'
-const props = { children, className }
+const props = {
+	children: 'Hello World',
+	className: 'container',
+}
+
 const element = <div {...props} />
 ```
 
-### Watch out:
-
-- Be careful not to accidentally pass too many props.
-- You can still override values:
+This is functionally identical to:
 
 ```tsx
-<MyComponent {...user} name="John" />  // name will be "John"
+const element = createElement('div', { ...props })
 ```
 
-## Fragments
+📚 Reference: [Forwarding props with the JSX spread syntax](https://react.dev/learn/passing-props-to-a-component#forwarding-props-with-the-jsx-spread-syntax)
 
-Fragments let you group multiple elements in React without adding extra HTML to the DOM.
+---
+
+## 🧱 Nesting JSX Elements
+
+JSX allows you to nest elements just like you would with HTML:
 
 ```tsx
 const element = (
-  <>
-    <h1>Title</h1>
-    <p>Description</p>
-  </>
+	<div className="container">
+		<p>Here's Sam's favorite food:</p>
+		<ul className="sams-food">
+			<li>Green eggs</li>
+			<li>Ham</li>
+		</ul>
+	</div>
 )
 ```
+
+Behind the scenes, this is translated into deeply nested `createElement()` calls. JSX just makes it more readable and intuitive.
+
+💡 Tip: In JSX, `class` becomes `className`.
+
+---
+
+## 🧩 React Fragments: No More Unnecessary `<div>`s
+
+What if you want to return multiple elements **without** wrapping them in a `<div>`? That’s where **React Fragments** come in:
+
+```tsx
+<>
+	<p>Here's Sam's favorite food:</p>
+	<ul className="sams-food">
+		<li>Green eggs</li>
+		<li>Ham</li>
+	</ul>
+</>
+```
+
+This compiles to:
+
+```tsx
+React.createElement(React.Fragment, null,
+	React.createElement("p", null, "Here's Sam's favorite food:"),
+	React.createElement("ul", { className: "sams-food" },
+		React.createElement("li", null, "Green eggs"),
+		React.createElement("li", null, "Ham")
+	)
+)
+```
+
+✅ Result: no extra DOM node is introduced, keeping your HTML clean and styling predictable.
+
+📚 Learn more: [React Fragment Docs](https://react.dev/reference/react/Fragment)
+
+---
+
+## 🧠 Why Understanding JSX Compilation Matters
+
+The more fluent you become in *how* JSX maps to `React.createElement`, the better you’ll be at debugging and understanding how React works under the hood. JSX may look like HTML, but remember—it’s just JavaScript in disguise.
+
+Try mentally compiling JSX expressions as a learning exercise. It'll sharpen your skills and help demystify how React operates under the hood.
+
+---
+
+## 🎓 Summary
+
+| Concept         | JSX Syntax                      | Equivalent JS                                               |
+| --------------- | ------------------------------- | ----------------------------------------------------------- |
+| Basic element   | `<h1>Hello</h1>`                | `createElement('h1', null, 'Hello')`                        |
+| With props      | `<div className="box">Hi</div>` | `createElement('div', { className: 'box' }, 'Hi')`          |
+| Spread props    | `<div {...props} />`            | `createElement('div', props)`                               |
+| Nested elements | `<ul><li>1</li></ul>`           | `createElement('ul', null, createElement('li', null, '1'))` |
+| Fragment        | `<>A</>`                        | `createElement(React.Fragment, null, 'A')`                  |
+
+---
+
+### 🧪 Practice Time
+
+* Try rewriting raw `createElement` calls in JSX
+* Interpolate variables inside JSX
+* Use spread props with object literals
+* Replace wrapper `<div>`s with fragments when appropriate
+
+Want to see it in action? Head over to [React's official JSX guide](https://react.dev/learn/writing-markup-with-jsx) or experiment live using the [Babel REPL](https://babeljs.io/repl#?presets=react).
+
+---
+
+Let JSX be your superpower—not your mystery. Happy coding! 🧑‍💻✨
+
+---
+
+Let me know if you'd like this as a Markdown file or want illustrations/code sandboxes embedded!

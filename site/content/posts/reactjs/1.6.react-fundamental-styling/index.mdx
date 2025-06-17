@@ -3,70 +3,227 @@ title: "React Fundamental: Styling"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2025-06-03
+date: 2025-05-07
 thumbnail: image.jpg
 featured: true
 ---
 
-There are two primary ways to style React components
+**🧠 Mastering Styling in React: From Basics to Custom Components**
 
-1. Inline styles with the `style` prop
-2. Regular CSS with the `className` prop
+When building React applications, a key part of creating visually appealing and maintainable UIs is **styling**. This post walks you through the **fundamentals of styling in React**, how JSX relates to the DOM, and how to create a **custom reusable `<Box />` component** that encapsulates consistent styling behavior.
 
-## Element properties and HTML attributes
+---
 
-In HTML, you have elements and attributes. For example, the `div` element has a
-`class` attribute:
+## 🎨 Two Primary Ways to Style React Components
+
+React supports two main methods for styling:
+
+1. **Inline styles** via the `style` prop
+2. **CSS stylesheets** via the `className` prop
+
+Each approach has its strengths and tradeoffs, and understanding how JSX relates to HTML and the DOM is key to using them effectively.
+
+---
+
+## 🔍 Understanding JSX: Properties vs Attributes
+
+In HTML, you work with **attributes** like this:
 
 ```html
 <div class="my-class"></div>
 ```
 
-In JSX, you use the property className rather than the attribute name:
+But in React (JSX), you use **DOM property names**, not HTML attributes:
 
 ```tsx
 <div className="my-class" />
 ```
 
-This applies to a number of other attributes as well. For example, `for` in HTML
-is `htmlFor` in DOM (and JSX). Others include `tabindex` and `readonly` (which
-are, respectively, `tabIndex` and `readOnly` in JSX).
+Why? Because JSX is syntactic sugar for JavaScript function calls (`React.createElement`). And React uses the **DOM property** equivalents under the hood. Here are a few key differences:
 
-## Inline styles
+| HTML Attribute | JSX Prop    |
+| -------------- | ----------- |
+| `class`        | `className` |
+| `for`          | `htmlFor`   |
+| `tabindex`     | `tabIndex`  |
+| `readonly`     | `readOnly`  |
 
-Inline styles are set differently in JSX from HTML as a result of how they are
-applied to the DOM. In HTML, you'd pass a string of CSS, but you access it as an
-object in the DOM:
+This distinction is important, especially when you're debugging or dynamically setting properties.
+
+---
+
+## 💅 Inline Styles in JSX
+
+In HTML:
 
 ```html
-<div id="my-div" style="margin-top: 20px; background-color: blue;"></div>
+<div style="margin-top: 20px; background-color: blue;"></div>
 ```
 
-As a result, in JSX, you pass an object of CSS rather than a string:
+In JSX, you pass an **object**, not a string:
 
 ```tsx
 <div style={{ marginTop: 20, backgroundColor: 'blue' }} />
+```
 
-const myStyles = {marginTop: 20, backgroundColor: 'blue'}
+A few key notes:
+
+* The outer `{}` tells JSX you're injecting a JavaScript expression.
+* The inner `{}` defines the actual object.
+* Use `camelCase` instead of `kebab-case`.
+
+✅ **Example**:
+
+```tsx
+const myStyles = { marginTop: 20, backgroundColor: 'blue' }
 <div style={myStyles} />
 ```
 
-## Class names
+⚠️ **Limitations**: No pseudo-classes (`:hover`, `:focus`) or media queries. For those, stick with regular CSS.
 
-The most common mechanism for styling web applications is through the use of CSS
-and class names.
+---
+
+## 🧵 Styling with `className`
+
+The most common way to style elements is still with CSS classes.
+
+**Step 1:** Define your class in a CSS file:
 
 ```css
-/* styles.css */
+/* index.css */
 .my-class {
-	margin-top: 20px;
-	background-color: blue;
+  margin-top: 20px;
+  background-color: blue;
 }
 ```
 
-Then you'll load a CSS file onto the page:
+**Step 2:** Use it in your JSX:
 
 ```tsx
-import './styles.css';
 <div className="my-class" />
 ```
+
+**Step 3:** Make sure your CSS is loaded:
+
+```html
+<link rel="stylesheet" href="index.css" />
+```
+
+In a real app, this might be handled automatically by your build tool (e.g., Vite, CRA, or Webpack).
+
+---
+
+## 🧱 Building a Custom `<Box />` Component
+
+Let’s reduce repetition and increase reusability by building a `Box` component that:
+
+* Always applies `className="box"` and `style={{ fontStyle: 'italic' }}`
+* Accepts additional `className` and `style` props from the user
+* Merges all of them properly
+
+### ✅ Desired Usage
+
+```tsx
+<Box className="box--small" style={{ backgroundColor: 'lightblue' }}>
+  small lightblue box
+</Box>
+```
+
+### ✅ Expected Output (DOM)
+
+```tsx
+<div
+  className="box box--small"
+  style={{ fontStyle: 'italic', backgroundColor: 'lightblue' }}
+>
+  small lightblue box
+</div>
+```
+
+### ✅ Implementation
+
+```tsx
+type BoxProps = React.ComponentProps<'div'>
+
+function Box({ className = '', style = {}, ...props }: BoxProps) {
+  return (
+    <div
+      className={`box ${className}`}
+      style={{ fontStyle: 'italic', ...style }}
+      {...props}
+    />
+  )
+}
+```
+
+### ✅ TypeScript Tip
+
+To inherit all props from a native HTML element (like `div`), use:
+
+```ts
+React.ComponentProps<'div'>
+```
+
+This gives you full type safety and IntelliSense support in your custom component.
+
+---
+
+## 📏 Add a `size` Prop for Better API Design
+
+Now let’s improve the DX (Developer Experience) by replacing manual class names with a **semantic `size` prop**:
+
+```tsx
+<Box size="small" style={{ backgroundColor: 'lightblue' }}>
+  small lightblue box
+</Box>
+```
+
+### ✅ Step-by-Step
+
+1. Define allowed sizes: `'small' | 'medium' | 'large'`
+2. Generate the appropriate className (like `box--small`) internally
+3. Merge everything together
+
+### ✅ Updated Implementation
+
+```tsx
+type BoxSize = 'small' | 'medium' | 'large'
+
+type BoxProps = {
+  size?: BoxSize
+} & React.ComponentProps<'div'>
+
+function Box({ size, className = '', style = {}, ...props }: BoxProps) {
+  const sizeClassName = size ? `box--${size}` : ''
+  return (
+    <div
+      className={`box ${sizeClassName} ${className}`.trim()}
+      style={{ fontStyle: 'italic', ...style }}
+      {...props}
+    />
+  )
+}
+```
+
+---
+
+## ✅ Final Thoughts
+
+By learning how JSX maps to the DOM and mastering both `className` and `style` usage in React, you're now equipped to:
+
+* Write cleaner, more expressive UI code
+* Create reusable styled components
+* Improve API design with semantic props like `size`
+
+This is a foundational skill every React developer should master. Keep exploring and experimenting — you’ll build beautiful, scalable UIs in no time!
+
+---
+
+📚 **Resources**
+
+* [React Docs – Styling and CSS](https://react.dev/learn#styling)
+* [MDN – CSSStyleDeclaration](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration)
+* [TypeScript Handbook – Intersection Types](https://www.typescriptlang.org/docs/handbook/2/objects.html#intersection-types)
+
+Happy styling! 🎨✨
+

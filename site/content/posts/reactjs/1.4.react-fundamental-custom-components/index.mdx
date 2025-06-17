@@ -3,64 +3,221 @@ title: "React Fundamental: Custom components"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2025-05-30
+date: 2025-05-05
 thumbnail: image.jpg
 featured: true
 ---
 
-## Function component
+**🌟 Understanding Custom Components in React: A Beginner-Friendly Guide**
 
-Just like in regular JavaScript, when you want to reuse code, you write
-functions. If you want to share JSX, you can do that as well. In React we call
-these functions "components" and they have some special properties.
+One of the most powerful features of React is the ability to create **custom components**. They make your code reusable, more readable, and easier to maintain. If you're already familiar with JavaScript functions, you’re halfway there. In this post, we'll explore how React components work and how to write them using both the raw API and JSX.
 
-Components are functions which accept an object called "props" and return
-something that is renderable (more React elements, strings, `null`, numbers,
-etc.).
+---
 
-Here's an example of that:
+## 📌 What Is a Component in React?
+
+In React, **components are just functions**.
+
+Yes, you read that right!
+
+> **A React component is a function that accepts an object called `props` and returns something that can be rendered.**
+
+Here’s a simple example:
 
 ```tsx
-function message({ children }) {
-  return <div className="message">{children}</div>
+function Greeting(props) {
+	return <h1>Hello, {props.name}</h1>
 }
+```
 
-const element = (
-<div className="container">
-  {message({ children: 'Hello World' })}
-  {message({ children: 'Goodbye World' })}
+You can use this component just like a regular HTML tag in JSX:
+
+```tsx
+<Greeting name="World" />
+```
+
+---
+
+## 🧱 Building Simple Components with Functions
+
+Before jumping fully into React’s component model, let’s start with a basic function that returns a React element. For instance, say you want to create the following HTML structure:
+
+```html
+<div class="container">
+	<div class="message">Hello World</div>
+	<div class="message">Goodbye World</div>
 </div>
-)
 ```
 
-## JSX component
-
-You can also use JSX to create components. This is more common and makes the code cleaner and easier to read.
-
-```jsx
-function Message({ className, children }) {
-  return <div className={className}>{children}</div>;
-}
-
-const element = (
-  <div className="container">
-    <Message className="container">Hello World</Message>
-    <Message>Goodbye World</Message>
-  </div>
-);
-``` 
-
-## Props
-
-We're going to use a `Calculator` component that can display an
-equation and its solution, like so:
+You can define a `message` function like this:
 
 ```tsx
-element = <Calculator left={1} operator="+" right={2} />
-// should render:
-// <div>
-//   <code>
-//     1 + 2 = <output>3</output>
-//   </code>
-// </div>
+function message(children) {
+	return <div className="message">{children}</div>
+}
 ```
+
+Then use it in JSX like so:
+
+```tsx
+<div className="container">
+	{message('Hello World')}
+	{message('Goodbye World')}
+</div>
+```
+
+This isn’t the standard way to define React components, but it helps illustrate how functions can return JSX.
+
+---
+
+## 🛠️ Introducing React's Raw API
+
+React’s `createElement` function is what JSX gets compiled into. Normally, you might see:
+
+```tsx
+React.createElement('div', { className: 'message' }, 'Hello World')
+```
+
+But you can also pass a **function** as the first argument:
+
+```tsx
+function Message(props) {
+	return <div className="message">{props.children}</div>
+}
+
+const element = React.createElement(Message, { children: 'Hello World' })
+```
+
+React will call `Message` with the provided props, and use the JSX it returns.
+
+---
+
+## 💡 Using JSX to Write Custom Components
+
+While using `createElement` is powerful, **JSX is way more intuitive and readable**. Let’s take the same example and write it using JSX:
+
+```tsx
+function Message(props) {
+	return <div className="message">{props.children}</div>
+}
+
+const element = <Message>Hello World</Message>
+```
+
+Much cleaner, right?
+
+### 🧠 But wait — why does this work?
+
+JSX elements are transformed by Babel into `React.createElement` calls. But there’s a rule:
+
+> The name of the component **must be capitalized** for Babel to treat it as a custom component.
+
+If you write `<message>Hello</message>`, Babel will interpret `message` as a **string** and generate:
+
+```tsx
+React.createElement('message', {}, 'Hello')
+```
+
+But if you use `<Message>`, it becomes:
+
+```tsx
+React.createElement(Message, {}, 'Hello')
+```
+
+So always **capitalize** your component names!
+
+---
+
+## 🧪 JSX Naming Conventions Breakdown
+
+Here's how Babel interprets JSX based on naming:
+
+| JSX Syntax             | Compiled To                       |
+| ---------------------- | --------------------------------- |
+| `<Capitalized />`      | `createElement(Capitalized)`      |
+| `<property.access />`  | `createElement(property.access)`  |
+| `<lowercase />`        | `createElement('lowercase')`      |
+| `<kebab-case />`       | `createElement('kebab-case')`     |
+| `<Upper_Snake_Case />` | `createElement(Upper_Snake_Case)` |
+
+Avoid lowercase or kebab-case names for custom components, or Babel will think you're creating a standard DOM element!
+
+---
+
+## 🧮 Practicing with Props: A Calculator Component
+
+Let's now build a more dynamic component: a **Calculator** that receives props and renders an expression with its solution.
+
+```tsx
+function Calculator(props) {
+	const { left, operator, right } = props
+	let result
+
+	switch (operator) {
+		case '+':
+			result = left + right
+			break
+		case '-':
+			result = left - right
+			break
+		case '*':
+			result = left * right
+			break
+		case '/':
+			result = left / right
+			break
+		default:
+			result = 'Invalid operator'
+	}
+
+	return (
+		<div>
+			<code>
+				{left} {operator} {right} = <output>{result}</output>
+			</code>
+		</div>
+	)
+}
+```
+
+Use it like this:
+
+```tsx
+<Calculator left={1} operator="+" right={2} />
+```
+
+This would render:
+
+```html
+<div>
+  <code>
+    1 + 2 = <output>3</output>
+  </code>
+</div>
+```
+
+---
+
+## 🧠 Summary
+
+React components are just functions that return something renderable. To make them work seamlessly with JSX:
+
+✅ Capitalize your component names
+✅ Pass `props` as the function argument
+✅ Return valid JSX (or `null`, strings, numbers, etc.)
+✅ Embrace reusability and readability
+
+React's magic isn’t so mysterious when you peel back the layers — it’s just functions, props, and return values. And thanks to JSX and Babel, we get to write expressive, intuitive code that compiles down to performant raw APIs.
+
+---
+
+### 📚 Further Reading
+
+* [JavaScript in JSX with Curly Braces – React Docs](https://react.dev/learn/javascript-in-jsx-with-curly-braces)
+* [What is JSX? – Kent C. Dodds](https://kentcdodds.com/blog/what-is-jsx)
+
+Happy Reacting! ⚛️💻
+
+---
+
+Let me know if you'd like this turned into a downloadable blog post, formatted for MDX, or integrated into a website.

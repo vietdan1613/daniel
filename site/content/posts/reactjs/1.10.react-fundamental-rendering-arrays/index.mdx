@@ -1,0 +1,201 @@
+---
+title: "React Fundamental: Rendering Arrays"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactFundamental']
+date: 2025-05-11
+thumbnail: image.jpg
+featured: true
+---
+
+**🔑 Mastering the `key` Prop in React: Why It Matters When Rendering Lists**
+
+When building UIs with React, you’ll often find yourself rendering lists of elements. It seems simple at first, but as your app grows more interactive, especially when elements hold **state** (like form inputs), you’ll likely run into subtle bugs if you're not handling lists correctly.
+
+One such subtle-but-important detail is React’s **`key` prop** — a small addition that makes a huge difference.
+
+In this post, we’ll explore:
+
+* Why React needs the `key` prop when rendering arrays
+* What can go wrong if you forget it
+* The best practices for choosing `key` values
+* A cool trick: using the `key` prop to reset component state
+
+---
+
+## 🧱 Rendering Lists in React
+
+Here’s a basic list in React:
+
+```tsx
+const ui = (
+  <ul>
+    <li>One</li>
+    <li>Two</li>
+    <li>Three</li>
+  </ul>
+)
+```
+
+This works just fine. But if you're dynamically rendering a list, you’d likely use `.map()`:
+
+```tsx
+const list = ['One', 'Two', 'Three']
+
+const ui = (
+  <ul>
+    {list.map(listItem => (
+      <li>{listItem}</li>
+    ))}
+  </ul>
+)
+```
+
+React will render the same HTML, but internally something important is happening.
+
+Let’s extract this into variables to understand it better:
+
+```tsx
+const list = ['One', 'Two', 'Three']
+const listUI = list.map(listItem => <li>{listItem}</li>)
+const ui = <ul>{listUI}</ul>
+```
+
+Here, `listUI` is just an **array of React elements**. And rendering an array like this is totally valid in React. But there’s a **catch**.
+
+---
+
+## ⚠️ What Happens When the List Changes?
+
+When you update the list (e.g., by adding or removing an item), React needs to figure out **which elements are new, which are removed, and which ones should stay the same**.
+
+But React can’t read your mind.
+
+From React’s perspective, it sees two arrays — one from before the change and one after — and tries to match up the elements. Without more information, it just guesses based on order.
+
+This usually works fine... until you introduce **stateful elements** — like an `<input />` element.
+
+---
+
+## 😵 The Bug You Might Encounter
+
+Imagine each list item has an input field:
+
+```tsx
+<ul>
+  {list.map(item => (
+    <li>
+      <label>{item}</label>
+      <input defaultValue={item} />
+      <button onClick={() => removeItem(item)}>Remove</button>
+    </li>
+  ))}
+</ul>
+```
+
+Try this:
+
+1. Type something in one of the input fields.
+2. Click "Remove" on the **first** item.
+
+You might notice that the input values **jump around** or stay filled with the wrong content.
+
+Why? Because React reused the DOM nodes and didn’t realize which specific item was removed.
+
+---
+
+## ✅ The Fix: Use the `key` Prop
+
+To solve this, React gives us the `key` prop. It’s a special prop (you don’t get access to it in the component) that **uniquely identifies** each element in a list.
+
+When React sees the `key`, it can confidently track which item is which — even when items are added or removed.
+
+```tsx
+<ul>
+  {list.map(item => (
+    <li key={item.id}>
+      <label>{item.name}</label>
+      <input defaultValue={item.name} />
+      <button onClick={() => removeItem(item.id)}>Remove</button>
+    </li>
+  ))}
+</ul>
+```
+
+Here, `item.id` should be a **unique and stable value**. This way, React doesn’t get confused when re-rendering the list.
+
+---
+
+## 🧠 Why Not Use Index?
+
+You might think:
+
+> "Can I just use the array index as a key?"
+
+```tsx
+list.map((item, index) => <li key={index}>{item}</li>)
+```
+
+React will stop complaining, but **you’re still at risk of bugs**.
+
+Using the index doesn’t help React when the list changes — if you insert or delete items, the indices shift, and React may reuse DOM elements incorrectly.
+
+So while it **silences the warning**, it doesn’t actually solve the problem.
+
+---
+
+## 🎯 Recap: When and How to Use `key`
+
+* Always use a `key` when rendering a list of elements.
+* The `key` should be:
+
+  * **Unique** among siblings
+  * **Stable** over time (doesn't change across renders)
+* Prefer unique IDs (e.g., `user.id`, `product.sku`)
+* **Avoid using array indices** as keys, unless the list is static and never changes
+
+---
+
+## ✨ Bonus Trick: Resetting State with `key`
+
+Did you know you can use `key` to force a React component to reset?
+
+Imagine this:
+
+```tsx
+<MyComponent key={someUniqueKey} />
+```
+
+If `someUniqueKey` changes, React **unmounts and remounts** the component from scratch, wiping any internal state.
+
+This is useful when you want to **reset an input form**, **restart an animation**, or **clear state** on purpose.
+
+Example:
+
+```tsx
+<button onClick={() => setKey(prev => prev + 1)}>Reset</button>
+<MyForm key={key} />
+```
+
+Clicking the button resets the form component because the key changed. A neat and effective trick!
+
+---
+
+## 📘 Want to Learn More?
+
+* [Understanding React’s `key` prop – Kent C. Dodds](https://kentcdodds.com/blog/understanding-reacts-key-prop)
+* [Why React needs a key prop – EpicReact.dev](https://epicreact.dev/why-react-needs-a-key-prop)
+
+These will give you an even deeper understanding of what’s happening under the hood.
+
+---
+
+## 🧑‍🏫 Conclusion
+
+React’s `key` prop might seem small, but it plays a **critical** role in efficient and correct UI updates. Without it, React may make incorrect assumptions about your list items — especially when they manage their own state.
+
+Next time you render a list in React, remember:
+
+> **If you're mapping over an array, you need a `key`. Make it unique. Make it stable.**
+
+Happy coding! ⚛️

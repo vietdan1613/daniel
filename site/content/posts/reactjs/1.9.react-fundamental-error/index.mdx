@@ -1,0 +1,268 @@
+---
+title: "React Fundamental: Error Boundaries"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactFundamental']
+date: 2025-05-10
+thumbnail: image.jpg
+featured: true
+---
+
+**🛡️ Error Boundaries in React: Catching Mistakes Before They Crash Your App**
+
+Even the most careful developers can’t avoid bugs. Whether it’s a typo, a broken API call, or a rendering error, things **will** go wrong eventually. But when they do, what’s your app going to show?
+
+If the answer is a blank screen, your users won’t be too happy.
+
+Luckily, React gives us a way to gracefully handle these situations using **Error Boundaries**.
+
+---
+
+## ❌ What Happens When an Error Isn’t Handled?
+
+Let’s say you have a simple app:
+
+```tsx
+const element = (
+	<div>
+		<h1>Calculator</h1>
+		<Calculator left={1} operator="+" right={2} />
+	</div>
+)
+```
+
+At this point, React has *not* actually executed the `Calculator` function—it’s just stored a reference to it. That means if there’s an error *inside* `Calculator`, wrapping the JSX in a `try/catch` won’t help.
+
+So you might think to do this:
+
+```tsx
+function Calculator({ left, operator, right }) {
+	try {
+		const result = operations[operator](left, right)
+		return <div>{result}</div>
+	} catch (error) {
+		return <div>Oops!</div>
+	}
+}
+```
+
+This works—but is **ugly** and **not scalable**. Imagine doing that for every component!
+
+---
+
+## ✅ Meet Error Boundaries
+
+What if you could do this?
+
+```tsx
+<ErrorBoundary fallback={<div>Oops! Something went wrong.</div>}>
+	<App />
+</ErrorBoundary>
+```
+
+You *can*! This is where **Error Boundaries** shine.
+
+### How Do They Work?
+
+Error Boundaries are special components that **catch rendering errors** in their child components. Think of them like React’s version of `try/catch`.
+
+### A Simple Example
+
+React doesn’t ship Error Boundaries out-of-the-box, but you can make one with a **class component**:
+
+```tsx
+class ErrorBoundary extends React.Component {
+	state = { error: null }
+
+	static getDerivedStateFromError(error) {
+		return { error }
+	}
+
+	render() {
+		return this.state.error ? this.props.fallback : this.props.children
+	}
+}
+```
+
+Usage:
+
+```tsx
+<ErrorBoundary fallback={<div>Something went wrong.</div>}>
+	<App />
+</ErrorBoundary>
+```
+
+> ⚠️ Functional components **cannot** be Error Boundaries (at least not yet).
+
+---
+
+## 🎁 A Better Option: `react-error-boundary`
+
+For most apps, it’s best to use the [react-error-boundary](https://www.npmjs.com/package/react-error-boundary) package. It’s simple, powerful, and production-ready.
+
+### Step 1: Install the Package
+
+```bash
+npm install react-error-boundary
+```
+
+### Step 2: Create Your Fallback Component
+
+```tsx
+function ErrorFallback({ error, resetErrorBoundary }) {
+	return (
+		<div role="alert">
+			<p>Something went wrong:</p>
+			<pre>{error.message}</pre>
+			<button onClick={resetErrorBoundary}>Try again</button>
+		</div>
+	)
+}
+```
+
+### Step 3: Wrap Your App
+
+Let’s say you have this:
+
+```tsx
+const root = createRoot(document.getElementById('root'))
+root.render(<App />)
+```
+
+Update it like this:
+
+```tsx
+function OnboardingForm() {
+	// your original App logic here
+}
+
+function App() {
+	return (
+		<ErrorBoundary FallbackComponent={ErrorFallback}>
+			<OnboardingForm />
+		</ErrorBoundary>
+	)
+}
+```
+
+---
+
+## ⚙️ Handling Async & Event Errors
+
+Error Boundaries only catch **rendering errors**. What if the error happens in an event handler or `useEffect`?
+
+React can't catch these on its own because they're **outside its render cycle**. But `react-error-boundary` gives us a handy hook: `useErrorBoundary`.
+
+### Example:
+
+```tsx
+import { useErrorBoundary } from 'react-error-boundary'
+
+function App() {
+	const { showBoundary } = useErrorBoundary()
+
+	useEffect(() => {
+		function handleMouseMove(event) {
+			try {
+				// Some risky logic here
+			} catch (error) {
+				showBoundary(error)
+			}
+		}
+
+		window.addEventListener('mousemove', handleMouseMove)
+		return () => window.removeEventListener('mousemove', handleMouseMove)
+	}, [])
+
+	return <div>Move your mouse!</div>
+}
+```
+
+### What about form submissions?
+
+Let’s say your `onSubmit` handler has a typo:
+
+```tsx
+function onSubmit(event) {
+	event.preventDefault()
+	const name = null
+	console.log(name.toUpperCase()) // 💥 Uncaught TypeError
+}
+```
+
+To handle this cleanly:
+
+```tsx
+const { showBoundary } = useErrorBoundary()
+
+function onSubmit(event) {
+	event.preventDefault()
+	try {
+		const name = null
+		console.log(name.toUpperCase())
+	} catch (error) {
+		showBoundary(error)
+	}
+}
+```
+
+---
+
+## 🎯 Localizing Error Boundaries
+
+Just like `try/catch`, you don’t want one giant Error Boundary for your whole app.
+
+Instead, place them where they’ll be the most helpful.
+
+For example:
+
+```tsx
+function App() {
+	return (
+		<div>
+			<ErrorBoundary fallback={<div>Problem loading the list.</div>}>
+				<List />
+			</ErrorBoundary>
+			<ErrorBoundary fallback={<div>Problem loading the item.</div>}>
+				<Detail />
+			</ErrorBoundary>
+		</div>
+	)
+}
+```
+
+This way, if `Detail` fails, users can still see and interact with the `List`.
+
+---
+
+## 🔁 Resetting the Error Boundary
+
+Sometimes, errors are temporary. Maybe the network glitched or data was missing. Letting users try again is easy with `resetErrorBoundary`.
+
+You’ve already seen it in the `ErrorFallback` example above:
+
+```tsx
+function ErrorFallback({ error, resetErrorBoundary }) {
+	return (
+		<div role="alert">
+			<p>{error.message}</p>
+			<button onClick={resetErrorBoundary}>Try again</button>
+		</div>
+	)
+}
+```
+
+Clicking the button resets the error boundary and re-renders the children.
+
+---
+
+## 🧠 Final Thoughts
+
+Error Boundaries are a powerful pattern for improving UX in React apps. Here’s what to remember:
+
+* Use them like `try/catch` blocks—**close to where the error may occur**.
+* Use [`react-error-boundary`](https://www.npmjs.com/package/react-error-boundary) for a better developer experience.
+* For async or event errors, use `useErrorBoundary` to surface them.
+* Give users the ability to **recover** when errors happen.
+
+With a bit of planning, you can turn a crashing app into one that fails gracefully and keeps your users happy!

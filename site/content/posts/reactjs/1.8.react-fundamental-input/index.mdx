@@ -1,0 +1,248 @@
+---
+title: "React Fundamental: Inputs"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactFundamental']
+date: 2025-05-09
+thumbnail: image.jpg
+featured: true
+---
+
+**🧠 Understanding Form Elements in React: Inputs, Checkboxes, Radios, Selects & More**
+
+When building forms in React, it's crucial to understand how different input types behave and how React handles default values. Whether you're collecting user data or submitting preferences, form elements are essential tools in your frontend development toolbox.
+
+In this guide, we’ll walk through the different types of form elements in React, how to use them properly, and how to set their default values using React-specific props like `defaultValue` and `defaultChecked`.
+
+---
+
+## 🔤 Input Types in React
+
+HTML provides many [built-in input types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input), such as text, number, email, date, and color. React allows us to use them just like in plain HTML, with a few important distinctions—especially regarding how we manage their values.
+
+Here’s an example of a simple input with a default value:
+
+```jsx
+<input type="text" defaultValue="Hello World" />
+```
+
+This input starts with the text "Hello World", but the user can still change it.
+
+---
+
+## ✅ Checkbox
+
+Let’s say we want to know if a user has signed a waiver. A checkbox is perfect for this.
+
+In React, we can nest the checkbox inside a label for better accessibility and to avoid dealing with `for` and `id` attributes:
+
+```jsx
+<label>
+  <input type="checkbox" name="waiverSigned" defaultChecked />
+  I have signed the waiver
+</label>
+```
+
+> ✅ **Pro Tip**: To set a checkbox as checked by default, use the `defaultChecked` prop. Avoid using the `checked` prop unless you're controlling the value via state.
+
+---
+
+## 🔽 Select Dropdown
+
+To let users pick an account type (e.g., Admin, Teacher, Parent, Student), we use a `<select>` element:
+
+```jsx
+<label>
+  Account Type:
+  <select name="accountType" defaultValue="Student">
+    <option value="Admin">Admin</option>
+    <option value="Teacher">Teacher</option>
+    <option value="Parent">Parent</option>
+    <option value="Student">Student</option>
+  </select>
+</label>
+```
+
+> 🎓 The `defaultValue` prop sets which option is selected initially without making the component "controlled".
+
+---
+
+## 🎚 Radio Buttons
+
+For binary choices like account visibility (Public vs. Private), radio buttons are more user-friendly than a dropdown.
+
+Here’s how to implement a radio group using a `<fieldset>` and `<legend>` for semantic structure:
+
+```jsx
+<fieldset>
+  <legend>Account Visibility</legend>
+  
+  <label>
+    <input
+      type="radio"
+      name="visibility"
+      value="Public"
+      defaultChecked
+    />
+    Public
+  </label>
+  
+  <label>
+    <input
+      type="radio"
+      name="visibility"
+      value="Private"
+    />
+    Private
+  </label>
+</fieldset>
+```
+
+> ✅ Use `defaultChecked` on the radio that should be selected by default.
+
+---
+
+## 🎨 Other Input Types
+
+### Age Input
+
+```jsx
+<label>
+  Age:
+  <input type="number" name="age" defaultValue={18} />
+</label>
+```
+
+### Favorite Color
+
+```jsx
+<label>
+  Favorite Color:
+  <input type="color" name="favoriteColor" defaultValue="#002E5D" />
+</label>
+```
+
+### Start Date
+
+```jsx
+<label>
+  Start Date:
+  <input
+    type="date"
+    name="startDate"
+    defaultValue={new Date().toISOString().slice(0, 10)}
+  />
+</label>
+```
+
+> ⏰ Date inputs require a value in the format `YYYY-MM-DD`, which we get using `new Date().toISOString().slice(0, 10)`.
+
+---
+
+## 🙈 Hidden Inputs
+
+Sometimes we need to send data that users don’t interact with—like an organization ID.
+
+```jsx
+<input type="hidden" name="organizationId" value="123" />
+```
+
+> 🔒 Hidden inputs are ideal for values your app already knows and doesn’t need user input for.
+
+---
+
+## 🧠 React's Approach to Default Values
+
+In React, using the `value` or `checked` props makes your input “controlled,” meaning React has full control over it. This is powerful for advanced forms but can be overkill when you just want a default value.
+
+Instead, use:
+
+* `defaultValue` for `<input>`, `<textarea>`, or `<select>`
+* `defaultChecked` for checkboxes and radio buttons
+
+This approach makes the form elements "uncontrolled," which is simpler for basic forms.
+
+---
+
+## 📝 Complete Example
+
+```jsx
+<form>
+  <input type="hidden" name="organizationId" value="123" />
+
+  <label>
+    Age:
+    <input type="number" name="age" defaultValue={18} />
+  </label>
+
+  <label>
+    Favorite Color:
+    <input type="color" name="favoriteColor" defaultValue="#002E5D" />
+  </label>
+
+  <label>
+    Account Type:
+    <select name="accountType" defaultValue="Student">
+      <option value="Admin">Admin</option>
+      <option value="Teacher">Teacher</option>
+      <option value="Parent">Parent</option>
+      <option value="Student">Student</option>
+    </select>
+  </label>
+
+  <fieldset>
+    <legend>Account Visibility</legend>
+    <label>
+      <input
+        type="radio"
+        name="visibility"
+        value="Public"
+        defaultChecked
+      />
+      Public
+    </label>
+    <label>
+      <input
+        type="radio"
+        name="visibility"
+        value="Private"
+      />
+      Private
+    </label>
+  </fieldset>
+
+  <label>
+    <input
+      type="checkbox"
+      name="waiverSigned"
+      defaultChecked
+    />
+    I have signed the waiver
+  </label>
+
+  <label>
+    Start Date:
+    <input
+      type="date"
+      name="startDate"
+      defaultValue={new Date().toISOString().slice(0, 10)}
+    />
+  </label>
+
+  <button type="submit">Submit</button>
+</form>
+```
+
+---
+
+## ✅ Summary
+
+| Form Element           | Default Prop     | Notes                                        |
+| ---------------------- | ---------------- | -------------------------------------------- |
+| Text/Number/Color/Date | `defaultValue`   | Sets default value; user can still change it |
+| Select                 | `defaultValue`   | Matches `value` of desired `<option>`        |
+| Checkbox               | `defaultChecked` | Checkbox is checked by default               |
+| Radio                  | `defaultChecked` | Only one per group can be selected           |
+| Hidden Input           | `value`          | Used to send background data with the form   |
+
+React form elements become much more powerful once you understand how `defaultValue` and `defaultChecked` work. This sets a solid foundation for building both simple and advanced forms in your React apps!

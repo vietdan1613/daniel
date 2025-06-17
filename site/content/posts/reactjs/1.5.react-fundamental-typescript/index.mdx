@@ -3,200 +3,251 @@ title: "React Fundamental: TypeScript"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactFundamental']
-date: 2025-05-31
+date: 2025-05-06
 thumbnail: image.jpg
 featured: true
 ---
 
-## Why TypeScript
+**🧠 Mastering TypeScript in React: From Red Squiggles to Confidence**
 
-* In JavaScript, you can write anything — even if it’s wrong — and it won't show an error until the app runs.
-* Example:
+When you're building maintainable and scalable React applications, **TypeScript** is one of the most valuable tools in your developer toolbox. It offers safety, productivity, and clarity — even if it seems strict or frustrating at first.
 
-  ```js
-  const user = "John";
-  console.log(user.age); // no error... but user is a string!
-  ```
+But remember:
 
-### Helps catch mistakes before you run the code.
+> **"TypeScript is not making your life terrible. It's just showing you how terrible your life already is."**
+> – [Kent C. Dodds](https://twitter.com/kentcdodds/status/1763606063394496633)
 
-* TypeScript **knows the types of your variables**, and it warns you early.
-* Same example in TypeScript:
+Let’s walk through how to use TypeScript effectively in React — from typing components and props, to improving developer experience with narrowing, deriving, and even satisfying types. 🦺
 
-  ```ts
-  const user: string = "John";
-  console.log(user.age); // ❌ Error: 'age' does not exist on type 'string'
-  ```
+---
 
-## Narrow Types
+## 🚀 Why TypeScript?
 
-Our `CalculatorProps['operator']` type being set simply to `string` is not
-"narrow" enough to help users of our `Calculator` component. It allows _any_
-`string` value to be provided.
+Think of TypeScript as a brutally honest friend. It points out the problems before your users run into them — the “spinach in your teeth” of your codebase.
 
-```tsx
-element = <Calculator left={2} operator="**" right={3} /> // 💥
-```
+Once you get past the initial learning curve, TypeScript becomes a key ally in reducing bugs and making your codebase easier to navigate and refactor.
 
-Type narrowing means TypeScript figures out a more specific type from a broader type based on your code.
+---
 
-```tsx
-// Create a literal union type
-type KodyOrHannahString = 'Kody' | 'Hannah';
+## 🛠️ Typing Functions
 
-let assistant: KodyOrHannahString;
-// Now 'assistant' can only be 'Kody' or 'Hannah'
-assistant = 'Kody';    // ✅ OK
-assistant = 'Hannah';  // ✅ OK
-assistant = 'Bob';     // ❌ Error: Type '"Bob"' is not assignable to type 'KodyOrHannahString'
-```
-
-## Derive Types
-
-You may have noticed that we're duplicating our operators of `+`, `-`, `*`,
-and `/`. Any time we want to add a new operator, we have to add it in two places
-and if we miss one then we could either have a runtime error, or users won't be
-able to use our new operator at all.
-
-Derived types are types that are created from existing types, often using TypeScript's 
-utility types or type operators like typeof, keyof
-
-### 1. **Using `typeof` to derive from a variable**
+Let’s start with the basics: typing regular functions.
 
 ```ts
-const user = {
-  name: 'Alice',
-  age: 30,
-};
+// JS function
+function getName(user) {
+  return user.name ?? 'Unknown'
+}
 
-// Derive a type from the value
-type User = typeof user;
-// Same as:
-// type User = { name: string; age: number }
-```
-
-### 2. **Using `keyof` to get keys of a type**
-
-```ts
-type User = { name: string; age: number };
-
-// Derive a union of keys
-type UserKeys = keyof User; 
-// type UserKeys = 'name' | 'age'
-```
-
-## Default Props
-
-Sometimes you want to allow the user of your component to skip providing a
-prop and use a default value instead. To do this, we can use destructuring default values syntax,
-but when users of our component try to skip a prop, TypeScript will complain
-because our type says all the elements of the `CalculatorProps` type are
-required.
-
-```tsx
-type ButtonProps = {
-  label: string;
-  color?: string; // optional
-};
-
-const Button = ({ label, color = "blue" }: ButtonProps) => {
-  return <button style={{ backgroundColor: color }}>{label}</button>;
-};
-
-// If you use <Button label="Click me" />, the button will default to a blue background.
-```
-
-## Reduce Duplication
-
-One last thing that bugs me is the repetition in the `operations` type. The
-type for every one of those functions is the same. They all accept two numbers
-and return a number.
-
-```ts
-const operations = {
-	// 🦺 remove all the ": number" from these functions
-	'+': (left: number, right: number): number => left + right,
-	'-': (left: number, right: number): number => left - right,
-	'*': (left: number, right: number): number => left * right,
-	'/': (left: number, right: number): number => left / right,
+// With types
+type User = { name?: string }
+function getName(user: User): string {
+  return user.name ?? 'Unknown'
 }
 ```
 
-Record is a utility type in TypeScript that helps you create an object type with 
-specific keys and value types.
+TypeScript will infer return types in many cases, but specifying them makes your code more readable and robust.
 
-```ts
-type UserRoles = 'admin' | 'editor' | 'viewer';
-
-const roles: Record<UserRoles, boolean> = {
-  admin: true,
-  editor: false,
-  viewer: true,
-};
-
-// The object roles must have exactly the keys 'admin', 'editor', and 'viewer', each with a boolean value.
-```
-
-## Satisfies
-
-The `**satisfies**` operator is a newer TypeScript feature (since v4.9) that:
-
-✅ Checks if a value **matches a type**
-🔒 Keeps the value’s **exact (narrow) type**
-
-### 🧾 Example:
-
-```ts
-const user = {
-  name: "Alice",
-  age: 30,
-} satisfies { name: string; age: number };
-```
-
-🟢 This means:
-
-* TypeScript checks: Does `user` have `name` and `age` with the right types?
-* ✅ If yes — no error
-* 🔒 But `user` still keeps its exact type: `{ name: "Alice"; age: 30 }`
+📘 **Learn More:** [TypeScript Function Syntaxes](https://kentcdodds.com/blog/typescript-function-syntaxes)
 
 ---
 
-### ❗ Why not just use `as`?
+## ⚛️ Typing React Components
 
-```ts
-const user = {
-  name: "Alice",
-  age: 30,
-} as { name: string; age: number };
+React components are just functions. That means you can type them the same way:
+
+```tsx
+type MessageProps = { children: React.ReactNode }
+
+function Message({ children }: MessageProps) {
+  return <div className="message">{children}</div>
+}
 ```
 
-* `as` **forces** the type (could be unsafe)
-* `satisfies` **checks** the type (safer)
+You can also inline props or destructure them for conciseness:
 
----
-
-### 🔍 Real-world example with `Record`:
-
-```ts
-const colors = {
-  primary: "#00f",
-  secondary: "#0f0",
-} satisfies Record<string, string>;
+```tsx
+function Message({ children }: { children: React.ReactNode }) {
+  return <div className="message">{children}</div>
+}
 ```
 
-* ✅ Checks all keys are strings and all values are strings
-* Keeps full IntelliSense for `"primary"` and `"secondary"`
+📘 **Resource:** [React + TypeScript Cheatsheets](https://github.com/typescript-cheatsheets/react)
 
 ---
 
-### 🧠 Summary:
+## ➕ Narrowing Types for Safer Props
 
-| Feature          | What it does              |
-| ---------------- | ------------------------- |
-| `as`             | Forces a type (can lie)   |
-| `satisfies`      | Checks a type (safer)     |
-| `:` (annotation) | Sets the type (may widen) |
+Let’s say we have a `Calculator` component:
+
+```tsx
+<Calculator left={2} operator="**" right={3} /> // 💥 runtime error!
+```
+
+The problem? The `operator` prop is typed as `string`, which is too broad.
+
+Instead, narrow it:
+
+```ts
+type Operator = '+' | '-' | '*' | '/'
+```
+
+Now TypeScript will complain if someone tries to use an unsupported operator.
+
+```tsx
+type CalculatorProps = {
+  left: number
+  right: number
+  operator: Operator
+}
+```
+
+This makes your component API **safer and more discoverable**.
 
 ---
 
-Let me know if you want visual examples or to see it used with React props, enums, or config objects!
+## 🧪 Deriving Types with `typeof` and `keyof`
+
+Avoid repeating yourself by deriving prop types directly from objects.
+
+```ts
+const operations = {
+  '+': (a: number, b: number) => a + b,
+  '-': (a: number, b: number) => a - b,
+  '*': (a: number, b: number) => a * b,
+  '/': (a: number, b: number) => a / b,
+}
+
+type Operator = keyof typeof operations
+```
+
+Now, if you add a new operation to the `operations` object, TypeScript automatically includes it in the `Operator` type.
+
+📘 [More on `typeof`](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html)
+📘 [More on `keyof`](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html)
+
+---
+
+## ⚙️ Setting Default Props
+
+Want to make props optional with defaults?
+
+```tsx
+type CalculatorProps = {
+  left?: number
+  right?: number
+  operator?: Operator
+}
+
+function Calculator({
+  left = 0,
+  right = 0,
+  operator = '+',
+}: CalculatorProps) {
+  const result = operations[operator](left, right)
+  return <div>{result}</div>
+}
+```
+
+Now, this is valid:
+
+```tsx
+<Calculator /> // Renders 0 + 0 = 0
+```
+
+📘 [Destructuring with Defaults](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#Default_values_2)
+
+---
+
+## 🔁 Reducing Duplication with `Record`
+
+Instead of typing each operation function manually:
+
+```ts
+const operations = {
+  '+': (a: number, b: number) => a + b,
+  '-': (a: number, b: number) => a - b,
+  // ...
+}
+```
+
+Use `Record`:
+
+```ts
+type OperationFn = (a: number, b: number) => number
+type Operator = '+' | '-' | '*' | '/'
+
+const operations: Record<Operator, OperationFn> = {
+  '+': (a, b) => a + b,
+  '-': (a, b) => a - b,
+  '*': (a, b) => a * b,
+  '/': (a, b) => a / b,
+}
+```
+
+This avoids repeating function types, and helps TypeScript enforce structure.
+
+📘 [Record Utility Type](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)
+
+---
+
+## ✅ Enforcing Correct Values with `satisfies`
+
+Using `Record` works, but can sometimes **widen** types. You can fix that with `satisfies`:
+
+```ts
+const operations = {
+  '+': (a, b) => a + b,
+  '-': (a, b) => a - b,
+  '*': (a, b) => a * b,
+  '/': (a, b) => a / b,
+} satisfies Record<Operator, OperationFn>
+```
+
+This ensures:
+
+* All required keys are present
+* Function signatures match
+* Types aren’t unnecessarily widened
+
+📘 [TypeScript `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator)
+
+---
+
+## 🧯 When TypeScript Gets in the Way
+
+Sometimes, TypeScript can slow you down — and that’s OK. You can ask it to hush temporarily:
+
+```ts
+// @ts-expect-error I’ll fix this later
+make.magic()
+```
+
+Don’t let the red squiggles keep you from making progress. TypeScript is here to help — not block you.
+
+---
+
+## 🧠 Wrap-Up
+
+TypeScript makes your React applications more robust, self-documenting, and maintainable. Mastering it takes time, but step by step, you’ll gain confidence.
+
+Here’s what you should walk away with:
+
+* ✅ Typing props is just like typing function arguments.
+* 🧠 Narrowing union types prevents runtime errors.
+* 🧪 `typeof` + `keyof` helps derive types without repetition.
+* 🧰 `Record` reduces redundancy.
+* ✅ `satisfies` enforces constraints without widening types.
+* ⛑️ You can still move forward with `@ts-expect-error` when needed.
+
+📚 Keep these references handy:
+
+* [React + TypeScript Cheatsheets](https://github.com/typescript-cheatsheets/react)
+* [Total TypeScript](https://www.totaltypescript.com/)
+* [Kent C. Dodds: TypeScript Blog Series](https://kentcdodds.com/blog)
+
+---
+
+> 💬 **"You don’t have to get it perfect. Just get it going, and let TypeScript help guide you from there."**
+
+
