@@ -30,6 +30,8 @@ When you open this file in a browser, it displays “Hello World” inside a `<d
 
 🔗 [Learn more about the DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction)
 
+![example](./1.png 'example')
+
 ---
 
 ## ⚙️ Step 2: Adding Interactivity with JavaScript
@@ -72,29 +74,6 @@ Now the entire content is built using JavaScript. This technique is useful when 
 
 ---
 
-## ⏳ A Brief History: From Server-Rendered HTML to Interactive Web Apps
-
-In the early days, websites were primarily server-rendered. The server would generate full HTML pages, and JavaScript was sprinkled in to add simple effects or interactivity.
-
-However, as web apps grew more complex, this model became inefficient. Developers needed better tools to manage dynamic UI, so modern JavaScript frameworks like **React** were born. These frameworks generate DOM structures in JavaScript and update them efficiently as your app’s state changes.
-
-<aside>
-📚 For a deep dive, check out [The Web's Next Transition](https://www.epicweb.dev/the-webs-next-transition)
-</aside>
-
----
-
-## 💡 Why Not Just Use HTML?
-
-Writing HTML is simple, but it doesn't scale well when your UI becomes dynamic or interactive. Building the DOM in JavaScript offers flexibility, but also comes with performance trade-offs — like making the browser parse and run your scripts before rendering any content.
-
-That’s why **hybrid approaches** are popular. One such approach involves using frameworks like **React** or **Remix**, which allow you to:
-
-* **Generate HTML on the server** (for fast initial load and SEO)
-* **Hydrate** it on the client with JavaScript to enable interactivity
-
----
-
 ## 🧪 Let's Practice: No React Just Yet!
 
 Before diving into React, it’s crucial to understand how JavaScript creates and manipulates DOM nodes — because React does this under the hood for you.
@@ -103,14 +82,15 @@ Before diving into React, it’s crucial to understand how JavaScript creates an
 
 ```html
 <html>
-  <body>
-    <script type="module">
-      const root = document.createElement('div')
-      root.textContent = 'Hello World'
-      document.body.appendChild(root)
-    </script>
-  </body>
+	<body>
+		<div id="root"></div>
+
+		<script type="module">
+			// TO-DO
+		</script>
+	</body>
 </html>
+
 ```
 
 Open this file in a browser and use [DevTools](https://developer.chrome.com/docs/devtools) to inspect the DOM. You’ll see your JavaScript-created `div` right there in the structure!
@@ -127,10 +107,7 @@ Try this:
 <html>
   <body>
     <script type="module">
-      const root = document.createElement('div')
-      root.id = 'root'
-      root.textContent = 'Hello World'
-      document.body.appendChild(root)
+        // TO-DO
     </script>
   </body>
 </html>
