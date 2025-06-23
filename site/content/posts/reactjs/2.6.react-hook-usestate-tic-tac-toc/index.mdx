@@ -3,185 +3,181 @@ title: "React Hook: Tic Tac Toe"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactHooks']
-date: 2024-06-15
+date: 2025-06-07
 thumbnail: image.jpg
 featured: true
 ---
 
-Tic Tac Toe might be a simple game on the surface, but it's a brilliant playground for 
-practicing **React fundamentals**. In this tutorial, you'll build a smart, persistent, 
-and interactive version of Tic Tac Toe using:
+**🎮 Building Tic Tac Toe in React: Mastering `useState`, `useEffect`, and Game State Persistence**
 
-* ✅ `useState` with functional updates and lazy initialization
-* 🔁 `useEffect` to synchronize state with `localStorage`
-* 🧠 Derived state for game logic
-* 🕹️ Game history (aka “time travel”)
+Want to level up your React skills with a hands-on project? Let’s build a classic **Tic Tac Toe** game—but with a twist! We'll not only manage the game board and handle turns, but also:
 
-Let’s break down everything step by step.
+* Use **functional updates** with `useState`
+* Calculate **derived state** like the winner or next player
+* Persist the game with `localStorage`
+* Implement a **time-travel-style history feature** to revisit previous moves
+
+Let’s dive in! 🏊‍♂️
 
 ---
 
-## 🧱 Phase 1: Managing Game State with `useState`
+## 🧠 Understanding `useState` Functional Updates
 
-To start, we manage our game board using `useState`. Instead of using a 2D array, we 
-use a 1D array with 9 slots (like a flat 3x3 grid):
-
-```tsx
-const [squares, setSquares] = useState(Array(9).fill(null))
-```
-
-Each square can be `"X"`, `"O"`, or `null`.
-
-### ✅ Functional Updates with `setState`
+React’s `useState` lets you update state either directly or via a callback:
 
 ```tsx
-setCount(count + 1) 
-// ✅ becomes:
+const [count, setCount] = useState(0)
+
+// Direct update
+setCount(count + 1)
+
+// Functional update
 setCount(prevCount => prevCount + 1)
 ```
 
-> 🧠 **Rule of Thumb**:
-> Use the **function form** of `setState` when the next state depends on the **previous state**.
+### 🔑 When to Use Functional Updates?
+
+**Rule of Thumb:**
+If your new state depends on the **previous value**, always use the function form. It ensures you're working with the most up-to-date state—especially helpful when updates are batched or asynchronous.
 
 ---
 
-## 🧠 Phase 2: Derived State – `nextValue` and `winner`
+## 🎯 Project Goal: A React Tic Tac Toe Game
 
-Some values in your app don’t need to be stored explicitly. Instead, you **derive** them from existing state:
+Let’s outline the core concepts you'll implement:
 
-### `nextValue`
+### ✅ Managed State
 
-```tsx
-function calculateNextValue(squares) {
-  const xCount = squares.filter(s => s === 'X').length
-  const oCount = squares.filter(s => s === 'O').length
-  return xCount === oCount ? 'X' : 'O'
-}
-```
+* **`squares`**: A flat array of 9 elements representing the game board.
+  Example:
 
-### `winner`
+  ```tsx
+  ['X', 'O', 'X', 'X', 'O', 'O', 'X', 'X', 'O']
+  ```
 
-This is derived using a helper:
+### 🧮 Derived State
 
-```tsx
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6],
-  ]
-  for (const [a, b, c] of lines) {
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]
-    }
-  }
-  return null
-}
-```
+* **`nextValue`**: Calculated based on how many "X"s and "O"s are on the board. (We've provided a `calculateNextValue()` utility for this!)
+* **`winner`**: Determined by checking win conditions. (`calculateWinner()` handles this logic.)
+
+**Note:** Derived state is calculated on the fly—you don’t store it in `useState`.
 
 ---
 
-## 💾 Phase 3: Persist State in `localStorage`
+## ✍️ Handling Square Clicks
 
-We want to make sure that the player can **resume their game** after closing the tab.
+You’ll update the `squares` array when a user clicks a square—but **never mutate state directly**!
 
-### 🎈 Lazy Initialization from `localStorage`
+❌ Don’t do:
+
+```tsx
+squares[0] = 'X'
+```
+
+✅ Do this instead (using `Array.prototype.with()`):
+
+```tsx
+const newSquares = squares.with(index, 'X')
+```
+
+This ensures immutability, which is essential for React to detect changes correctly.
+
+---
+
+## 💾 Persisting Game State with `localStorage`
+
+Want players to resume the game even after closing the browser tab? Store game state in `localStorage`!
+
+### Step 1: Initialize from Local Storage
 
 ```tsx
 const [squares, setSquares] = useState(() => {
-  const stored = window.localStorage.getItem('tic-tac-toe:squares')
+  const stored = localStorage.getItem('tic-tac-toe:squares')
   return stored ? JSON.parse(stored) : Array(9).fill(null)
 })
 ```
 
-Using a function here means this runs only once — during the initial render.
-
-### 🔁 Save to `localStorage` on Updates
+### Step 2: Sync Updates with `useEffect`
 
 ```tsx
 useEffect(() => {
-  window.localStorage.setItem('tic-tac-toe:squares', JSON.stringify(squares))
+  localStorage.setItem('tic-tac-toe:squares', JSON.stringify(squares))
 }, [squares])
 ```
 
-> ✅ This keeps our `localStorage` in sync every time the board updates.
+Now your app is stateful **and** persistent!
 
 ---
 
-## 🧭 Phase 4: Add Game History ("Time Travel")
+## ⏪ Adding Time Travel: Game History
 
-Now comes the fun part — implementing game history so users can:
+Kids hate losing? 😅 Let’s let them rewind the game and change their moves.
 
-* Go back to previous moves
-* Replay the game
-* Modify past turns
+### 👣 How Game History Works
 
-### 📚 Store All Past States
+Instead of just tracking the current board state (`squares`), you track a **history of all board states**.
 
 ```tsx
 const [history, setHistory] = useState([Array(9).fill(null)])
 const [currentStep, setCurrentStep] = useState(0)
-```
 
-### 🧮 Current Board is Derived
-
-```tsx
 const currentSquares = history[currentStep]
 ```
 
-You no longer manage `squares` directly. Instead, the game renders from `currentSquares`.
+### 🕹️ Making a Move
 
-### 🎯 Make a Move
+When a player makes a move:
+
+1. Slice the history up to the current step (to discard future moves).
+2. Create a new board with the move.
+3. Push the new board onto the history.
+4. Update `currentStep`.
 
 ```tsx
-function selectSquare(squareIndex) {
-  if (winner || currentSquares[squareIndex]) return
-
-  const newHistory = history.slice(0, currentStep + 1)
-  const newSquares = [...currentSquares]
-  newSquares[squareIndex] = calculateNextValue(currentSquares)
-
-  setHistory([...newHistory, newSquares])
-  setCurrentStep(newHistory.length)
-}
+setHistory(prev => [...prev.slice(0, currentStep + 1), newSquares])
+setCurrentStep(prev => prev + 1)
 ```
 
-This approach ensures that if the user has time-traveled back and makes a move, it **overwrites** future moves.
+### 🔄 Navigating Moves
 
-### 🔙 Jump to a Previous Move
-
-```tsx
-function jumpTo(step) {
-  setCurrentStep(step)
-}
-```
-
-### 🧹 Reset Game
+Add UI buttons to jump to any past move:
 
 ```tsx
-function restart() {
-  setHistory([Array(9).fill(null)])
-  setCurrentStep(0)
-  window.localStorage.removeItem('tic-tac-toe:squares')
-}
+<button onClick={() => setCurrentStep(index)}>
+  Go to move #{index}
+</button>
 ```
 
 ---
 
-## 🖥️ UI: Time Travel Buttons
+## 🧼 A Word on Testing & `localStorage`
 
-```tsx
-<ul>
-  {history.map((_, step) => (
-    <li key={step}>
-      <button disabled={step === currentStep} onClick={() => jumpTo(step)}>
-        {step === 0 ? 'Go to game start' : `Go to move #${step}`}
-      </button>
-    </li>
-  ))}
-</ul>
-```
-
-This list gives players full control over the move timeline.
+🧪 Be cautious! If you’re writing automated tests or switching between development and test modes, your `localStorage` values can conflict. Clear the storage between sessions or use unique keys to isolate environments.
 
 ---
+
+## 📚 Summary
+
+Here’s what you’ll master in this exercise:
+
+| Feature                   | Concept                                |
+| ------------------------- | -------------------------------------- |
+| Game board (`squares`)    | Managed state                          |
+| Player turn / winner      | Derived state                          |
+| Local game persistence    | `useEffect` + `localStorage`           |
+| Undoable move history     | Functional `setState` and immutability |
+| Performance & correctness | `useState` callback form               |
+
+This isn't just about building a simple game—it’s a deep dive into **how React state really works**, and how to structure real-world, user-friendly features.
+
+---
+
+## 🔗 Resources
+
+* [React Docs: useState](https://react.dev/reference/react/useState)
+* [MDN: localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+* [Blog: useState Lazy Initialization & Functional Updates](https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates)
+
+---
+
+Happy coding! 🧠💡 Let me know if you’d like a working code template for this.

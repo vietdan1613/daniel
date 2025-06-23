@@ -3,193 +3,198 @@ title: "React Hooks: DOM Side-Effects"
 category: React JS
 author: Daniel Nguyen
 tags: ['#ReactHooks']
-date: 2024-06-13
+date: 2025-06-05
 thumbnail: image.jpg
 featured: true
 ---
 
-Working with the DOM is inevitable in real-world React applications. Whether 
-you're integrating with third-party libraries or managing focus accessibility,
-knowing **how to interact with the DOM correctly in React** is a must-have skill.
+**🧠 Understanding DOM Side-Effects and `ref` in React**
 
-In this post, we’ll walk through key concepts like:
+In React, your job is to describe *what* the UI should look like—not *how* it should be rendered. But what happens when you *do* need to work with the DOM directly? Whether you're integrating with a third-party JavaScript library or managing focus manually, React gives you tools to perform side-effects while respecting its rendering model.
 
-* React's rendering model
-* DOM side-effects
-* `ref` usage patterns
-* `useEffect` with dependency arrays
-* Primitive vs. object dependencies
+In this article, we’ll explore **DOM side-effects**, how to use `ref` and `useEffect` properly, and how to avoid some common pitfalls around dependencies. We’ll even build a fun interactive component using [`vanilla-tilt`](https://micku7zu.github.io/vanilla-tilt.js/). 🎉
 
-Let’s dive in. 🏊‍♂️
+---
 
-## 🏗️ React Elements vs. DOM Elements
+## 🧩 Why Can't We Access the DOM in Render?
 
-When you write:
+Let’s start with a basic principle: React’s render methods **do not create DOM nodes**. Instead, they return *React Elements*—which are like blueprints. Only when `ReactDOM.createRoot().render(...)` is called do those blueprints get turned into actual DOM nodes.
 
-```jsx
-<div>Hello</div>
+This means:
+
+```tsx
+return <div>Hi</div>
 ```
 
-This is not a DOM element — it's **React Element syntax**, which eventually gets converted using:
+…doesn’t give you access to the `<div>` DOM node—only a React Element object.
 
-```js
-React.createElement('div', null, 'Hello')
-```
+---
 
-React elements describe **what the UI should look like**, but **they aren’t real DOM nodes** 
-until `ReactDOM.createRoot().render()` is called.
+## 🎯 Enter `ref`: Getting Access to the DOM
 
-👉 This means you can't access DOM nodes directly in the render phase. 
-Instead, you need to use **refs**.
+React provides a special prop called `ref` that lets you access the underlying DOM node once it exists.
 
-## ref
+There are **two main ways** to use `ref`:
 
-React provides a special prop called `ref` to access real DOM nodes after 
-they are rendered. There are two primary patterns:
-
-### 1. 🔁 Ref Callback (Preferred for Simple Use)
+### 1. **Callback Ref** (Recommended for Most DOM Use)
 
 ```tsx
 function MyDiv() {
   return (
     <div
-      ref={node => {
-        console.log("Here's my div!", node)
-        return () => console.log("Cleaning up", node)
+      ref={(myDiv) => {
+        if (!myDiv) return
+        console.log('Here’s my div!', myDiv)
       }}
     >
-      Hello from my div!
+      Hey, this is my div!
     </div>
   )
 }
 ```
 
-⚠️ TypeScript may warn you that `node` can be `null`. You can safely check that before acting.
+🔍 This ref is a **function** that gets called after the DOM element is mounted or updated.
 
-### 2. 📦 Ref Object (Using `useRef` Hook)
+> ⚠️ With TypeScript, the `myDiv` parameter may be `null`, so you should guard against that.
+
+---
+
+### 2. **Object Ref with `useRef` Hook**
+
+For more advanced or reusable DOM interactions, you can use the `useRef` hook:
 
 ```tsx
 import { useRef, useEffect } from 'react'
 
 function MyDiv() {
-  const divRef = useRef<HTMLDivElement>(null)
+  const myDivRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    console.log(divRef.current) // The actual DOM node!
+    if (myDivRef.current) {
+      console.log('My DOM node:', myDivRef.current)
+    }
   }, [])
 
-  return <div ref={divRef}>Hi</div>
+  return <div ref={myDivRef}>hi</div>
 }
 ```
 
-This pattern is powerful when you need to access the DOM in `useEffect`, 
-event handlers, or other logic **after initial render**.
+This lets you persist a reference to a DOM node across re-renders without triggering additional renders.
 
-🧠 `useRef` gives you a **mutable object** with a `.current` property that 
-persists across renders — but updating it **does not cause a re-render**.
+---
 
-## 💡 Real-World Example: Using `vanilla-tilt`
+## 🌀 A Real Example: Fancy Tilt Effect
 
-Imagine you want to use [`vanilla-tilt`](https://micku7zu.github.io/vanilla-tilt.js/) 
-to add some fancy tilt effects to a div.
-
-Here’s how you can do it:
+Let’s say you’re building a `<Tilt />` component using `vanilla-tilt`. That library expects a real DOM node and attaches event listeners to it. Since React owns the node creation, we need to ask React to give it to us using a ref.
 
 ```tsx
-import VanillaTilt from 'vanilla-tilt'
-
-function Tilt({ children }) {
-  const tiltRef = useRef<HTMLDivElement>(null)
+function Tilt() {
+  const tiltRef = useRef(null)
 
   useEffect(() => {
-    const node = tiltRef.current
-    if (!node) return
-
-    VanillaTilt.init(node, {
+    const tiltNode = tiltRef.current
+    VanillaTilt.init(tiltNode, {
       max: 25,
       speed: 400,
       glare: true,
-      'max-glare': 0.5,
+      "max-glare": 0.5,
     })
 
-    return () => node.vanillaTilt?.destroy()
+    return () => {
+      tiltNode.vanillaTilt?.destroy()
+    }
   }, [])
 
-  return <div ref={tiltRef}>{children}</div>
+  return <div ref={tiltRef} className="tilt-root">Fancy Tilt ✨</div>
 }
-```
-
-This approach ensures the DOM is available before initializing the effect, 
-and it cleans up properly when the component unmounts.
-
-## Dependency Arrays
-
-Now let’s say we allow users to customize `speed` and `glare`. We might write:
-
-```tsx
-const options = {
-  max: 25,
-  speed: speed,
-  glare: true,
-  'max-glare': glare,
-}
-
-useEffect(() => {
-  VanillaTilt.init(ref.current, options)
-  return () => ref.current.vanillaTilt?.destroy()
-}, [options]) // ⚠️ BAD!
-```
-
-🚨 Problem: Even when `speed` and `glare` are unchanged, `options` 
-is a **new object** every render — triggering the effect again.
-
-```js
-Object.is({ speed: 400 }, { speed: 400 }) // false
 ```
 
 ---
 
-## Primitive Dependencies
+## 🔁 Problem: My Tilt Keeps Resetting!
 
-Destructure the values and use **primitives directly** in the dependency array:
+Let’s say you enhance your component with user controls so people can change tilt options like speed and glare. You now pass those options into the component, and update the effect like this:
 
 ```tsx
 useEffect(() => {
-  const node = tiltRef.current
-  if (!node) return
+  const tiltNode = tiltRef.current
+  VanillaTilt.init(tiltNode, options)
+  return () => tiltNode.vanillaTilt?.destroy()
+}, [options])
+```
 
-  VanillaTilt.init(node, {
-    max: 25,
+This seems correct—but the tilt effect resets every time you click the button—even if the options *didn't* actually change. Why?
+
+---
+
+## 🧠 Dependency Gotcha: Object Identity
+
+The problem is subtle: the `options` object is recreated every time the component renders. So even if its values are the same, it's a **different object** in memory.
+
+```tsx
+const a = { speed: 400 }
+const b = { speed: 400 }
+console.log(Object.is(a, b)) // false
+```
+
+Since `useEffect` checks dependencies using `Object.is`, it treats `options` as “changed” every render—even if values are unchanged. That’s why the effect keeps running.
+
+---
+
+## ✅ The Fix: Use Primitive Dependencies
+
+Instead of passing a full object into your `useEffect` dependency array, pull out the primitive values directly:
+
+```tsx
+useEffect(() => {
+  const tiltNode = tiltRef.current
+  VanillaTilt.init(tiltNode, {
+    glare,
+    max,
     speed,
-    glare: true,
-    'max-glare': glare,
+    'max-glare': maxGlare,
   })
-
-  return () => node.vanillaTilt?.destroy()
-}, [speed, glare])
+  return () => tiltNode.vanillaTilt?.destroy()
+}, [glare, max, speed, maxGlare])
 ```
 
-Now, the effect will only run if the actual **primitive values** change.
+This ensures the effect only reruns when actual values change—not just when object references change.
 
 ---
 
-## 🧠 Final Thoughts
+## 💡 Bonus: What is a Ref Anyway?
 
-### When to Use `ref`?
+Refs are often used for DOM access, but they’re just persistent containers:
 
-Use `ref` when:
+* `const myRef = useRef(initialValue)`
+* `myRef.current` holds any value you want
+* Updating `myRef.current` does **not** trigger a re-render
 
-* You need to interact with the DOM (focus, measure, scroll, etc.)
-* You're integrating with a non-React library that needs a DOM node.
+This makes refs a good fit for storing mutable state that doesn’t affect the visual output—like timers, previous props, or external library instances.
 
-### When to Use `useEffect`?
+---
 
-Use `useEffect` to:
+## 📚 Summary
 
-* Perform side-effects like subscriptions, DOM manipulation, or API calls.
-* Clean up when the component unmounts or before re-running effects.
+React’s declarative nature doesn’t stop you from performing imperative tasks—you just need to do them the React way. Here’s what we covered:
 
-### Be Mindful of Dependencies
+✅ **Use `ref`** to access the DOM.
+✅ **Use `useEffect`** to safely perform setup and cleanup side-effects.
+✅ **Use primitive dependencies** in `useEffect` to avoid unnecessary reruns.
+✅ **Avoid updating DOM or initializing effects inside render methods**.
 
-* Use **primitive values** in dependency arrays when possible.
-* Avoid depending on **new object literals** unless memoized with `useMemo`.
+---
+
+## 🔗 Further Reading
+
+* [React Docs – `useRef`](https://react.dev/reference/react/useRef)
+* [vanilla-tilt.js](https://micku7zu.github.io/vanilla-tilt.js/)
+* [Kent C. Dodds – Blog & Workshops](https://kentcdodds.com)
+
+---
+
+Ready to tilt your way into DOM mastery? Give it a try! 🧙‍♂️✨
+
+If you found this helpful, share it with someone learning React, or follow along for deeper dives into React’s more advanced hooks and behaviors.
+
+---

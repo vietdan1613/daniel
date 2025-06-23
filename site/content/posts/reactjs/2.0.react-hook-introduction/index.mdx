@@ -1,0 +1,101 @@
+---
+title: "React Hooks: Managing UI State"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactHooks']
+date: 2025-06-01
+thumbnail: image.jpg
+featured: true
+---
+
+**🧠 Mastering React Hooks: From Basics to Building Tic Tac Toe with Game History**
+
+Welcome to this hands-on **React Hooks workshop**! Whether you're just starting out or looking to deepen your understanding, this guide will walk you through the essential hooks in React—and show you how they power modern, dynamic UIs.
+
+By the end of this workshop, you’ll not only understand how React handles state and side-effects but also build a fully functional **Tic Tac Toe game**, complete with game history saved in local storage.
+
+---
+
+## 🌀 Understanding the React Lifecycle
+
+Before diving into the hooks, it’s helpful to understand how React apps function under the hood:
+
+> **Initial Render → Create the DOM → User Interacts → State Changes → Re-render → Update the DOM → Repeat**
+
+This cycle is the heartbeat of every React application—and hooks are how we plug into this cycle to manage state, effects, DOM interaction, and more.
+
+---
+
+## 🔧 Managing UI State with `useState`
+
+Every interactive React app begins with **state management**.
+
+With the `useState` hook, you can:
+
+* Store user input
+* Track clicks, toggles, counters, and more
+* Trigger UI updates on state change
+
+This section will help you understand how state drives your UI and how the re-rendering cycle works in response to user interactions.
+
+---
+
+## 🌍 Handling Side-Effects with `useEffect`
+
+Some things live **outside** of your React component world, such as:
+
+* **Browser APIs** (like localStorage, geolocation, media devices)
+* **Third-party libraries** (like Chart.js, D3)
+
+That’s where `useEffect` comes in. It lets you synchronize your components with the outside world—**fetching data, setting timers, or reading from local storage**, all after your component has rendered.
+
+---
+
+## 🪜 Lifting and Colocating State
+
+Want two sibling components to share data? You’ll need to **lift the state up** to their common parent.
+
+But React is flexible. If state is too far up the tree and only one component uses it, you can **colocate** it (move it back down). This helps keep your code clean and components focused.
+
+This section teaches you **how to share state wisely** while avoiding overcomplication.
+
+---
+
+## 🧱 DOM Side-Effects with `useRef`
+
+Sometimes, React isn’t enough on its own—you might need to directly interact with the DOM. For instance:
+
+* Manually setting focus
+* Integrating a vanilla JavaScript library
+* Measuring element size or position
+
+The `useRef` hook (along with **ref callbacks**) lets you access DOM elements directly, without re-rendering. You’ll learn how to work with these tools when React’s declarative style isn’t quite enough.
+
+---
+
+## 🆔 Generating Unique IDs with `useId`
+
+When building **accessible forms** in React, every input needs a unique `id` that matches a label’s `htmlFor`. But what if you're building **reusable components** used multiple times on a page?
+
+That’s where the `useId` hook shines. It generates **globally unique, consistent IDs** so your forms remain accessible, even when reused or rendered dynamically.
+
+---
+
+## 🎮 Capstone Project: Tic Tac Toe with Game History
+
+Time to bring it all together! In the final challenge of this workshop, you’ll build a **Tic Tac Toe game** with:
+
+* State management (`useState`)
+* DOM effects like resetting focus (`useRef`)
+* Side-effect handling (`useEffect` for saving history to localStorage)
+* Accessibility (via `useId`)
+
+This is a tougher project than the rest—but it’s where your understanding really solidifies.
+
+---
+
+## 🚀 Final Thoughts
+
+React hooks give you the power to manage **state, effects, DOM interactions, and more** in a clean and declarative way. By practicing with `useState`, `useEffect`, `useRef`, and `useId`, you’ll gain confidence in building powerful, accessible, and interactive UIs.
+
+Take your time, experiment, and enjoy the process. Happy coding!
