@@ -2,147 +2,125 @@
 title: "Advanced React APIs: State Optimization"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-17
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-12
 thumbnail: image.jpg
 featured: true
 ---
 
-One of the beautiful things about React is how efficiently it updates the UI. 
-But even then, **not all renders are created equal**. Sometimes, your component 
-re-renders for *no good reason*, especially when the new state value is the 
-*same* as the old one. Let’s dive into how React handles state updates and 
-how you can optimize for performance by avoiding unnecessary re-renders.
+**🧠 React State Optimization: Avoiding Unnecessary Renders**
 
-## 🎯 React’s Optimization: Identity Matters
+React is designed to efficiently update the DOM when your application state changes. But what if you're changing the state to exactly the same value it already holds? Did you know that you can prevent unnecessary re-renders and improve performance just by being smart about how you update state?
 
-When you update state in React using `useState`, React will skip re-rendering 
-if the *value hasn’t changed*. Sounds simple, right? But there’s a twist — React 
-checks this using **reference equality**, not deep comparison.
+In this post, we’ll explore:
 
-### ✅ Primitives are Easy
-
-Let’s start with a basic example using a primitive:
-
-```tsx
-const [count, setCount] = useState(0)
-
-setCount(0) // ✅ No re-render because 0 === 0
-```
-
-If you set a primitive (like a number, string, or boolean) to the same value it already 
-has, React will not re-render. Efficient and automatic!
+* How React treats state updates
+* The gotchas with objects and functions
+* How to avoid unnecessary re-renders
+* A practical example with `URLSearchParams`
 
 ---
 
-### ⚠️ Objects Are Tricky
+## 🔁 How React Handles Repeated State
 
-Objects and arrays are a different story. Even if the "content" is the same, new 
-references will cause a re-render:
-
-```tsx
-const [state, setState] = useState({ count: 0 })
-
-setState({ count: 0 }) // ❌ Triggers re-render - new object reference!
-```
-
-Why? Because `{ count: 0 } !== { count: 0 }` — two different references, even if they look the same.
-
-If you want to avoid this, make sure you return the same object reference when nothing has changed:
+Let’s start with a simple example using `useState`.
 
 ```tsx
-setState((previousState) => previousState) // ✅ No re-render
+const [count, setCount] = useState(0);
+
+// Somewhere later in the code
+setCount(0); // No rerender if `count` is already 0
 ```
 
-Or be smart about comparing values before updating:
-
-```tsx
-setState((prev) => {
-  if (prev.count === 0) return prev
-  return { count: 0 }
-})
-```
+React is smart! If you set the state to the **same primitive value**, it won’t rerender the component. It compares the current value with the new one using `Object.is()` and skips rerendering if they are equal.
 
 ---
 
-## 🔁 Reducers Work the Same Way
+## 🧩 Objects Are Tricky
 
-This logic also applies when you're using the `useReducer` hook. If the 
-reducer returns the **same state object** (i.e., `return state`), React 
-won’t re-render the component. That’s why many reducers include guard clauses 
-to avoid updates when there are no actual changes.
+Now consider this case:
 
 ```tsx
-function reducer(state, action) {
-  switch (action.type) {
-    case 'INCREMENT':
-      if (state.count === state.count + 1) return state
-      return { count: state.count + 1 }
-    default:
-      return state
+const [state, setState] = useState({ count: 0 });
+
+setState({ count: 0 }); 
+```
+
+Even though the values inside are the same, this creates a **new object**, and React sees it as a change — so it rerenders. Why?
+
+Because:
+
+```tsx
+{ count: 0 } !== { count: 0 } // different references!
+```
+
+You can avoid this by returning the previous state directly if nothing changed:
+
+```tsx
+setState((prev) => prev); // No rerender
+```
+
+Or by performing a deep comparison yourself if needed.
+
+---
+
+## 🧠 Tip: Manually Optimize State Updates
+
+Before calling a state update function, you can first **check** whether any value actually changed. If not, just return the previous state. This applies to both `useState` and `useReducer`.
+
+This approach gives you precise control and avoids unnecessary work for React — which can be a huge win for performance in large apps!
+
+---
+
+## 🧪 Practical Example: `URLSearchParams` State
+
+Let’s put this into practice with a real-world scenario:
+
+Imagine a search page where you store the entire `URLSearchParams` object in state — not just the search `query`, but the full set of parameters.
+
+```tsx
+const [searchParams, setSearchParams] = useState(new URLSearchParams(window.location.search));
+```
+
+You have a form where users can submit a search term, and each submission calls:
+
+```tsx
+setSearchParams((prevParams) => {
+  const newParams = new URLSearchParams(formInput);
+
+  // If the new parameters are identical, skip update
+  if (newParams.toString() === prevParams.toString()) {
+    return prevParams; // No rerender
   }
-}
+
+  return newParams;
+});
 ```
 
----
+With this check in place:
 
-## 🌐 Real-World Optimization: URL Search Params
+* Submitting the same query repeatedly **won’t trigger a rerender**.
+* Changing the query **will** update the state and rerender.
 
-Let’s take a practical example: a search page using URL parameters.
+💡 Try it out in your browser console:
 
-Suppose we’re storing the `URLSearchParams` in state. Every time we 
-submit a search form, we call `setSearchParams`. But we want to avoid 
-unnecessary re-renders when the form is submitted *without* changes.
-
-Here’s the setup:
-
-```tsx
-const [searchParams, setSearchParams] = useState(new URLSearchParams())
-
-function handleSubmit(event) {
-  event.preventDefault()
-  const formData = new FormData(event.currentTarget)
-  const newParams = new URLSearchParams(formData)
-
-  setSearchParams((prevParams) => {
-    if (newParams.toString() === prevParams.toString()) return prevParams
-    return newParams
-  })
-}
-```
-
-### 🔍 What’s Going On?
-
-* **Submit the form with no changes** → `setSearchParams` gets called, but the state doesn’t change → ✅ no re-render.
-* **Submit with changes** → new state object → ✅ React re-renders to reflect the new results.
-
-### 🧪 Testing This
-
-To validate the optimization:
-
-1. Add `console.log("App rendered")` inside your component.
-2. Add `console.log("setSearchParams called")` inside your state update logic.
-3. Submit the form multiple times with and without changing the input.
-
-Expected:
-
-* You should see the `setSearchParams` log every time.
-* The `App rendered` log should only appear when something actually changed.
+* Add `console.log('App rerendered')` in your `App` component.
+* Add `console.log('Search params updated')` in your `setSearchParams` callback.
+* Submit the form multiple times with and without changing the input — watch the logs!
 
 ---
 
-## 🧠 Key Takeaways
+## 🏁 Conclusion
 
-	✅ **React skips re-renders if state doesn't change — but only by reference**.			
-	✅ **Primitives** like numbers and strings are easy to optimize.		
-	⚠️ **Objects and arrays** require manual reference checks to avoid re-renders.			
-	⚡ **Reducers and useState callbacks** can be optimized by returning the same reference when no change occurs.		
-	🔄 **Always think: has the value *actually* changed?**		
+React gives you the tools to write performant applications, but it's up to you to use them wisely. By:
 
----
+* Understanding how React compares state values,
+* Avoiding unnecessary object recreations,
+* Manually checking for changes before updating state,
 
-## 💡 Final Thought
+You can significantly reduce unnecessary renders and keep your UI lightning fast.
 
-Performance isn’t just about fast code — it’s about smart updates. With just a little foresight and some simple equality checks, you can avoid wasted renders and keep your React app running buttery smooth.
+Want to go deeper? Try applying these optimizations in your own app and see the difference.
 
-Happy optimizing! 🧑‍💻✨
+Happy coding! ⚛️✨
+

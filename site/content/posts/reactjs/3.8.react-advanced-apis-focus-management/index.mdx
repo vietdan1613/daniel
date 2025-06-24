@@ -2,29 +2,31 @@
 title: "Advanced React APIs: Focus Management"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-23
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-18
 thumbnail: image.jpg
 featured: true
 ---
 
-In modern web applications, **user focus management** plays a critical role in delivering smooth and accessible experiences. Whether it's improving keyboard navigation, supporting screen readers, or simply keeping users in the flow of their task, managing focus thoughtfully is a subtle yet powerful enhancement.
+**🎯 Mastering Focus Management in React: `flushSync`, Inline Editing, and Accessibility**
 
-Let’s dive into the world of focus management in React, with a practical scenario, challenges you’ll encounter, and how to solve them using the `flushSync` function from `react-dom`.
+When building interactive UIs, especially with forms and dynamic elements, managing **focus** properly becomes critical. It's not just about making things “work”—it's about accessibility, keyboard navigation, and creating a smooth experience for everyone.
 
----
-
-## 👁️ Why Focus Management Matters
-
-Imagine a user interface where clicking a button reveals a text input field. What should happen next? Ideally, the input field should automatically receive focus so the user can start typing immediately.
-
-For users navigating with a keyboard or using assistive technologies, **preserving and shifting focus intelligently** isn’t a luxury—it’s a necessity.
+Let’s walk through common focus pitfalls and learn how to solve them using `flushSync`, `ref`, and smart event handling with a practical real-world example.
 
 ---
 
-## 🧪 The Classic Scenario: Focus After Reveal
+## 🚦 Why Focus Management Matters
 
-Here's a simple component where we toggle an input field:
+Good focus management ensures that:
+
+* Keyboard users can navigate efficiently
+* Screen reader users stay oriented
+* Visual users have a seamless experience
+
+### Example: Conditional Rendering and Focus
+
+Consider this component:
 
 ```tsx
 function MyComponent() {
@@ -39,40 +41,30 @@ function MyComponent() {
 }
 ```
 
-When the button is clicked, we show the input. But users naturally expect the focus to move to the newly revealed input. How do we do that?
+When the user clicks the **Show** button, the input appears. Naturally, you'd expect the input to be focused so the user can type immediately. But…
 
-You might think this would work:
+### ❌ The Naive Approach
 
 ```tsx
-function MyComponent() {
-	const inputRef = useRef<HTMLInputElement>(null)
-	const [show, setShow] = useState(false)
+const inputRef = useRef<HTMLInputElement>(null)
 
-	return (
-		<div>
-			<button
-				onClick={() => {
-					setShow(true)
-					inputRef.current?.focus() // 😕 Won’t work as expected
-				}}
-			>
-				Show
-			</button>
-			{show ? <input ref={inputRef} /> : null}
-		</div>
-	)
-}
+<button
+	onClick={() => {
+		setShow(true)
+		inputRef.current?.focus() // ❌ Doesn't work
+	}}
+>
+	Show
+</button>
 ```
 
-**Why doesn’t this work?**
-
-React batches state updates. So by the time `inputRef.current?.focus()` is called, the input hasn’t yet been rendered into the DOM.
+This doesn’t work because **React batches state updates**. The DOM isn’t updated when `setShow(true)` is called, so the input doesn't yet exist.
 
 ---
 
-## 💡 The Fix: `flushSync` from `react-dom`
+## ✅ The Fix: `flushSync`
 
-The key is to force React to flush state updates and DOM updates **synchronously** using `flushSync`.
+To handle this properly, we can use `flushSync` from `react-dom` to flush the state update **synchronously**, ensuring the DOM updates before we call `focus()`.
 
 ```tsx
 import { flushSync } from 'react-dom'
@@ -99,44 +91,35 @@ function MyComponent() {
 }
 ```
 
-> 🔧 **What does `flushSync` do?**
-> It tells React to **synchronously apply the update**, render the DOM, and only then continue execution. So by the time we call `.focus()`, the input is already in the DOM.
-
-> 🛑 **Caution:** `flushSync` is a de-optimization. Avoid using it unless absolutely necessary—like in focus management.
-
-📖 Learn more in the [React `flushSync` docs](https://react.dev/reference/react-dom/flushSync)
+> 💡 Use `flushSync` sparingly. It's a performance de-optimization, but it's perfect for situations like managing focus where user experience matters most.
 
 ---
 
-## ✏️ A Practical Example: `<EditableText />`
+## ✏️ Real Example: Editable Text with Focus Transitions
 
-Let’s look at a more advanced scenario.
+Let’s now build an `<EditableText />` component that:
 
-Suppose you have an `<EditableText />` component. It starts as a button showing some text. When clicked, it becomes an input. When the user presses Enter, Esc, or clicks away (blur), it turns back into a button.
+* Renders a **button** with text
+* On click, replaces it with an **input**
+* On blur, `Enter`, or `Escape`, exits edit mode and goes back to the button
+* Selects all text when entering edit mode
+* Properly manages **tab order and focus**
 
-### 🎯 What should we handle?
+### 🧠 Why This Is Tricky
 
-* ✅ Focus the input automatically when it appears
-* ✅ Select all text so the user can quickly edit
-* ✅ Restore focus logically after the user finishes editing (submit, cancel, or blur)
-* ✅ Support keyboard tabbing seamlessly
+When the user clicks the button, it disappears and is replaced with the input. If we don’t manage focus, the user is left staring at a blank screen with no cursor in sight.
 
-### 🧪 Why it matters
+---
 
-Without good focus management, the user clicks the button, it disappears, and the input shows up—**but focus is lost**. That breaks the user experience and accessibility.
-
-To fix that:
-
-* Use a `ref` to the input
-* Use `flushSync` to ensure input is rendered before focusing
-* Handle key events (`Enter`, `Escape`)
-* Handle `onBlur` events for fallback exit
-
-### 👇 Here's a sketch of the logic
+## 🛠️ Implementation
 
 ```tsx
+import { flushSync } from 'react-dom'
+import React, { useRef, useState } from 'react'
+
 function EditableText() {
 	const [isEditing, setIsEditing] = useState(false)
+	const [value, setValue] = useState('Click to edit me')
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const startEditing = () => {
@@ -147,57 +130,79 @@ function EditableText() {
 		})
 	}
 
-	const stopEditing = () => {
+	const stopEditing = (submit: boolean) => {
 		setIsEditing(false)
+		if (submit && inputRef.current) {
+			setValue(inputRef.current.value)
+		}
 	}
 
-	return isEditing ? (
-		<input
-			ref={inputRef}
-			defaultValue="Edit me"
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === 'Escape') {
-					stopEditing()
-				}
-			}}
-			onBlur={stopEditing}
-		/>
-	) : (
-		<button onClick={startEditing}>Edit me</button>
+	return (
+		<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+			<button>Before</button>
+			{isEditing ? (
+				<input
+					ref={inputRef}
+					defaultValue={value}
+					onBlur={() => stopEditing(true)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') stopEditing(true)
+						if (e.key === 'Escape') stopEditing(false)
+					}}
+				/>
+			) : (
+				<button onClick={startEditing}>{value}</button>
+			)}
+			<button>After</button>
+		</div>
 	)
 }
 ```
 
----
+### 🧪 Try This:
 
-## 🧪 Testing Focus
+1. Tab through the buttons and into the editable text.
+2. Press **Enter** → input should focus and select all text.
+3. Type, then press **Enter**, **Escape**, or click away.
 
-When you test focus-related behavior, be mindful:
+### ✅ Key Behaviors Covered:
 
-* Focus doesn’t work properly in some test environments unless the DOM is attached
-* You may need to **expand or enable the test environment** to simulate focus accurately
-
----
-
-## 🧠 Summary: Tips for Managing Focus in React
-
-1. **React state is async** — UI updates aren’t immediate.
-2. **Use `flushSync()`** when you need to synchronously reflect state updates in the DOM.
-3. **Always use refs** to directly access DOM nodes.
-4. **Select text on focus** for better editing UX.
-5. **Handle blur and key events** to gracefully exit edit mode.
-6. **Think about keyboard and screen reader users**—accessible UX is better UX.
+* **Focus & Selection** on click (with `flushSync` + `requestAnimationFrame`)
+* **Keyboard support**: `Enter` submits, `Escape` cancels
+* **Blur** fallback: auto-submit when leaving the field
 
 ---
 
-## 📚 Want to Dive Deeper?
+## 🦽 Accessibility Matters
 
-* [React `flushSync` Documentation](https://react.dev/reference/react-dom/flushSync)
-* [EpicReact.dev Focus Management Workshop](https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-focus-management)
+This solution improves usability **and accessibility**:
+
+* Screen readers know what to read (because focus is on the right element)
+* Keyboard users can navigate smoothly
+* All interactions are clear and responsive
 
 ---
 
-Focus management may seem minor at first glance, but when done right, it dramatically enhances user experience and accessibility. Keep your users in control—**right where they left off**.
+## 📌 Takeaways
 
-Happy coding! ✨
+* Use `ref` + `focus()` to control where focus goes
+* React state updates are **batched**, so newly rendered elements aren’t available immediately
+* Use `flushSync()` when you need **DOM to update synchronously**
+* Always manage focus in complex UIs (especially dynamic inputs)
+* Keyboard interactions (Enter, Escape, Tab) should be handled explicitly
 
+---
+
+## 📚 Resources
+
+* [React Docs – flushSync](https://react.dev/reference/react-dom/flushSync)
+* [React A11y Guide](https://reactjs.org/docs/accessibility.html)
+* Example inspiration: [Remix Trellix](https://github.com/remix-run/example-trellix)
+
+---
+
+By thoughtfully managing focus, you're not just fixing bugs—you’re creating a smooth, delightful, and accessible experience for **every** user.
+
+Happy coding! 🚀
+
+---

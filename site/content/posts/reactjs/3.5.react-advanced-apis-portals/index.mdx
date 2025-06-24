@@ -2,69 +2,67 @@
 title: "Advanced React APIs: Portals"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-20
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-15
 thumbnail: image.jpg
 featured: true
 ---
 
+**🎯 Understanding React Portals: When and How to Use Them**
 
-When building user interfaces with React, we often expect our components to render strictly within their parent DOM nodes. But what happens when we need a part of our UI—like a **modal**, **tooltip**, or **dropdown**—to appear *outside* the usual DOM structure? 🤔
+In many web applications, there comes a time when you need to render UI outside of the normal DOM hierarchy of a component. A common example is a **modal dialog** or a **tooltip**, which needs to appear visually above other content and often outside its parent container.
 
-This is where **React Portals** come in.
+If you’ve ever faced layout issues like overlapping content, z-index conflicts, or weird positioning, chances are you’ve hit the limits of the default DOM tree rendering.
 
-In this blog, we'll explore:
-
-* Why Portals are needed
-* How to use `ReactDOM.createPortal`
-* A practical modal example
-* A real-world tooltip issue and how to fix it
-* Some gotchas and best practices
+That's where **React Portals** shine.
 
 ---
 
-## 📦 What Are React Portals?
+## 📌 What Are Portals in React?
 
-> “Portals provide a first-class way to render children into a DOM node that exists outside the DOM hierarchy of the parent component.” — *React Docs*
+React Portals allow you to render a component’s subtree **outside of its parent component’s DOM node**—but still keep all the component’s state and event handling intact.
 
-Let’s say you’re building a **modal dialog**. Normally, you'd render it inside a component like this:
+React provides a built-in API for this via:
 
 ```tsx
-function App() {
-	return (
-		<div>
-			<MyModal />
-		</div>
-	)
-}
+import { createPortal } from 'react-dom'
 ```
 
-But this often causes **z-index and layout issues**—the modal might not appear above other elements as expected. That’s because it's still nested within the component tree and subject to its CSS context.
+The `createPortal` method takes two arguments:
 
-✅ **Portals solve this by letting you render a component into a completely different part of the DOM**, like the root of `document.body`.
+1. **What** you want to render (JSX)
+2. **Where** you want to render it (a DOM node, like `document.body`)
 
 ---
 
-## ⚙️ Using `ReactDOM.createPortal`
+## 🧱 Basic Example: Creating a Modal with a Portal
 
-React offers a built-in method called `createPortal` to render components outside the parent hierarchy.
+Let’s take a look at a simple modal implementation using a portal:
 
 ```tsx
 import { createPortal } from 'react-dom'
 
-function Modal({ title, content, handleClose }) {
+function Modal({
+	title,
+	content,
+	handleClose,
+}: {
+	title: string
+	content: string
+	handleClose: () => void
+}) {
 	return createPortal(
 		<div className="modal">
 			<h1>{title}</h1>
 			<p>{content}</p>
 			<button onClick={handleClose}>Close</button>
 		</div>,
-		document.body // Target container
+		document.body,
 	)
 }
 ```
 
-And here’s how you’d use it inside your `App` component:
+And here's how you'd use it in your `App`:
 
 ```tsx
 function App() {
@@ -85,106 +83,91 @@ function App() {
 }
 ```
 
-🧠 **What's happening here?**
-
-* `createPortal` takes two arguments:
-
-  * The JSX you want to render
-  * The DOM node you want to render it into (usually `document.body`)
-* It renders the modal **as a child of `document.body`**, not inside the original parent `<div>` of `App`.
-
-This technique ensures proper **stacking context**, making it easier to apply styles like fixed positioning, shadows, or backdrops.
+📝 Notice how the modal content is rendered into `document.body`, outside of the `<div>` hierarchy of the `App` component. Yet, it still behaves like it’s part of the same React component tree.
 
 ---
 
-## 🛠 A Real-World Example: Tooltips
+## 💡 Why Use Portals?
 
-Let’s say you have a card UI with a heart icon. Some users are confused about its purpose, so you want to add a **tooltip**.
+Some real-world scenarios where Portals are invaluable:
 
-You build a tooltip component like this:
+* Modal dialogs
+* Tooltips
+* Toast notifications
+* Dropdowns
+* Context menus
+
+These elements often **break out of their parents’ layout** and need to be placed elsewhere in the DOM (like `document.body`) to avoid being cut off or mispositioned.
+
+---
+
+## 🎯 Case Study: Fixing a Tooltip with a Portal
+
+Imagine you’re building a UI card component with a heart icon button. Some users report confusion, so you decide to add a tooltip that explains what the icon does.
+
+Initially, you might write something like:
 
 ```tsx
-function Tooltip({ children }) {
-	return <div className="tooltip">{children}</div>
-}
+<div className="card">
+	<button className="icon-button">
+		❤️
+		<Tooltip text="Add to favorites" />
+	</button>
+</div>
 ```
 
-But when rendered **inside** the card, it causes **positioning issues**. It might get cut off, overflow hidden containers, or simply look off.
+But you notice that the tooltip is being clipped or mispositioned because it's being rendered **inside the card’s DOM tree**.
 
-**💡 Solution: Use a Portal!**
+💥 This is a perfect use case for a Portal!
 
-Refactor your tooltip to use `createPortal`:
+To fix this, render your `Tooltip` using `createPortal`:
 
 ```tsx
 import { createPortal } from 'react-dom'
 
-function Tooltip({ children }) {
-	const el = document.getElementById('tooltip-root') || document.body
+function Tooltip({ text, position }: { text: string; position: { top: number; left: number } }) {
 	return createPortal(
-		<div className="tooltip">{children}</div>,
-		el
+		<div className="tooltip" style={{ top: position.top, left: position.left }}>
+			{text}
+		</div>,
+		document.body,
 	)
 }
 ```
 
-Now the tooltip is rendered **outside the card**, into the root of the page, where it can float freely and appear exactly where it needs to.
+You might use `useLayoutEffect` to measure the icon’s position and pass the correct `top` and `left` props to the `Tooltip`.
 
-👨‍🔧 **Tip:** Use your browser’s *Elements panel* (DevTools) to inspect where the tooltip is rendered before and after using `createPortal`.
-
----
-
-## 🎨 CSS Fixes
-
-Sometimes you’ll need to tweak CSS when you move elements into a portal. Make sure your tooltip or modal styles don’t depend on their parent containers. Use `position: fixed`, `z-index`, and `top/left` offsets carefully.
-
-Example:
-
-```css
-.tooltip {
-	position: fixed;
-	background: black;
-	color: white;
-	padding: 0.5rem;
-	border-radius: 0.25rem;
-	z-index: 1000;
-}
-```
+📎 *Tip: Always check DevTools → Elements tab to verify where your tooltip/modal is being rendered.*
 
 ---
 
-## 🧠 Accessibility Note
+## 🛠 Pro Tip: Use a Library (But Understand Portals)
 
-While we’re learning the raw mechanics of portals here, remember that **accessibility matters**. Tooltips and modals should:
+For production-level tooltips and modals, it’s smart to use a well-tested library (like `Radix UI`, `Headless UI`, or `React Aria`) that handles accessibility and edge cases for you.
 
-* Be keyboard accessible
-* Use ARIA roles and attributes
-* Trap focus (for modals)
-
-🧰 You’ll typically want to use libraries like:
-
-* [React Aria](https://react-spectrum.adobe.com/react-aria/)
-* [Reach UI](https://reach.tech/)
-* [Radix UI](https://www.radix-ui.com/)
-
-These libraries often use `createPortal` under the hood but take care of edge cases for you.
+But even those libraries use `createPortal` under the hood—so understanding this concept will help you debug or extend their components when needed.
 
 ---
 
-## 📺 Dive Deeper with Video
+## 🧠 Recap
 
-Want to see portals in action? Check out the EpicReact workshop by Kent C. Dodds:
-🎥 [Watch Create Portal in Action](https://www.epicreact.dev/workshops/advanced-react-apis/createportal)
+* **Portals** let you render elements outside the normal DOM tree.
+* Use them for **modals**, **tooltips**, **dropdowns**, and more.
+* They preserve **React state and events**.
+* `createPortal(ui, container)` is all you need to get started.
+* Don’t forget to check positioning and styling, especially with `z-index` and `overflow`.
 
 ---
 
-## 📌 Final Thoughts
+## 📚 Further Reading
 
-React Portals are essential for advanced UI patterns like modals, popovers, and tooltips. With just a small change to your render logic, you can:
+* [React Docs on `createPortal`](https://react.dev/reference/react-dom/createPortal)
+* [React useLayoutEffect](https://react.dev/reference/react/useLayoutEffect)
 
-* Escape layout constraints
-* Fix z-index conflicts
-* Improve user experience dramatically
+---
 
-Next time your modal or tooltip looks “off” or doesn’t appear above everything, remember: **it might just need a portal.**
+🔮 Whether you're building complex modals or floating tooltips, **React Portals are your escape hatch** from the DOM hierarchy. Master them, and you'll unlock cleaner UI code and better UX.
 
-Happy coding! 🧑‍💻✨
+Happy coding! 🚀
+
+---

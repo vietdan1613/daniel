@@ -2,27 +2,26 @@
 title: "Advanced React APIs: Custom Hooks"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-18
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-13
 thumbnail: image.jpg
 featured: true
 ---
 
-React Hooks transformed the way we manage state and side effects in our components. One of the most powerful patterns that emerged from this evolution is the **custom hook**.
+**🧠 Demystifying Custom Hooks, Memoization, and `useCallback` in React**
 
-In this post, we’ll explore:
+React's flexibility empowers developers to write expressive, component-driven code. But with that power comes architectural responsibility—especially when abstracting shared logic. This post will walk you through:
 
-* What custom hooks are and why they’re useful
-* How memoization works (in and outside React)
-* How `useCallback` fits into the picture
-* A practical refactor example with a reusable `useSearchParams` hook
-* Why dependency arrays matter
+* What custom hooks really are
+* How memoization helps prevent performance pitfalls
+* Why `useCallback` matters
+* A real-world example: extracting reusable search param logic into a `useSearchParams` custom hook
 
 ---
 
-## 🧩 What Are Custom Hooks?
+## 🔧 What Are Custom Hooks?
 
-A **custom hook** is simply a function that starts with the word `use` and **calls other hooks**. That’s it.
+A custom hook is simply a **function that uses other hooks**. Nothing more, nothing less.
 
 ```tsx
 function useCount() {
@@ -30,124 +29,51 @@ function useCount() {
 	const increment = () => setCount(c => c + 1)
 	return { count, increment }
 }
+```
 
+We can then use it like this:
+
+```tsx
 function Counter() {
 	const { count, increment } = useCount()
 	return <button onClick={increment}>{count}</button>
 }
 ```
 
-In this example, `useCount` is a custom hook that encapsulates the `useState` logic and returns a `count` and an `increment` function.
+Using the `use` prefix is not just a naming convention—it ensures React treats it like a hook and applies the **rules of hooks** properly (e.g., only calling hooks at the top level).
 
-Custom hooks **promote reuse** and **encapsulate logic**, making our code more modular and easier to reason about.
-
-But abstraction comes with a cost: we must be cautious of **function identity** and **referential equality**—especially when our custom hook returns functions.
-
----
-
-## 🧠 Memoization: A Primer
-
-**Memoization** is a technique to cache a result so we don’t recompute it unless necessary. It’s all about performance and consistency.
-
-Example:
-
-```ts
-const values: Record<number, number> = {}
-
-function addOne(num: number) {
-	if (values[num] === undefined) {
-		values[num] = num + 1
-	}
-	return values[num]
-}
-```
-
-This function computes a value once per unique input and returns the cached value afterward.
-
-Memoization is also important for **referential equality**. For instance:
-
-```ts
-const dog1 = new Dog('sam')
-const dog2 = new Dog('sam')
-console.log(dog1 === dog2) // false
-```
-
-But if we memoize:
-
-```ts
-const dogs: Record<string, Dog> = {}
-
-function getDog(name: string) {
-	if (!dogs[name]) dogs[name] = new Dog(name)
-	return dogs[name]
-}
-```
-
-Then:
-
-```ts
-getDog('sam') === getDog('sam') // true
-```
+> 🧠 **Why use custom hooks?**
+> They **encapsulate logic** so you can reuse it across components without repeating yourself.
 
 ---
 
-## ⚛️ Memoization in React: `useCallback` and `useMemo`
+## 🌀 But Be Careful: Referential Equality Matters
 
-React offers two built-in hooks for memoization:
-
-* `useMemo`: Memoizes values
-* `useCallback`: Memoizes functions
-
-Imagine this naive implementation of `useCallback`:
-
-```ts
-function useCallback(callback) {
-	return callback
-}
-```
-
-In reality, React stores the previous callback and only returns a new one if dependencies change:
-
-```ts
-let lastCallback
-function useCallback(callback, deps) {
-	if (depsChanged(deps)) {
-		lastCallback = callback
-	}
-	return lastCallback
-}
-```
-
-So instead of getting a new function on each render, React reuses the one from before—**unless dependencies changed**.
-
-### Why This Matters
-
-Let’s revisit our `useCount` custom hook with `useEffect`:
+Let’s say you’re using a function returned from a hook (like `increment`) **inside a `useEffect`**:
 
 ```tsx
-function useCount() {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount(c => c + 1)
-	return { count, increment }
-}
-
 function Counter() {
 	const { count, increment } = useCount()
-
 	useEffect(() => {
-		const id = setInterval(() => {
-			increment()
-		}, 1000)
+		const id = setInterval(increment, 1000)
 		return () => clearInterval(id)
 	}, [increment])
-
 	return <div>{count}</div>
 }
 ```
 
-Each render creates a new `increment` function, so `useEffect` sees a new dependency every time—causing the interval to reset continuously.
+Even though `increment` does the same thing each time, **its identity changes on every render**. That means your `useEffect` re-runs every time.
 
-### Fix: Use `useCallback`
+This is bad because:
+
+* It clears and recreates the interval unnecessarily
+* It causes unnecessary side-effect churn
+
+---
+
+## 💡 Solution: Memoize With `useCallback`
+
+`useCallback` lets you tell React to “remember” the same function instance as long as its dependencies haven’t changed.
 
 ```tsx
 function useCount() {
@@ -157,96 +83,155 @@ function useCount() {
 }
 ```
 
-Now, `increment` stays the same across renders unless its dependencies change.
+Now `increment` stays stable across renders.
 
-> 💡 `useCallback(fn, deps)` is a shortcut for `useMemo(() => fn, deps)`.
+You can think of `useCallback` as a cache:
+
+```tsx
+let lastCallback
+function useCallback(callback, deps) {
+	if (depsChanged(deps)) {
+		lastCallback = callback
+		return callback
+	}
+	return lastCallback
+}
+```
 
 ---
 
-## 🔍 Building a Custom `useSearchParams` Hook
+## 📦 A Primer on Memoization
 
-Let’s extract URL search parameter logic into a reusable custom hook.
+**Memoization** is a performance optimization technique: instead of recalculating values, we **store and reuse results** for the same inputs.
 
-Previously in your `App` component, you might have:
+Basic memoization:
 
-```tsx
-const [searchParams, setSearchParams] = useSearchParams()
+```ts
+const cache = {}
+function addOne(num: number) {
+	if (cache[num] === undefined) {
+		cache[num] = num + 1
+	}
+	return cache[num]
+}
 ```
 
-Let’s move that logic to a custom hook:
+**Generic memoize function**:
+
+```ts
+function memoize<Arg, Result>(cb: (arg: Arg) => Result) {
+	const cache: Record<string, Result> = {}
+	return function(arg: Arg) {
+		if (cache[arg as any] === undefined) {
+			cache[arg as any] = cb(arg)
+		}
+		return cache[arg as any]
+	}
+}
+```
+
+---
+
+## 🧠 `useCallback` vs `useMemo`
+
+Both are for memoization.
+
+* `useCallback(fn, deps)` is shorthand for `useMemo(() => fn, deps)`
+* `useCallback` returns a memoized **function**
+* `useMemo` returns a memoized **value**
+
+```tsx
+const increment = useCallback(() => setCount(c => c + 1), [])
+// is equivalent to:
+const increment = useMemo(() => () => setCount(c => c + 1), [])
+```
+
+Always remember: **dependencies must be stable**, or your memoization will be broken.
+
+---
+
+## 🧪 Let’s Build a Reusable `useSearchParams` Hook
+
+Suppose you have some logic in your `App` component that manipulates the browser’s search params:
+
+```tsx
+const [searchParams, setSearchParams] = useState(...)
+```
+
+You want to **extract this logic into a custom hook** so other components can reuse it.
 
 ```tsx
 function useSearchParams(): [
 	URLSearchParams,
-	(nextParams: Record<string, string>) => void
+	(newParams: Record<string, string>) => void
 ] {
-	const location = useLocation()
-	const navigate = useNavigate()
-	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
+	const [params, setParams] = useState(() => new URLSearchParams(window.location.search))
 
-	const setSearchParams = useCallback(
-		(nextParams: Record<string, string>) => {
-			const newSearchParams = new URLSearchParams(location.search)
-			for (const [key, value] of Object.entries(nextParams)) {
-				newSearchParams.set(key, value)
-			}
-			navigate({ search: newSearchParams.toString() })
-		},
-		[location.search, navigate]
-	)
+	const setSearchParams = useCallback((newParams: Record<string, string>) => {
+		const newSearchParams = new URLSearchParams()
+		for (const key in newParams) {
+			newSearchParams.set(key, newParams[key])
+		}
+		const newUrl = `${window.location.pathname}?${newSearchParams.toString()}`
+		window.history.pushState(null, '', newUrl)
+		setParams(newSearchParams)
+	}, [])
 
-	return [searchParams, setSearchParams]
+	return [params, setSearchParams]
 }
 ```
 
-Now in `App`:
+Now use it in your component like this:
 
 ```tsx
-const [searchParams, setSearchParams] = useSearchParams()
+function App() {
+	const [searchParams, setSearchParams] = useSearchParams()
 
-useEffect(() => {
-	if (someCondition) {
-		setSearchParams({ foo: 'bar' })
+	function handleClick() {
+		setSearchParams({ query: 'hello' })
 	}
-}, [setSearchParams, someCondition])
+
+	return <button onClick={handleClick}>Search</button>
+}
 ```
 
-By wrapping `setSearchParams` in `useCallback`, we ensure that it **doesn't change between renders**, unless `location.search` or `navigate` changes. This makes it safe to use in hooks like `useEffect`.
+> ✅ **Why wrap `setSearchParams` with `useCallback`?**
+> So it stays **referentially stable**, in case someone needs to use it inside a `useEffect`.
 
 ---
 
-## 🧪 Dependency Arrays: The Hidden Complexity
+## 🤔 Should You Wrap Everything in `useCallback`?
 
-The array you pass to `useEffect`, `useMemo`, or `useCallback` **controls stability**. React depends on you to list every value referenced inside the function.
+**No!** Overusing `useCallback` can actually hurt performance by cluttering your code and forcing React to do unnecessary dependency checks.
 
-```tsx
-const memoizedCallback = useCallback(() => {
-	doSomething(dependency)
-}, [dependency]) // ✅ must include `dependency`!
-```
+Only use it when:
 
-Failing to include a dependency can result in **stale values** and **hard-to-debug bugs**.
+* You're passing a function to a `useEffect` or `useMemo` dependency array
+* You're passing a function to memoized children (`React.memo`)
+* You want to avoid re-creating functions unnecessarily in hot paths
 
-### Strategy Tip
-
-One way to avoid overcomplication is to avoid abstraction too early. Build your code simply first, then refactor with hooks only when reuse becomes obvious.
+📚 [Read more here](https://kentcdodds.com/blog/usememo-and-usecallback)
 
 ---
 
-## 🧠 Bonus Learning Resources
+## 🧵 TL;DR
 
-* [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
+* **Custom hooks** are just functions that use hooks—great for reuse.
+* **Memoization** avoids recomputation and preserves reference equality.
+* **`useCallback`** memoizes functions so they're stable across renders.
+* Use **`useCallback`** when it matters—especially in reusable hooks.
+* Don't wrap everything! Be intentional.
+
+---
+
+## 📘 Further Learning
+
 * [Myths about `useEffect`](https://epicreact.dev/myths-about-useeffect)
-* [Caching for Cash](https://www.epicweb.dev/talks/caching-for-cash)
-* [Closures (MDN)](https://mdn.io/closure)
+* [Caching for Cash (Talk)](https://www.epicweb.dev/talks/caching-for-cash)
+* [React Router’s `useSearchParams`](https://reactrouter.com/en/main/hooks/use-search-params)
+* [MDN: Closures](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures)
 
 ---
 
-## 🧵 Final Thoughts
+🎉 Congratulations! You've taken a deep dive into memoization, abstraction, and dependency management in React.
 
-Custom hooks make your code cleaner and more reusable. But with great power comes great responsibility:
-
-* Use `useCallback` to memoize returned functions from custom hooks
-* Be mindful of function identity in dependency arrays
-* Don’t abstract prematurely—wait until patterns emerge
-* Always ensure your dependency arrays are complete and stable

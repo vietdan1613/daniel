@@ -2,238 +2,248 @@
 title: "Advanced React APIs: Advanced State Management"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-16
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-11
 thumbnail: image.jpg
 featured: true
 ---
 
-React’s `useState` is often our go-to hook for managing local component state. 
-But as your app grows more complex, state transitions can become harder to track 
-and maintain. That's where `useReducer` shines. It gives you a more structured 
-way to handle complex state logic and enables better separation of concerns.
+**🧠 Mastering `useReducer` in React: A Practical Deep Dive**
 
-In this blog, we'll journey from the basics of `useReducer` to advanced patterns, 
-ending with a real-world application: managing state in a Tic-Tac-Toe game.
+React’s `useState` hook is perfect for many scenarios — it’s simple, concise, and expressive. But as your state grows in complexity, managing it with `useState` can start to feel messy. That's where `useReducer` shines.
 
-## 🎯 Why `useReducer`?
+This post will walk you through **progressively mastering `useReducer`**—starting from simple values like counters, all the way to simulating `this.setState` behavior, and finally using it for real-world applications like a Tic Tac Toe game.
 
-Imagine a component where multiple state variables update together or the logic 
-to derive new state gets complicated. Instead of cluttering your component with 
-`useState` calls and scattered update logic, `useReducer` centralizes all your 
-state transitions in one place — the reducer function.
+## 📦 Why Use `useReducer`?
 
-## 🧪 Starting Small: A Simple `useReducer` Counter
+React’s `useReducer` is ideal when:
 
-We begin by using `useReducer` to manage a basic input field — not because it's 
-necessary here, but to understand the mechanics.
+* You want to **separate state logic** from the component
+* Multiple values in your state **change together**
+* You want more **predictable and declarative state updates**
+
+Let’s explore `useReducer` step-by-step with increasingly powerful examples.
+
+---
+
+## 🧮 Step 1: From `useState` to `useReducer` — Basic Usage
+
+Let’s start by replacing `useState` with `useReducer` for something simple: updating an input value.
 
 ```tsx
 function nameReducer(previousName: string, newName: string) {
-	return newName
+  return newName
 }
 
 const initialNameValue = 'Joe'
 
 function NameInput() {
-	const [name, setName] = useReducer(nameReducer, initialNameValue)
-	const handleChange = (event) => setName(event.currentTarget.value)
+  const [name, setName] = useReducer(nameReducer, initialNameValue)
 
-	return (
-		<div>
-			<label>
-				Name: <input defaultValue={name} onChange={handleChange} />
-			</label>
-			<div>You typed: {name}</div>
-		</div>
-	)
+  const handleChange = (e) => setName(e.currentTarget.value)
+
+  return (
+    <div>
+      <label>
+        Name: <input defaultValue={name} onChange={handleChange} />
+      </label>
+      <div>You typed: {name}</div>
+    </div>
+  )
 }
 ```
 
-> ✅ `useReducer` takes a reducer function and an initial value. Each time the dispatch 
-function (`setName`) is called, it triggers the reducer with the current state and the 
-action (which in this case is just the new name string).
-
-## 🔁 Customizing Actions: Counter With Step
-
-Here’s a simplified counter using `useReducer`, where we pass a step value directly as 
-the action:
-
-```tsx
-const [count, changeCount] = useReducer(countReducer, initialCount)
-
-const increment = () => changeCount(step)
-const decrement = () => changeCount(-step)
-
-function countReducer(state: number, action: number) {
-	return state + action
-}
-```
-
-> 🧠 The "action" here is a number, demonstrating that you can dispatch anything to 
-a reducer — not just objects!
-
-## 📦 Managing State as an Object
-
-Let’s now migrate to using an object for state. This is helpful when multiple values 
-need to be tracked together.
-
-```tsx
-const [state, setState] = useReducer(countReducer, {
-	count: initialCount,
-	someOtherState: 'hello',
-})
-
-const increment = () => setState({ count: state.count + step })
-const decrement = () => setState({ count: state.count - step })
-
-function countReducer(state, action) {
-	return { ...state, ...action }
-}
-```
-
-> 💡 We're mimicking class component’s `this.setState` behavior here — shallow 
-merging the new state with the old one.
+👉 In this case, `useReducer` behaves just like `useState`. The reducer simply returns the new value passed via `dispatch`.
 
 ---
 
-## 🧠 Supporting Functional Updates
+## 🔁 Step 2: Updating a Counter with a Custom Reducer
 
-What if you want to compute the next state based on the current state? You can make 
-your reducer smart enough to handle function actions:
+Let’s build a counter:
+
+```tsx
+const countReducer = (currentCount: number, action: number) =>
+  currentCount + action
+
+const initialCount = 0
+const step = 1
+
+function Counter() {
+  const [count, changeCount] = useReducer(countReducer, initialCount)
+
+  const increment = () => changeCount(step)
+  const decrement = () => changeCount(-step)
+
+  return (
+    <div>
+      <button onClick={decrement}>–</button>
+      <span>{count}</span>
+      <button onClick={increment}>+</button>
+    </div>
+  )
+}
+```
+
+🧠 **Lesson:** The `action` can be any value — number, string, object, or function — it’s up to you how to use it inside the reducer.
+
+---
+
+## 📦 Step 3: Use State Objects (Simulating `this.setState`)
+
+Now let’s work with **objects** to group state variables together — much like class components used to do with `this.setState`.
+
+```tsx
+function countReducer(state, newState) {
+  return { ...state, ...newState }
+}
+
+const initialState = {
+  count: 0,
+  someOtherState: 'hello',
+}
+
+function Counter() {
+  const [state, setState] = useReducer(countReducer, initialState)
+  const { count } = state
+  const step = 1
+
+  const increment = () => setState({ count: count + step })
+  const decrement = () => setState({ count: count - step })
+
+  return (
+    <div>
+      <div>{state.someOtherState}</div>
+      <button onClick={decrement}>–</button>
+      <span>{count}</span>
+      <button onClick={increment}>+</button>
+    </div>
+  )
+}
+```
+
+💡 **Why this matters:** Updating state via object merging makes `useReducer` behave a lot like `this.setState`, giving you flexibility while still keeping logic outside your UI code.
+
+---
+
+## 🔄 Step 4: Support Function Updaters (Advanced `this.setState` Simulation)
+
+Let’s make our reducer handle both **objects** and **functions**, just like `this.setState` could.
 
 ```tsx
 function countReducer(state, action) {
-	return typeof action === 'function' ? action(state) : { ...state, ...action }
+  const newState = typeof action === 'function' ? action(state) : action
+  return { ...state, ...newState }
 }
+```
 
+Now your component can call `setState` with a function:
+
+```tsx
 const increment = () =>
-	setState((currentState) => ({ count: currentState.count + step }))
+  setState((currentState) => ({ count: currentState.count + step }))
 ```
 
-> ✨ This adds flexibility — the dispatched action can be either a plain object or 
-a function that receives the current state.
+✅ **Benefit:** This allows state updates based on the previous state — very useful when updates are asynchronous or based on current values.
 
 ---
 
-## ⚔️ Embracing the Traditional `useReducer` Pattern
+## 🧱 Step 5: Traditional Reducer Pattern
 
-React’s conventional use of `useReducer` follows the **action object** pattern. This 
-makes transitions more explicit and helps when your logic grows.
+Let’s follow the **conventional reducer pattern** with action types. This is common in Redux and large-scale React apps:
 
 ```tsx
-type Action = 
-	| { type: 'INCREMENT', step: number }
-	| { type: 'DECREMENT', step: number }
-
-function countReducer(state, action: Action) {
-	switch (action.type) {
-		case 'INCREMENT':
-			return { count: state.count + action.step }
-		case 'DECREMENT':
-			return { count: state.count - action.step }
-		default:
-			throw new Error('Unsupported action')
-	}
+function countReducer(state, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return { ...state, count: state.count + action.step }
+    case 'DECREMENT':
+      return { ...state, count: state.count - action.step }
+    default:
+      return state
+  }
 }
-
-const [state, dispatch] = useReducer(countReducer, { count: initialCount })
 ```
 
-> 🧾 Action objects standardize your state changes, making them easier to debug and test.
+Then in your component:
+
+```tsx
+const [state, dispatch] = useReducer(countReducer, { count: 0 })
+const step = 1
+
+const increment = () => dispatch({ type: 'INCREMENT', step })
+const decrement = () => dispatch({ type: 'DECREMENT', step })
+```
+
+🧘 **Now your component just dispatches actions** — no logic about how state changes is embedded in the UI.
 
 ---
 
-## 🎮 Real-World Example: Tic-Tac-Toe Game with `useReducer`
+## 🎮 Step 6: Real World — `useReducer` in Tic Tac Toe
 
-Let’s put `useReducer` to work in a more realistic app — a classic Tic-Tac-Toe game.
+Let’s go further and use `useReducer` in a game.
 
-### Step 1: Define Actions
+We’ll define our actions like this:
 
-```ts
+```tsx
 type GameAction =
-	| { type: 'SELECT_SQUARE'; index: number }
-	| { type: 'SELECT_STEP'; step: number }
-	| { type: 'RESTART' }
+  | { type: 'SELECT_SQUARE'; index: number }
+  | { type: 'SELECT_STEP'; step: number }
+  | { type: 'RESTART' }
 ```
 
-### Step 2: Define State
-
-```ts
-type GameState = {
-	history: Array<Array<string | null>>,
-	currentStep: number,
-	nextValue: string,
-	winner: string | null,
-}
-```
-
-### Step 3: Reducer Logic
-
-```ts
-function gameReducer(state: GameState, action: GameAction): GameState {
-	switch (action.type) {
-		case 'SELECT_SQUARE': {
-			// Handle selecting a square
-			// Update history, nextValue, etc.
-			break
-		}
-		case 'SELECT_STEP': {
-			return {
-				...state,
-				currentStep: action.step,
-			}
-		}
-		case 'RESTART': {
-			return getInitialGameState()
-		}
-		default:
-			throw new Error(`Unhandled action: ${action.type}`)
-	}
-}
-```
-
-### Step 4: Lazy Initial State
-
-You can use a function to lazily initialize state — useful when computing the initial state is expensive.
+And the reducer:
 
 ```tsx
-const [state, dispatch] = useReducer(
-	gameReducer,
-	null,
-	getInitialGameState
-)
+function gameReducer(state, action) {
+  switch (action.type) {
+    case 'SELECT_SQUARE': {
+      const { index } = action
+      // logic to update the board
+      return newState
+    }
+    case 'SELECT_STEP': {
+      return {
+        ...state,
+        currentStep: action.step,
+      }
+    }
+    case 'RESTART': {
+      return getInitialGameState()
+    }
+    default:
+      return state
+  }
+}
 ```
 
----
+Using `useReducer`:
 
-## 🧩 Summary
+```tsx
+const [state, dispatch] = useReducer(gameReducer, null, getInitialGameState)
+```
 
-| Concept                             | Description                                      |
-| ----------------------------------- | ------------------------------------------------ |
-| `useReducer(reducer, initialState)` | Core API — state is managed via a reducer        |
-| `dispatch(action)`                  | Triggers state change through reducer            |
-| `action`                            | Can be any value, object, or function            |
-| Traditional reducer pattern         | Uses action objects with `type` fields           |
-| Object merging                      | Allows partial updates (like `this.setState`)    |
-| Lazy init function                  | Used for complex or prop-dependent initial state |
+🌀 **Lazy initialization**: We pass a third argument to `useReducer` (`getInitialGameState`) to avoid calculating initial state on every render.
 
 ---
 
-## 📘 Further Reading
+## 📚 Summary
 
-* [📖 Should I useState or useReducer?](https://kentcdodds.com/blog/should-i-usestate-or-usereducer)
-* [🛠 How to implement useState with useReducer](https://kentcdodds.com/blog/how-to-implement-usestate-with-usereducer)
-* [🔗 Official `useReducer` Docs](https://react.dev/reference/react/useReducer)
+`useReducer` is an advanced tool that opens up better patterns for managing complex state. Here’s a quick breakdown of what we’ve learned:
+
+| Pattern                        | Description                      |
+| ------------------------------ | -------------------------------- |
+| Basic value reducer            | Like `useState`, but abstracted  |
+| Object merging like `setState` | Useful for grouped state values  |
+| Function updater support       | Handles async-safe updates       |
+| Action type pattern            | Scales for larger apps           |
+| Real-world use (e.g. game)     | Clean separation of logic and UI |
 
 ---
 
-## 🧙‍♀️ Final Thought
+## 📎 Resources to Dive Deeper
 
-`useReducer` may feel like overkill for simple state, but it becomes incredibly valuable as your 
-app logic scales. Start simple, experiment with action patterns, and grow your reducer alongside 
-your app complexity.
+* 📘 [React Docs: `useReducer`](https://react.dev/reference/react/useReducer)
+* ✍️ [Should I `useState` or `useReducer`?](https://kentcdodds.com/blog/should-i-usestate-or-usereducer)
+* 🧩 [How to Implement `useState` with `useReducer`](https://kentcdodds.com/blog/how-to-implement-usestate-with-usereducer)
 
-Happy reducing! 🧮
-
-
+---

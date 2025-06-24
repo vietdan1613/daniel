@@ -2,21 +2,21 @@
 title: "Advanced React APIs: Shared Context"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-19
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-14
 thumbnail: image.jpg
 featured: true
 ---
 
-When building React applications, you often need to manage state. For simple cases, using `useState` or `useReducer` in a component works perfectly. But what happens when you want to share state across multiple components — especially when they're far apart in the component tree or aren't rendered by you directly?
+**🧠 How to Share State Across React Components Using Context and Custom Hooks**
 
-Let’s explore this topic in depth using a simple example, and see how we can level up from local state to shared state using **React Context**.
+When working with React, managing state between components is a common challenge—especially when those components are siblings or deeply nested. While **lifting state up** is often the go-to solution, there are cases where it’s just not practical. In this post, you’ll learn how to share state between components **without prop drilling**, using **React Context** and **custom hooks**.
 
 ---
 
-## 🎯 The Problem with Isolated State in Custom Hooks
+## 🚫 The Problem with Isolated State in Custom Hooks
 
-Here’s a custom hook that provides a counter:
+Let’s start with a simple custom hook:
 
 ```tsx
 function useCount() {
@@ -26,7 +26,7 @@ function useCount() {
 }
 ```
 
-We then use this hook in two components:
+Now imagine you use this hook in two separate components:
 
 ```tsx
 function DisplayCount() {
@@ -49,38 +49,56 @@ function App() {
 }
 ```
 
-At first glance, it might look like this should work — but if you try clicking the increment button, nothing changes. Why?
+Looks good, right? But there's a **bug**: Clicking the increment button doesn’t update the displayed count. Why?
 
-### ❗ Each `useCount()` Call is Independent
+### ❗ Each Call to `useCount()` is a Separate State Instance
 
-Every time you call `useCount()`, a **new state** is created. `DisplayCount` and `IncrementCount` are not sharing state — they’re managing **separate** instances of `count`. Even if they’re rendered inside the same parent, each call to `useCount` creates a fresh piece of state.
+Every time you call `useCount()`, a new piece of state is created. So `DisplayCount` and `IncrementCount` are not sharing state at all—they're isolated.
 
 ---
 
-## ✅ Solution: Use Context to Share State
+## ✅ The Solution: React Context + Custom Hook
 
-Instead of relying on each component to manage its own state, we can **lift the state up** and **provide it via context** to any component that needs it.
+To share state across components without lifting it manually through props, we can use **React Context**.
 
-Here’s how we refactor the code:
+Let’s walk through how to do this properly.
 
-### 1. Create the Context
+---
+
+## 🏗️ Step 1: Create the Context
 
 ```tsx
+import { createContext, ReactNode, useContext, useState } from 'react'
+
+type CountContextType = {
+	count: number
+	increment: () => void
+}
+
 const CountContext = createContext<CountContextType | null>(null)
 ```
 
-### 2. Create a Provider Component
+We initialize the context with `null` to force consumers to only use it within a proper provider.
+
+---
+
+## 🧩 Step 2: Create the Provider Component
 
 ```tsx
 function CountProvider({ children }: { children: ReactNode }) {
 	const [count, setCount] = useState(0)
 	const increment = () => setCount((c) => c + 1)
 	const value = { count, increment }
+
 	return <CountContext.Provider value={value}>{children}</CountContext.Provider>
 }
 ```
 
-### 3. Create a Custom Hook to Use the Context
+This component manages the shared state and passes it through the context to its children.
+
+---
+
+## 🪝 Step 3: Build a Custom Hook to Use the Context
 
 ```tsx
 function useCount() {
@@ -92,7 +110,11 @@ function useCount() {
 }
 ```
 
-### 4. Update the Components
+Using this hook ensures that consuming components have access to the shared state, and we get a useful error if the context is missing.
+
+---
+
+## 🧱 Step 4: Use the Shared Hook in Your Components
 
 ```tsx
 function DisplayCount() {
@@ -108,100 +130,63 @@ function IncrementCount() {
 function App() {
 	return (
 		<CountProvider>
-			<DisplayCount />
-			<IncrementCount />
+			<div>
+				<DisplayCount />
+				<IncrementCount />
+			</div>
 		</CountProvider>
 	)
 }
 ```
 
-Now, both `DisplayCount` and `IncrementCount` share the **same state**, because it’s managed by the `CountProvider` and passed via `React Context`.
+🎉 Now the `IncrementCount` button updates the same `count` that `DisplayCount` is showing!
 
 ---
 
-## 🧠 Why Not Just Use a Default Value in Context?
+## 🧠 Why Not Use a Default Context Value?
 
-You might wonder: why don’t we just set a default value for the context and avoid the need for a provider?
+You might wonder: "Can’t I just provide a default value to `createContext` and skip the Provider?"
+
+Technically yes—but there's a **catch**: You lose reactivity. If the context holds a plain object instead of state, updating it won’t cause consumers to rerender. That’s why it’s best practice to **default the context to `null`** and force usage within a proper provider.
+
+---
+
+## 🧭 Real-World Case: Managing Shared URL Search Params
+
+Let’s say you're using React Router's `useSearchParams()` to access query params in multiple components.
+
+You might try calling `useSearchParams()` in each component separately, like:
 
 ```tsx
-const CountContext = createContext({
-	count: 0,
-	increment: () => {},
-})
+const [searchParams, setSearchParams] = useSearchParams()
 ```
 
-The issue is: **this default is static**. It won't update when state changes. If we update `count` or call `increment`, nothing re-renders. That's because the values are not backed by **state** — just plain functions and variables.
+But then you realize: ⚠️ this creates **multiple subscriptions to the URL change event**, and the state is **no longer synchronized** across components.
 
-This is why we set the default to `null`, and explicitly require that `useCount()` be called inside a `CountProvider`. It enforces the correct usage pattern and avoids silent bugs.
+### ✅ Fix: Use a Context Provider
+
+To solve this, wrap your app in a provider that calls `useSearchParams()` once, and expose the value via context. Then, use a custom `useSearchParams()` hook that accesses that context instead of calling the original hook directly.
 
 ---
 
-## 💡 Real-World Use Case: `useSearchParams` Sharing Gone Wrong
+## 🧩 Summary
 
-Imagine you’re working in a React app using `useSearchParams` from React Router, and you try to use that hook in multiple components — thinking they’ll all share the same value.
-
-```tsx
-function useSearchParams() {
-	// logic from router
-}
-```
-
-You might notice strange behavior: changes in one place don’t reflect in others. You’re actually creating **multiple subscriptions** to the browser's `popstate` event, leading to **desync**.
-
-The fix? Create a shared context for `searchParams` and `setSearchParams`, and provide them at a high level:
-
-```tsx
-const SearchParamsContext = createContext<SearchParamsContextType | null>(null)
-
-function SearchParamsProvider({ children }: { children: ReactNode }) {
-	const [searchParams, setSearchParams] = useSearchParams()
-	const value = { searchParams, setSearchParams }
-	return <SearchParamsContext.Provider value={value}>{children}</SearchParamsContext.Provider>
-}
-
-function useSearch() {
-	const context = useContext(SearchParamsContext)
-	if (!context) throw new Error('Must be used within SearchParamsProvider')
-	return context
-}
-```
-
-Now, every component using `useSearch()` will work with **shared** state, keeping everything in sync.
+* 🧪 Calling custom hooks separately = isolated state.
+* 🏗️ Use React Context to share state across components.
+* 🔁 Context updates trigger rerenders in consumers.
+* 💥 Avoid default values unless you’re sure you won’t need reactivity.
+* ✅ Use a custom hook to access the context and ensure provider presence.
 
 ---
 
-## 🧪 Experimental Edge: `use()` in React 19+
+## 🧪 Compatibility Note
 
-If you're working with the latest experimental versions of React (like React 19), you might run into the new `use()` function — which can even be used to directly consume context without `useContext`.
-
-```tsx
-import { use } from 'react'
-
-function useCount() {
-	const context = use(CountContext) // experimental
-	// same logic applies
-}
-```
-
-But for most apps today (React &lt;= 18.2), stick with `useContext`.
+> The example above uses `useContext`. Some experimental React versions introduce a new `use()` hook, but for apps using React ≤ 18.2, stick with `useContext`.
 
 ---
 
-## 🔁 Summary
+## 💡 Takeaway
 
-* Custom hooks isolate state by default.
-* Use context when you want to **share** state across multiple components — especially if you can’t easily pass props.
-* **Always** wrap consumers in a context provider.
-* Avoid default values for complex state objects in context unless they’re static or you handle updates elsewhere.
-* Watch out for shared hooks like `useSearchParams` that internally depend on subscriptions — wrap them in a context to avoid multiple event listeners.
+React Context is a powerful tool when you need to **implicitly share state across components**. Whether you're building compound components, managing shared URL state, or dealing with components that live in different parts of your tree—**Context + custom hooks = a scalable, clean solution.**
 
 ---
-
-## ✨ Final Thoughts
-
-React’s composable nature gives you powerful tools like hooks and context to manage state precisely how you need it. Understanding the **difference between isolated and shared state** helps you build more predictable and maintainable applications.
-
-Next time you’re duplicating logic or see unexpected behavior in components using the same hook — ask yourself: should this state be shared?
-
-If yes — you know what to do. Bring in context and give your state a proper home. 🏡
-

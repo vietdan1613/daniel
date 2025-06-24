@@ -2,118 +2,110 @@
 title: "Advanced React APIs: Layout Computation"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
-date: 2024-06-21
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-16
 thumbnail: image.jpg
 featured: true
 ---
 
-When building modern UIs with React, layout matters. A lot. In some cases, your UI needs to *measure* the size or position of an element **before** rendering it the right way. Think about dropdowns, tooltips, or popovers—they often need to know where they are on the page **before** deciding where to render.
+**🧠 Understanding `useLayoutEffect`: Fixing UI Flicker with Precise Layout Computation in React**
 
-But what happens when you can’t know the layout until *after* the DOM is painted?
+When building interactive UIs, sometimes the layout of a component depends on the dimensions or position of another component. A common scenario is a **tooltip** that must appear either above or below a target element—based on how much space is available.
 
-That’s where layout computation—and `useLayoutEffect`—comes into play.
-
----
-
-## 📐 What Is Layout Computation?
-
-Layout computation is the process of measuring the dimensions or position of UI elements *before* displaying them correctly on the screen. For example:
-
-* A tooltip should appear **above** or **below** the target element depending on available space.
-* A modal or popover should be centered based on the viewport size.
-* A list should scroll to the right item after mount.
-
-These measurements need to happen **before** the browser paints the screen. Otherwise, you'll get what's known as **flickering**—the component is rendered incorrectly at first, then "jumps" to the correct position once the measurements are in.
+This kind of positioning logic might seem straightforward at first: just check the element’s position and update the state accordingly. But here’s where it gets tricky…
 
 ---
 
-## 🐛 What Causes UI Flickering?
+## 💡 The Problem: Measuring Layout After the Paint
 
-Imagine you render a tooltip based on the target element’s position:
+When we render a component, the browser updates the DOM. Only **after that**, we can measure things like width, height, or position using methods like `getBoundingClientRect()`.
+
+In many cases, developers use the `useEffect` hook for this:
 
 ```tsx
 useEffect(() => {
-  const rect = ref.current?.getBoundingClientRect()
-  if (!rect) return
-  const { height } = rect
-  setTooltipHeight(height)
+	const rect = ref.current?.getBoundingClientRect()
+	if (!rect) return
+	const { height } = rect
+	setTooltipHeight(height)
 }, [])
 ```
 
-At first glance, this looks fine. But `useEffect` runs **after** the screen is painted. So on low-end devices or slower environments, users might briefly see the tooltip in the wrong place (say, below the element), before it repositions itself (to above).
+This hook runs after the render is committed to the screen, so you’re **measuring layout after the paint**.
 
-This creates a visual flicker that affects user experience.
+That means your component:
+
+1. Renders first (possibly in the wrong position).
+2. Measures its layout.
+3. Updates its state.
+4. Renders again (this time in the correct position).
+
+On low-end devices, this results in **visible flickering**—the user briefly sees the incorrect position before the correct one is applied.
 
 ---
 
-## 💊 The Fix: `useLayoutEffect`
+## 🔧 The Fix: Measuring Before the Paint with `useLayoutEffect`
 
-The fix is simple: switch from `useEffect` to `useLayoutEffect`.
+To prevent this flickering, we can use React’s `useLayoutEffect` instead of `useEffect`. It has **the exact same API**, but it runs **synchronously after the DOM is updated and before the browser repaints the screen**.
+
+In other words:
+
+* `useEffect` → Runs *after* the paint.
+* `useLayoutEffect` → Runs *before* the paint.
+
+By switching to `useLayoutEffect`, your component can:
+
+1. Render.
+2. Measure its layout *before* the browser paints the screen.
+3. Apply the correct positioning.
+4. Show the user the correct layout immediately—no flicker!
+
+Here’s the updated code:
 
 ```tsx
 useLayoutEffect(() => {
-  const rect = ref.current?.getBoundingClientRect()
-  if (!rect) return
-  const { height } = rect
-  setTooltipHeight(height)
+	const rect = ref.current?.getBoundingClientRect()
+	if (!rect) return
+	const { height } = rect
+	setTooltipHeight(height)
 }, [])
 ```
 
-Here’s what makes `useLayoutEffect` powerful:
-
-* It **runs synchronously** after the DOM has been updated.
-* It **blocks the browser** from painting until your code runs.
-* You can **safely measure layout** and apply styles **before** the user sees anything.
-
-This small change eliminates flickering by ensuring the UI is in its final position *before* the screen updates.
+Now, when a user hovers over an element (like a heart icon), the tooltip will appear in the right position the first time it renders—no awkward flickering!
 
 ---
 
-## ⚖️ `useEffect` vs `useLayoutEffect`
+## 👩‍🔬 Real-World Example: Simulating the Flicker
 
-| Feature             | `useEffect`                        | `useLayoutEffect`                           |
-| ------------------- | ---------------------------------- | ------------------------------------------- |
-| Timing              | After the paint                    | Before the paint                            |
-| Use case            | Async data, logging, subscriptions | Measuring layout, synchronously reading DOM |
-| Performance concern | Doesn’t block rendering            | Might delay painting                        |
-| Common usage        | Most side effects                  | Rare, layout-specific effects               |
+In a recent test, one of our engineers added an artificial delay to simulate a low-end device scenario. On hover, the tooltip would briefly appear **below** the heart icon, then jump **above** it once layout measurements were complete.
 
-So, unless you're dealing with **layout-based** side effects, prefer `useEffect`. But when measurements and positions matter—like with tooltips—`useLayoutEffect` is your friend.
+This clearly illustrated the problem of using `useEffect` for layout-sensitive components. The solution? Replacing `useEffect` with `useLayoutEffect` eliminated the flicker entirely.
 
 ---
 
-## 💡 A Real Example: Tooltip Positioning
+## 🧭 When to Use `useLayoutEffect`
 
-In the [Epic React](https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-layout-computation) workshop, there's a tooltip that sometimes flickers. Here's what happens:
+You should only use `useLayoutEffect` when:
 
-1. Tooltip first renders **below** the heart icon.
-2. After measuring, it realizes there's space **above**, and jumps up.
-3. That *jump* causes a distracting flicker.
+* You need to **measure the layout** of DOM elements.
+* You must **apply updates before the browser paints**.
+* You’re working with **animations** or precise **positioning** (like tooltips, popovers, modals, etc.).
 
-By switching to `useLayoutEffect`, the measurement is complete before the screen is painted, so the tooltip just appears in the right place—**no flicker**.
-
----
-
-## 📚 Resources
-
-* 📘 [React Docs – useLayoutEffect](https://react.dev/reference/react/useLayoutEffect)
-* 🧵 [Blog: `useEffect` vs `useLayoutEffect`](https://kentcdodds.com/blog/useeffect-vs-uselayouteffect)
-* 🎥 [Epic React Advanced APIs Workshop](https://www.epicreact.dev/workshops/advanced-react-apis/intro-to-layout-computation)
+For all other side effects (like fetching data, setting up subscriptions, logging, etc.), `useEffect` is still the preferred and more efficient choice.
 
 ---
 
-## ✅ Key Takeaways
+## 📚 Further Reading
 
-* Use `useLayoutEffect` when your UI depends on DOM measurements before the browser paints.
-* Avoid using it unless necessary—it blocks painting and may impact performance.
-* For layout-sensitive UIs like tooltips, popovers, or modals, it's the right tool for the job.
-* For all other side effects (like fetching data), stick to `useEffect`.
+* [React Docs: useLayoutEffect](https://react.dev/reference/react/useLayoutEffect)
+* [Blog: `useEffect` vs `useLayoutEffect` by Kent C. Dodds](https://kentcdodds.com/blog/useeffect-vs-uselayouteffect)
 
 ---
 
-React gives us powerful hooks, and choosing the right one makes a big difference in user experience. So next time you're debugging a mysterious flicker—ask yourself:
+## 🧠 TL;DR
 
-> Should this be in `useLayoutEffect`?
+* 🧩 `useEffect` runs **after paint**, leading to potential flickers.
+* 🧩 `useLayoutEffect` runs **before paint**, allowing you to make layout adjustments invisibly.
+* 💡 Use `useLayoutEffect` when layout measurements impact UI positioning on first render.
 
-🧑‍🏫 Happy coding and layout measuring!
+With this knowledge, your UI will look smoother, feel faster, and behave more predictably—even on low-end devices.

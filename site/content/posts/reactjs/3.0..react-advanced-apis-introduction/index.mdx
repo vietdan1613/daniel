@@ -1,0 +1,149 @@
+---
+title: "Advanced React APIs: Introduction"
+category: React JS
+author: Daniel Nguyen
+tags: ['#AdvancedReactAPIs']
+date: 2025-06-10
+thumbnail: image.jpg
+featured: true
+---
+
+**🔧 Mastering Advanced React APIs: A Practical Guide**
+
+React is well-known for its simplicity and flexibility, but as your application grows, you’ll eventually face scenarios that require more than just `useState` and `useEffect`. That’s where **Advanced React APIs** come in.
+
+In this guide, we’ll explore powerful React hooks and APIs that you *might not use daily*, but are *essential tools in your React toolbox*. You’ll learn not just *what* they do—but *why* and *when* you should use them.
+
+---
+
+## 📦 What We’ll Cover
+
+* `useReducer`
+* `use` (formerly `useContext`)
+* `createContext`
+* `useLayoutEffect`
+* `useImperativeHandle`
+* `useSyncExternalStore`
+* `flushSync`
+* `createPortal`
+* Complex State & Context Management
+* Focus & Layout Computation
+
+---
+
+## 🎛 Complex State Management with `useReducer`
+
+As components grow more complex, managing state with `useState` can quickly turn messy. Enter `useReducer`.
+
+It helps you:
+
+* Consolidate logic in one place (a reducer function)
+* Predictably handle multiple state transitions
+* Improve readability and testability
+
+You'll often pair `useReducer` with **custom hooks** to make state logic reusable and composable.
+
+**Example use-case**: A shopping cart with various action types like `ADD_ITEM`, `REMOVE_ITEM`, and `CLEAR_CART`.
+
+---
+
+## 🧠 Context the Right Way: `createContext` + `use`
+
+While global state is usually managed by libraries like Redux or Zustand, React's Context API is perfect for passing data deeply without prop drilling.
+
+We'll build a custom `SearchParamsProvider` using:
+
+* `createContext()` to define the data structure
+* `use()` (or `useContext`) to consume it
+* A custom hook like `useSearchParams()` for safer access with built-in error handling
+
+**Real-world use**: Exposing search query parameters to a blog's component tree.
+
+---
+
+## 🌀 Portals: Rendering Outside the DOM Tree
+
+Some components—like modals, tooltips, or dropdowns—need to break out of the usual DOM hierarchy to avoid CSS issues.
+
+React’s `createPortal()` API allows you to render children into a DOM node *outside* the parent component’s DOM tree.
+
+**Why it's useful**:
+
+* Ensures proper layering (z-index)
+* Avoids clipping due to `overflow: hidden`
+* Perfect for dynamic positioning (tooltips, modals, dropdowns)
+
+---
+
+## 📏 Layout Computation with `useLayoutEffect`
+
+There’s a key difference between `useEffect` and `useLayoutEffect`:
+
+* `useEffect` runs **after** the paint
+* `useLayoutEffect` runs **before** the paint
+
+When UI calculations (like positioning a tooltip) need to happen before the browser paints the screen, use `useLayoutEffect` to prevent visual flickering.
+
+---
+
+## 🛠 Imperative Handles with `useImperativeHandle`
+
+React encourages a declarative style, but sometimes you need imperative access to child components—like exposing `.focus()` or `.scrollIntoView()` methods.
+
+With `useImperativeHandle`, you can customize what’s exposed when a parent uses `ref` on your component.
+
+**Use-case**: Building a reusable input component that allows the parent to call `focus()` directly.
+
+---
+
+## 🎯 Fine-Grained Focus Control with `flushSync`
+
+React batches state updates to optimize performance—but what if you need something updated *immediately*?
+
+That’s where `flushSync()` comes in. It forces React to synchronously flush pending updates. This is especially important for **focus management** in dynamically rendered UIs.
+
+⚠️ **Warning**: It’s a performance trade-off. Use it sparingly and only when necessary.
+
+---
+
+## 🔄 Syncing with the External World: `useSyncExternalStore`
+
+Sometimes your app needs to stay in sync with *external sources of truth*—like browser APIs, localStorage, or external libraries (e.g. Redux without React bindings).
+
+`useSyncExternalStore`:
+
+* Subscribes to external stores
+* Works with server-side rendering
+* Ensures consistency between client and server
+
+**Example**: Listening to a browser API like `window.matchMedia` to reactively respond to dark mode changes.
+
+---
+
+## 📚 Wrapping Up
+
+Advanced React APIs can seem intimidating, but with the right use-cases in mind, they become powerful allies. Here’s a quick cheat sheet:
+
+| API                     | Use-case                                          |
+| ----------------------- | ------------------------------------------------- |
+| `useReducer`            | Complex, multi-action state                       |
+| `createContext` + `use` | Share global data like auth or theme              |
+| `useLayoutEffect`       | Avoid layout flickers when calculating dimensions |
+| `useImperativeHandle`   | Expose methods from a child to a parent           |
+| `flushSync`             | Synchronous rendering for things like focus       |
+| `createPortal`          | Modals, tooltips, or other UI that floats         |
+| `useSyncExternalStore`  | Subscribe to external non-React state             |
+
+---
+
+## 🧠 Pro Tip
+
+Create **custom hooks** to encapsulate complex logic like reducer-based state or context consumption. This not only improves reusability, but also enhances error handling and developer experience.
+
+---
+
+Mastering these APIs doesn’t mean you’ll use them every day—but when you *do* need them, you’ll be glad they’re in your toolbox.
+
+Happy coding! ⚛️
+
+---
