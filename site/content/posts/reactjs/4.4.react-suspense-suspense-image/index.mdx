@@ -1,0 +1,239 @@
+---
+title: "React Suspense: Suspense img"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-24
+thumbnail: image.jpg
+featured: true
+---
+
+**🖼️ Smooth & Reliable Image Loading with React Suspense**
+
+React Suspense has revolutionized how we handle asynchronous behavior in UI—especially when fetching data. But did you know you can also **suspend image loading** to create smoother and more predictable visual transitions?
+
+This guide will walk you through:
+
+* Why suspending images is useful
+* How to preload images for Suspense
+* Handling image load errors gracefully
+* Avoiding flickers using suspense `key` props
+
+Let’s start by understanding the **problem**.
+
+---
+
+## 🧨 The Problem: UI Mismatch with Slow Image Loads
+
+Here’s a scenario:
+
+1. A user clicks to view a different spaceship.
+2. The new **data** loads in \~2 seconds.
+3. The new **image** loads in \~10 seconds.
+4. The **old image** is still shown while new data is already visible.
+
+This results in a confusing user experience: the **content** changes, but the **image** doesn’t update right away.
+
+🎥 **[Watch the problem](https://www.dropbox.com/scl/fi/k8dnd1u92kd9obf348uq6/bad-img-loading.mp4?rlkey=aois484ivmdjne5n7diorc7xy&raw=1)** — the ship name and stats change, but the image lags far behind.
+
+---
+
+## ✅ The Goal: A Smooth Image Transition Experience
+
+We want:
+
+* ⏱️ Ship data to show **as soon as it's ready**
+* 📷 Ship image to show **as soon as it’s loaded**
+* ❌ No flickering or showing outdated images
+
+React Suspense gives us the tools to accomplish exactly that.
+
+---
+
+## ⚙️ Preloading Images with Promises
+
+React Suspense lets us suspend rendering on any async operation—**not just data fetching**.
+
+So how do we suspend for images?
+
+By preloading them manually:
+
+```tsx
+function preloadImage(src: string) {
+	return new Promise<string>((resolve, reject) => {
+		const img = new Image()
+		img.src = src
+		img.onload = () => resolve(src)
+		img.onerror = reject
+	})
+}
+```
+
+Now you can wrap this in a cache to avoid reloading the same image:
+
+```tsx
+const imgCache = new Map<string, Promise<string>>()
+
+function getImgSrc(src: string) {
+	if (!imgCache.has(src)) {
+		imgCache.set(src, preloadImage(src))
+	}
+	return imgCache.get(src)!
+}
+```
+
+Then use React’s `use()` hook inside your custom `<Img>` component:
+
+```tsx
+function Img({ src, alt }: { src: string; alt: string }) {
+	const loadedSrc = use(getImgSrc(src))
+	return <img src={loadedSrc} alt={alt} />
+}
+```
+
+---
+
+## 🧪 Suspending on Images in Practice
+
+By default, React suspends the whole subtree when something inside it suspends. So to **suspend only the image**, wrap your `<Img>` in a `Suspense` boundary:
+
+```tsx
+<Suspense fallback={<FallbackImage />}>
+	<Img src={ship.imageUrl} alt={ship.name} />
+</Suspense>
+```
+
+That’s great… but what happens when the image **fails** to load?
+
+---
+
+## 🛡️ Error Boundaries for Broken Images
+
+If an image fails to load (e.g. due to a bad URL or offline connection), React will **throw** inside `use()`. If that happens inside `Img`, we want to show a fallback image—not crash the entire ship component!
+
+Here’s how to make an image-specific error boundary:
+
+```tsx
+function ShipImg({ src, alt }: { src: string; alt: string }) {
+	return (
+		<ErrorBoundary fallback={<img src={src} alt={alt} />}>
+			<Suspense fallback={<FallbackImage />}>
+				<Img src={src} alt={alt} />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+```
+
+This ensures:
+
+* ✅ Fallback image during load
+* ❌ Error fallback if loading fails
+* 🧠 Clear user feedback instead of a broken UI
+
+---
+
+## ⚡ Advanced: Fixing Image Transitions with `key`
+
+You might still run into a UX problem:
+
+> The UI waits for both data **and** image to load before updating the screen. That’s not ideal.
+
+Why? Because Suspense boundaries **inside** a transition (`useTransition`) won’t show their fallback. They’ll keep the old UI until everything is ready.
+
+### 🧩 The Solution: Add a Unique `key` to the Suspense Boundary
+
+By giving your `Suspense` (or `ErrorBoundary`) a dynamic `key`, you tell React:
+
+> “This is a brand-new boundary—treat it like an initial render.”
+
+React will then show the fallback for **just that Suspense boundary**, even while other parts of the UI transition smoothly.
+
+```tsx
+function ShipImg({ src, alt }: { src: string; alt: string }) {
+	return (
+		<ErrorBoundary fallback={<img src={src} alt={alt} />} key={src}>
+			<Suspense fallback={<FallbackImage />}>
+				<Img src={src} alt={alt} />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+```
+
+✅ This shows ship data ASAP
+✅ Shows image only when it's loaded
+✅ Prevents showing old images with new content
+
+🎥 [See the improved experience](https://www.dropbox.com/scl/fi/bur28nw0s3tgl7qy39vpm/better-img-loading.mp4?rlkey=y6rq0crkfirf6zd29e2hpb77o&raw=1)
+
+---
+
+## 🧑‍🏫 Summary: Best Practices for Async Images with Suspense
+
+| Feature                 | Technique                                        |
+| ----------------------- | ------------------------------------------------ |
+| Preload image           | `new Image()` with `onload/onerror`              |
+| Suspend on load         | Wrap `preloadImage()` in a cache and use `use()` |
+| Fallback UI             | Wrap `<Img>` with `<Suspense fallback={...}>`    |
+| Error fallback          | Wrap `Suspense` with `<ErrorBoundary>`           |
+| Fix transition behavior | Add `key={src}` to Suspense/ErrorBoundary        |
+
+---
+
+## ✅ Final Code Example
+
+```tsx
+function preloadImage(src: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const img = new Image()
+		img.src = src
+		img.onload = () => resolve(src)
+		img.onerror = reject
+	})
+}
+
+const imgCache = new Map<string, Promise<string>>()
+
+function getImgSrc(src: string) {
+	if (!imgCache.has(src)) {
+		imgCache.set(src, preloadImage(src))
+	}
+	return imgCache.get(src)!
+}
+
+function Img({ src, alt }: { src: string; alt: string }) {
+	const loadedSrc = use(getImgSrc(src))
+	return <img src={loadedSrc} alt={alt} />
+}
+
+function ShipImg({ src, alt }: { src: string; alt: string }) {
+	return (
+		<ErrorBoundary fallback={<img src={src} alt={alt} />} key={src}>
+			<Suspense fallback={<FallbackImage />}>
+				<Img src={src} alt={alt} />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+```
+
+---
+
+## 🚀 Want Even Smoother UX?
+
+Combine this with:
+
+* `useTransition` for smooth UI while transitioning content
+* `spin-delay` to delay spinners for brief loads
+* `useOptimistic` to show UI even before the async task resolves
+
+---
+
+### 🧠 Learn More
+
+* [`use()` React hook](https://react.dev/reference/react/use)
+* [React Suspense docs](https://react.dev/reference/react/Suspense)
+* [Error boundaries in React](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+
+Let your UI feel fast, smooth, and responsive—even when the network isn’t.

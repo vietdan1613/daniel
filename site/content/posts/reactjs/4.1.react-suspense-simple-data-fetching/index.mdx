@@ -1,0 +1,225 @@
+---
+title: "React Suspense: Data fetching"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-21
+thumbnail: image.jpg
+featured: true
+---
+
+**🚀 Understanding Suspense, `use()`, and Error Boundaries in React**
+
+Fetching data is a core part of modern web applications. Whether you're building a social feed, a dashboard, or a starship database from a sci-fi universe, your app probably needs to retrieve information from a server.
+
+In this guide, we’ll explore:
+
+* How to fetch data in React
+* Why Suspense and Error Boundaries are powerful
+* How the new `use()` hook works (including how you can build your own)
+* And how to handle different promise states declaratively
+
+---
+
+## 🧱 The Basics: Fetching Data in React
+
+Here's a simple fetch request:
+
+```tsx
+const response = await fetch('https://api.example.com/data')
+const data = await response.json()
+```
+
+This works fine… *until* you think about the real world. Users don’t always have fast internet, servers might lag, or things might fail entirely.
+
+So what does the user see while your data is loading? What happens if something goes wrong?
+
+You need a strategy for:
+
+* **Loading states**
+* **Error handling**
+
+React has tools to manage both: **`Suspense`** and **`ErrorBoundary`**.
+
+---
+
+## 🌀 `Suspense`: For Loading States
+
+React’s `Suspense` lets you declaratively show fallback UI while waiting for asynchronous data.
+
+Example:
+
+```tsx
+import { Suspense } from 'react'
+
+function App() {
+	return (
+		<Suspense fallback={<div>Loading phone details...</div>}>
+			<PhoneDetails />
+		</Suspense>
+	)
+}
+```
+
+That fallback UI (`<div>Loading...</div>`) shows while the data is still loading. When the data finishes loading, the UI updates automatically.
+
+---
+
+## 💥 Error Boundaries: For Failed Requests
+
+What if the fetch fails? Maybe the user’s offline. Maybe the ship they searched for doesn’t exist.
+
+React's **Error Boundaries** let you handle those gracefully:
+
+```tsx
+import { ErrorBoundary } from 'react-error-boundary'
+
+function App() {
+	return (
+		<ErrorBoundary fallback={<div>Oops, something went wrong.</div>}>
+			<Suspense fallback={<div>Loading...</div>}>
+				<PhoneDetails />
+			</Suspense>
+		</ErrorBoundary>
+	)
+}
+```
+
+If a component throws an error, the `ErrorBoundary` catches it and displays a fallback UI.
+
+---
+
+## 🧠 How Does React's `use()` Work?
+
+React now offers a new hook: **`use()`** (yes, just `use`). It’s designed to let you use promises directly in your components:
+
+```tsx
+function PhoneDetails() {
+	const details = use(phoneDetailsPromise)
+	// Use `details` as if it's already resolved
+}
+```
+
+> ❗ Important: The `use()` hook does **not** create the promise. You must create the promise *outside* the component (or at least above the `use()` call), or it will re-trigger on every render.
+
+But wait... how does this actually work?
+
+---
+
+## 🔍 The Trick: Throwing Promises
+
+Here’s the secret:
+
+* If the data isn't ready, `use()` **throws the promise**.
+* If the promise fails, it **throws the error**.
+* React catches that and suspends the component until the promise resolves or rejects.
+
+When the promise resolves, React re-renders the component. At that point, `use()` can return the resolved data.
+
+It’s clever—and weird—but powerful.
+
+---
+
+## 🛠 Let’s Build Our Own `use()` Hook
+
+To really understand how this works, let’s implement a simplified version.
+
+First, we define a `UsePromise` type that extends a regular promise:
+
+```tsx
+type UsePromise<Value> = Promise<Value> & {
+	status: 'pending' | 'fulfilled' | 'rejected'
+	value: Value
+	reason: unknown
+}
+```
+
+Then we build our own `use()` function:
+
+```tsx
+function use<Value>(promise: Promise<Value>): Value {
+	const usePromise = promise as UsePromise<Value>
+
+	if (usePromise.status === 'fulfilled') {
+		return usePromise.value
+	}
+
+	if (usePromise.status === 'rejected') {
+		throw usePromise.reason
+	}
+
+	if (usePromise.status === 'pending') {
+		throw usePromise
+	}
+
+	// First time we see this promise
+	usePromise.status = 'pending'
+	usePromise.then(
+		(value) => {
+			usePromise.status = 'fulfilled'
+			usePromise.value = value
+		},
+		(error) => {
+			usePromise.status = 'rejected'
+			usePromise.reason = error
+		},
+	)
+
+	throw usePromise
+}
+```
+
+### Why Track `status`?
+
+Because this approach helps **make impossible states impossible**.
+
+Instead of tracking multiple booleans (`isLoading`, `isError`, `isSuccess`), we use a single `status` field with exact string values:
+
+```ts
+type Status = 'pending' | 'fulfilled' | 'rejected'
+```
+
+This reduces bugs and makes the code more predictable.
+
+👉 [Read more on this concept](https://kentcdodds.com/blog/make-impossible-states-impossible)
+
+---
+
+## ✨ Final Step: Use React’s Built-in `use()`
+
+Once you're comfortable, you can delete your custom `use()` and use the built-in one from React:
+
+```tsx
+import { use } from 'react'
+```
+
+This built-in hook is optimized and works perfectly with Suspense and Error Boundaries.
+
+---
+
+## 🧩 Summary
+
+Here’s what we learned:
+
+| Concept         | What it Does                                                    |
+| --------------- | --------------------------------------------------------------- |
+| `fetch`         | Retrieves data from a server                                    |
+| `Suspense`      | Lets you show fallback UI while data is loading                 |
+| `ErrorBoundary` | Catches rendering errors and shows fallback UI                  |
+| `use()`         | Lets you synchronously get data from a promise in React         |
+| Custom `use()`  | Teaches you how throwing promises helps React suspend rendering |
+| `status` field  | Helps represent the state of a promise cleanly and explicitly   |
+
+---
+
+## ✅ Takeaway
+
+React is evolving to make data fetching **declarative**. You no longer need to juggle complex loading and error logic in every component. By combining Suspense, Error Boundaries, and `use()`, you can build interfaces that are:
+
+* More reliable
+* More readable
+* More maintainable
+
+Happy coding — and may your fetches be fast and your promises always resolve! 🌌
+
+---

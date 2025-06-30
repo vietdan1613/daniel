@@ -1,0 +1,200 @@
+---
+title: "React Suspense: Responsive"
+category: React JS
+author: Daniel Nguyen
+tags: ['#React']
+date: 2025-06-25
+thumbnail: image.jpg
+featured: true
+---
+
+**⚡️ Responsive Inputs with `useDeferredValue`: Making UX Smoother with React**
+
+Have you ever typed in a search input, only to feel it *lag* behind your keystrokes?
+
+That’s not just annoying—it’s a broken user experience. Fortunately, React gives us tools to **keep your inputs responsive** even during async operations like data fetching.
+
+Let’s dive into how you can use `useDeferredValue` to solve this problem.
+
+---
+
+## 🧩 The Problem: Laggy Search Inputs with `useTransition`
+
+In earlier exercises (or maybe in your app), you may have used React’s `useTransition` to manage asynchronous rendering like this:
+
+```tsx
+const [isPending, startTransition] = useTransition()
+
+function handleChange(e) {
+  const newValue = e.target.value
+  startTransition(() => {
+    setSearch(newValue)
+  })
+}
+```
+
+This works well for navigation or large UI changes because `useTransition` delays re-rendering of *everything* until it’s ready. It’s great for global UI transitions, **but** it introduces a serious problem in interactive components:
+
+> The input field doesn’t update as fast as the user types.
+
+Why? Because React holds onto the **previous state** during the transition.
+
+### 🧪 Try it:
+
+* Type “Falcon”
+* You’ll notice a slight delay before the input catches up
+* That delay makes the input feel unresponsive 😩
+
+This is where `useDeferredValue` shines. 🌟
+
+---
+
+## ✅ The Solution: `useDeferredValue`
+
+`useDeferredValue` is a React Hook designed to **keep inputs responsive** while still supporting async rendering in components that depend on the state.
+
+Here’s how it works:
+
+```tsx
+const deferredValue = useDeferredValue(value)
+```
+
+React immediately renders the component with the **latest value**, and in the background, it renders it again with a deferred version of that value. When you're fetching or rendering based on `deferredValue`, React can pause and resume rendering based on how fast or slow that operation is.
+
+### Example:
+
+```tsx
+const [search, setSearch] = useState('')
+const deferredSearch = useDeferredValue(search)
+
+const results = use(searchShips(deferredSearch)) // Suspense-aware data fetching
+```
+
+Here’s what happens under the hood:
+
+1. User types `A` → React sets `search = "A"`
+2. Component re-renders immediately with `search = "A"`
+3. Meanwhile, `deferredSearch` might still be `""` for a brief moment
+4. Once idle time is available, React renders again with `deferredSearch = "A"`
+
+That small delay lets us **keep the input responsive**, even when data fetching suspends.
+
+---
+
+## 🧠 How It’s Different from `useTransition`
+
+Both `useTransition` and `useDeferredValue` help manage suspended UIs, but they serve different goals:
+
+| Feature                   | `useTransition`          | `useDeferredValue`           |
+| ------------------------- | ------------------------ | ---------------------------- |
+| Suspends entire render?   | Yes                      | No                           |
+| Keeps input responsive?   | ❌ No                     | ✅ Yes                        |
+| Use case                  | Navigating between views | Typing, filtering, searching |
+| Provides `isPending` flag | ✅ Yes                    | ✅ Derived manually           |
+
+Use `useTransition` for big transitions like routing.
+
+Use `useDeferredValue` for granular interactivity like form input.
+
+---
+
+## ✨ Adding Pending UI with `useDeferredValue`
+
+You can recreate a similar `isPending` experience like this:
+
+```tsx
+const isPending = deferredSearch !== search
+```
+
+Then show a spinner or opacity animation:
+
+```tsx
+{isPending && <LoadingSpinner />}
+```
+
+---
+
+## 👨‍💻 Practical Code Example
+
+```tsx
+function ShipSearch() {
+  const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
+
+  const ships = use(searchShips(deferredSearch)) // suspends while fetching
+  const isPending = deferredSearch !== search
+
+  return (
+    <>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search ships..."
+      />
+      {isPending && <span>Loading...</span>}
+      <ul>
+        {ships.map((ship) => (
+          <li key={ship.id}>{ship.name}</li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+---
+
+## 🔬 Debug It Yourself
+
+To really see how this works:
+
+1. Add a `console.log('search', search, 'deferred', deferredSearch)` inside your component.
+2. Simulate a slow network: `searchShips(search, 1000)`
+3. Watch how many renders React performs and in what order.
+
+You’ll notice:
+
+* One render happens right after typing
+* Another follows shortly with the deferred value
+* The UI remains responsive throughout 🟢
+
+---
+
+## 🧪 Bonus: Use `useDeferredValue` for Slow Components Too
+
+If you have a **slow-to-render** component, pass it a deferred value. React will keep the rest of your UI snappy and only update the slow component when it’s ready.
+
+```tsx
+<SlowComponent data={useDeferredValue(data)} />
+```
+
+This allows users to interact with other parts of your app without delay.
+
+---
+
+## 🧠 Recap
+
+| What                      | Why it matters                                               |
+| ------------------------- | ------------------------------------------------------------ |
+| `useDeferredValue(value)` | Keeps your UI responsive during async rendering              |
+| `value !== deferredValue` | Tells you when to show a loading or pending state            |
+| Best for                  | Inputs, filters, search bars, slow components                |
+| Not ideal for             | Page transitions or navigation (use `useTransition` instead) |
+
+---
+
+## 📘 Further Reading
+
+* [React Docs: `useDeferredValue`](https://react.dev/reference/react/useDeferredValue)
+* [Suspense for Data Fetching](https://react.dev/learn/suspense)
+
+---
+
+## ✍️ Final Thought
+
+In a world where users expect instant feedback, even **100ms of delay** can feel frustrating. With `useDeferredValue`, you can keep your UI buttery smooth—without sacrificing loading logic or async data handling.
+
+Start small with search bars and inputs—and watch your UX transform. 🚀
+
+Have a sluggish input component? Drop the code here and I’ll help you refactor it!
