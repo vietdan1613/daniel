@@ -116,6 +116,12 @@ function Tilt() {
 Let’s say you enhance your component with user controls so people can change tilt options like speed and glare. You now pass those options into the component, and update the effect like this:
 
 ```tsx
+const options1 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
+const options2 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
+Object.is(options1, options2) // false!!
+```
+
+```tsx
 useEffect(() => {
   const tiltNode = tiltRef.current
   VanillaTilt.init(tiltNode, options)

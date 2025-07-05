@@ -23,6 +23,15 @@ Let’s walk through how to use TypeScript effectively in React — from typing 
 
 ## 🚀 Why TypeScript?
 
+```tsx
+function greet(user) {
+  return `Hello, ${user.name.toUpperCase()}!`;
+}
+
+const result = greet({ age: 25 });
+// ❌ Runtime Error: Cannot read property 'toUpperCase' of undefined
+```
+
 Think of TypeScript as a brutally honest friend. It points out the problems before your users run into them — the “spinach in your teeth” of your codebase.
 
 Once you get past the initial learning curve, TypeScript becomes a key ally in reducing bugs and making your codebase easier to navigate and refactor.
