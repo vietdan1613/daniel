@@ -1,0 +1,225 @@
+---
+title: "React Testing: Mocking HTTP requests"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-06
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Mocking HTTP Requests in React Tests: The MSW Way**
+
+When you're writing tests for a frontend application, one of the biggest questions is:
+
+> “How do I test components that make HTTP requests?”
+
+The answer depends on the kind of test you're writing. For **end-to-end (E2E) tests**, it’s ideal to interact with a **real backend** or a **mocked backend** running in the background. But for **unit and integration tests** (especially those run in Jest), mocking HTTP requests is often the most practical approach.
+
+That’s where **Mock Service Worker (MSW)** comes in—a powerful library that intercepts network requests in tests and returns mock responses, just like a real server would.
+
+Let’s dive into how and why to use MSW to mock `fetch` in your Jest tests.
+
+---
+
+## 🌐 Why Mock HTTP Requests?
+
+When testing user interactions that involve network requests (e.g., form submissions, data fetching), it’s important to:
+
+* ✅ Simulate realistic behavior
+* ✅ Keep tests fast and reliable
+* ✅ Avoid relying on real APIs or external services
+
+While tools like [Cypress](https://cypress.io) are perfect for full-blown E2E testing, **Jest** is better suited for faster unit and integration tests.
+
+So for our React tests, we’ll **mock network requests using MSW**, ensuring:
+
+* No need for a real server
+* No flaky network delays
+* High test confidence without losing speed
+
+---
+
+## 🛠️ Setting Up MSW in Jest
+
+Imagine a component called `<Fetch />` that requests data from `/greeting` and displays the result.
+
+Here's how we can test it:
+
+```js
+// __tests__/fetch.test.js
+import * as React from 'react'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+import { render, waitForElementToBeRemoved, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import Fetch from '../fetch'
+
+const server = setupServer(
+  rest.get('/greeting', (req, res, ctx) => {
+    return res(ctx.json({ greeting: 'hello there' }))
+  }),
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+test('loads and displays greeting', async () => {
+  render(<Fetch url="/greeting" />)
+
+  await userEvent.click(screen.getByText('Load Greeting'))
+
+  await waitForElementToBeRemoved(() => screen.getByText('Loading...'))
+
+  expect(screen.getByRole('heading')).toHaveTextContent('hello there')
+  expect(screen.getByRole('button')).toHaveAttribute('disabled')
+})
+```
+
+✅ `setupServer` creates an in-memory mock server
+✅ `rest.get()` defines a mock handler for a GET request to `/greeting`
+✅ `server.listen()` activates it for tests
+✅ `waitForElementToBeRemoved` waits for loading state to disappear
+✅ `screen.getByRole` interacts just like a user would
+
+---
+
+## 😬 Testing Failure States
+
+Let’s test what happens when the server returns an error:
+
+```js
+test('handles server error', async () => {
+  server.use(
+    rest.get('/greeting', (req, res, ctx) => {
+      return res(ctx.status(500))
+    })
+  )
+
+  render(<Fetch url="/greeting" />)
+
+  await userEvent.click(screen.getByText('Load Greeting'))
+
+  await waitForElementToBeRemoved(() => screen.getByText('Loading...'))
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Oops, failed to fetch!')
+  expect(screen.getByRole('button')).not.toHaveAttribute('disabled')
+})
+```
+
+This test:
+
+* Overrides the original handler using `server.use`
+* Simulates a 500 Internal Server Error
+* Checks that the correct error message is displayed
+
+---
+
+## 💯 Extra Credit: Make Your Mocking Even Better
+
+### 1. ✅ Reuse Centralized Server Handlers
+
+If you already have a set of reusable MSW handlers (e.g., `test/server-handlers.js`), reuse them:
+
+```js
+import { handlers } from '../test/server-handlers'
+const server = setupServer(...handlers)
+```
+
+This allows:
+
+* Shared mock logic between dev and test
+* Offline-friendly development
+* Faster prototyping with unfinished APIs
+
+> 📘 MSW was originally created for local development mocks—not just testing!
+
+---
+
+### 2. 🚨 Test the Unhappy Path
+
+Don’t forget to test what happens when the user **submits invalid input** or **leaves a field empty**.
+
+Example: leave the password field blank in a login form and verify that the error message appears.
+
+```js
+await userEvent.type(screen.getByLabelText(/username/i), 'admin')
+// Don't type in the password field
+
+await userEvent.click(screen.getByRole('button', { name: /submit/i }))
+
+expect(screen.getByRole('alert')).toHaveTextContent(/password is required/i)
+```
+
+---
+
+### 3. 🧪 Use Inline Snapshots
+
+Manually copying error message strings can be a pain. Instead, use **inline snapshots**:
+
+```js
+expect(screen.getByRole('alert').textContent).toMatchInlineSnapshot(
+  `"Oops, something went wrong!"`,
+)
+```
+
+This saves you from hardcoding strings and automatically updates with Jest if the error changes (with your approval).
+
+> 📚 [Snapshot Testing in Jest](https://jestjs.io/docs/snapshot-testing)
+
+---
+
+### 4. 🛠 Use One-Off Server Handlers
+
+What if you want to simulate a **server crash** or random failure **only for one test**?
+
+Use **`server.use()`** with a custom response handler:
+
+```js
+server.use(
+  rest.post(
+    'https://auth-provider.example.com/api/login',
+    (req, res, ctx) => {
+      return res(ctx.status(500), ctx.json({ error: 'Server error!' }))
+    }
+  )
+)
+```
+
+This local override avoids:
+
+* Cluttering global handlers
+* Breaking other unrelated tests
+* Confusing future readers
+
+🧠 Think of it as "test-local mocking" — focused and isolated.
+
+---
+
+## 🧼 Recap: Why Use MSW in React Tests?
+
+| Benefit                     | Explanation                                                         |
+| --------------------------- | ------------------------------------------------------------------- |
+| 🎯 Intercepts real requests | No need to replace `fetch` or mess with global mocks                |
+| 🚀 Fast + reliable          | Works offline, no network lag, no port conflicts                    |
+| 🧪 Accurate simulation      | Simulates both happy and unhappy paths easily                       |
+| 🤝 Reusable                 | Share between development and testing environments                  |
+| 🧠 Encourages good tests    | Promotes testing what users see—not internal implementation details |
+
+---
+
+## 📋 Reflect and Practice
+
+Want to lock in what you’ve learned about mocking HTTP requests?
+
+✅ Try using MSW in your own tests
+✅ Write tests for both success and failure cases
+✅ Refactor your mock server into reusable handlers
+✅ Use one-off overrides for focused scenarios
+
+And when you’re ready:
+
+👉 [Elaboration & Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=05%3A%20mocking%20HTTP%20requests&em=)
+
+---

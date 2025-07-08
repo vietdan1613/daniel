@@ -1,0 +1,179 @@
+---
+title: "React Testing: Testing with context and a custom render method"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-08
+thumbnail: image.jpg
+featured: true
+---
+
+**🎨 Testing React Components with Context & Custom Render Methods**
+
+React context is a powerful feature for sharing values across your component tree—like themes, authentication status, or router state. But once you start writing tests for components that use context, things can get repetitive fast.
+
+> 😩 "Why do I have to wrap my component with the provider **every time** I test?"
+
+Let’s solve that problem by learning how to **test context-driven components efficiently** using a **custom render method** with React Testing Library.
+
+---
+
+## 🧠 The Context Problem in Tests
+
+Let’s say you’re testing a component that uses a `ThemeContext`. To render it properly, you need to wrap it in the `ThemeProvider`.
+
+```js
+import {render} from '@testing-library/react'
+import {ThemeProvider} from '../context/theme'
+
+render(
+  <ThemeProvider>
+    <ComponentToTest />
+  </ThemeProvider>,
+)
+```
+
+That works! But what if you want to rerender the component with updated props? You’ll have to **repeat the wrapper** again:
+
+```js
+const {rerender} = render(
+  <ThemeProvider>
+    <ComponentToTest />
+  </ThemeProvider>
+)
+
+rerender(
+  <ThemeProvider>
+    <ComponentToTest newProp={true} />
+  </ThemeProvider>
+)
+```
+
+📉 This creates **boilerplate** and tightly couples your test logic to the implementation.
+
+---
+
+## 🧪 Solution: Use the `wrapper` Option
+
+React Testing Library allows you to pass a `wrapper` component when calling `render`. This ensures both the **initial render** and **all rerenders** are wrapped consistently.
+
+```js
+function Wrapper({children}) {
+  return <ThemeProvider>{children}</ThemeProvider>
+}
+
+const {rerender} = render(<ComponentToTest />, {wrapper: Wrapper})
+
+rerender(<ComponentToTest newProp={true} />)
+```
+
+✨ This way, your tests become simpler and more maintainable.
+
+📚 Learn more: [React Testing Library – wrapper](https://testing-library.com/docs/react-testing-library/api#wrapper)
+
+---
+
+## 🛠 Going Further: Custom Render Function
+
+We can take this idea further by **creating our own `render` function** that automatically wraps components with all necessary providers—just like your app does.
+
+```js
+// test-utils.js
+import {render as rtlRender} from '@testing-library/react'
+import {ThemeProvider} from '../context/theme'
+
+function Wrapper({children, theme = 'light'}) {
+  return <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
+}
+
+function render(ui, {theme, ...options} = {}) {
+  return rtlRender(ui, {
+    wrapper: ({children}) => <Wrapper theme={theme}>{children}</Wrapper>,
+    ...options,
+  })
+}
+
+export * from '@testing-library/react'
+export {render}
+```
+
+Now you can write clean tests like this:
+
+```js
+import {render, screen} from '../test/test-utils'
+import EasyButton from '../components/easy-button'
+
+test('renders with light theme styles', () => {
+  render(<EasyButton />, {theme: 'light'})
+  expect(screen.getByRole('button')).toHaveStyle({
+    backgroundColor: 'white',
+    color: 'black',
+  })
+})
+```
+
+And test the dark theme with minimal changes:
+
+```js
+test('renders with dark theme styles', () => {
+  render(<EasyButton />, {theme: 'dark'})
+  expect(screen.getByRole('button')).toHaveStyle({
+    backgroundColor: 'black',
+    color: 'white',
+  })
+})
+```
+
+---
+
+## 💯 Extra Credit
+
+### 1. ✅ Test the dark theme
+
+Duplicate your light theme test, swap out `theme: 'dark'`, and update the style assertions. This ensures your context logic behaves correctly across variations.
+
+### 2. ✅ Create a `render` helper
+
+Create a `render` method in your own `test-utils.js` file that automatically wraps components with the needed context providers. This centralizes setup logic, making all future tests easier to write.
+
+### 3. ✅ Use shared test utilities
+
+If you're working in a larger app, you likely already have a shared `render` helper in a file like `test/test-utils.js`. Just **import from there** instead of `@testing-library/react`:
+
+```js
+// ❌ Don't do this
+import {render} from '@testing-library/react'
+
+// ✅ Do this
+import {render} from '../test/test-utils'
+```
+
+This ensures every test uses the same app-wide providers—like router, theme, or authentication—without extra boilerplate.
+
+---
+
+## 🔁 Recap
+
+| Concept                            | Benefit                                                  |
+| ---------------------------------- | -------------------------------------------------------- |
+| Wrap components with context       | Ensures components function as they do in production     |
+| Use `wrapper` option               | Allows rerendering without duplicating providers         |
+| Create a `test-utils.js` file      | DRYs up test setup across your test suite                |
+| Support theme/auth/router context  | Fully simulates real-world usage for more accurate tests |
+| Add options like `{theme: 'dark'}` | Makes tests easier to read and adapt                     |
+
+---
+
+## 📋 Elaboration and Feedback
+
+If you want to reflect on what you've learned and reinforce your understanding, take a moment to fill out this quick feedback form:
+
+👉 [Testing with Context & Custom Render – Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=07%3A%20testing%20with%20context%20and%20a%20custom%20render%20method&em=)
+
+---
+
+## 👋 Final Thoughts
+
+Writing tests that resemble how your app is used in the real world is always a win. With context, that means **rendering your components with the right providers**, but doing it in a way that’s clean, DRY, and expressive.
+
+Your tests should focus on behavior—not implementation details. A custom render utility lets you do just that.

@@ -1,0 +1,134 @@
+---
+title: "React Testing: Simple Testing with ReactDOM"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-02
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Simple Testing with ReactDOM: A Hands-On Guide for Beginners**
+
+> *"The more your tests resemble the way your software is used, the more confidence they can give you."*
+> — [Kent C. Dodds](https://twitter.com/kentcdodds/status/977018512689455106)
+
+Welcome to your first hands-on experience with testing React applications using `ReactDOM`. In this guide, we’ll walk through how to write tests that not only verify your components work, but also **simulate how users actually interact with them**.
+
+## 🧠 Why This Matters
+
+When we write tests, our goal is to mimic real-world usage. This gives us confidence that our application behaves correctly for:
+
+1. 🧍 **End Users** – the people who interact with your app (clicking buttons, reading text).
+2. 👩‍💻 **Developer Users** – the developers (like you!) who use your components by rendering them and passing props or context.
+
+But there’s a third, unwanted visitor in our test world: **The Test User**. This is the imaginary user that only exists in the test, performing things real users wouldn’t do. We want to avoid that.
+
+> 🔗 Learn more about the “test user” concept here: [Avoid the Test User](https://kentcdodds.com/blog/avoid-the-test-user)
+
+---
+
+## 🎯 What We’re Building
+
+We’ll be testing a very simple `Counter` component. You can interact with it at:
+[http://localhost:3000/counter](http://localhost:3000/counter)
+
+Here's what we expect:
+
+* ✅ It should **initially** display: `Current count: 0`
+* ➕ Clicking **"Increment"** increases the count
+* ➖ Clicking **"Decrement"** decreases the count
+
+---
+
+## 🛠️ Let’s Write the Test (Using ReactDOM)
+
+We’ll manually render the component to a DOM node, just like a developer would, and simulate button clicks, just like a user would.
+
+### Step-by-Step Instructions
+
+1. **Create a DOM node**
+2. **Render the component** using `ReactDOM.createRoot`
+3. **Use `act`** from `react-dom/test-utils` to wrap interactions (required in React 18)
+4. **Simulate user clicks**
+5. **Assert the output**
+6. **Clean up** after your test
+
+```js
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+import { act } from 'react-dom/test-utils'
+
+// Assuming this is your component
+import Counter from '../counter'
+
+test('counter increments and decrements', () => {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+
+  act(() => {
+    createRoot(container).render(<Counter />)
+  })
+
+  const incrementButton = container.querySelector('button.increment')
+  const decrementButton = container.querySelector('button.decrement')
+  const message = container.querySelector('div.message')
+
+  expect(message.textContent).toBe('Current count: 0')
+
+  act(() => {
+    incrementButton.click()
+  })
+  expect(message.textContent).toBe('Current count: 1')
+
+  act(() => {
+    decrementButton.click()
+  })
+  expect(message.textContent).toBe('Current count: 0')
+
+  document.body.removeChild(container)
+})
+```
+
+---
+
+## 💯 Extra Credit: Simulate Events the Right Way
+
+Instead of calling `.click()` directly, try simulating an event more like the browser does — using `dispatchEvent`.
+
+This is especially useful when working with events that don't have convenience methods (like `mouseover` or `keydown`).
+
+```js
+const clickEvent = new MouseEvent('click', {
+  bubbles: true,
+  cancelable: true,
+  button: 0,
+})
+
+act(() => {
+  incrementButton.dispatchEvent(clickEvent)
+})
+```
+
+> ✅ Always set `bubbles: true` so the event can propagate properly.
+
+---
+
+## 🔁 Recap
+
+* We learned how to write simple tests with `ReactDOM` and simulate user interactions
+* We emphasized **acting like a real user** to build more meaningful tests
+* We cleaned up after our test to keep the DOM fresh
+* We explored `dispatchEvent` for more flexible event simulation
+
+---
+
+## 🧠 Keep This in Mind
+
+Every time you write a test, ask yourself:
+
+> “Does this test reflect how the component is used in the real world?”
+
+If the answer is yes, you’re on the right path. If not, you might be simulating a test user—and that leads to fragile, misleading tests.
+
+---

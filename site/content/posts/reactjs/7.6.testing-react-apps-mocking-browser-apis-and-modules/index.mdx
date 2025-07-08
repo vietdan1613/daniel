@@ -1,0 +1,244 @@
+---
+title: "React Testing: Mocking Browser APIs and modules"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-07
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Mocking Browser APIs and Modules in React Tests**
+
+In the world of frontend testing, one of the most common challenges developers face is:
+
+> “How do I test code that relies on **Browser APIs** or external **modules**?”
+
+Let’s be honest—our test environments aren’t *real* browsers. But thanks to tools like **Jest** and **jsdom**, we can simulate them. And when simulation isn’t enough, we can **mock** our way through it. Let's learn how to do that effectively without sacrificing too much confidence in our tests.
+
+---
+
+## 🧠 A Word on Mocking
+
+When you mock something, you're replacing **the real thing** (API, module, etc.) with a **fake version** for the sake of testing.
+
+You’re intentionally “poking a hole in reality” — which **reduces confidence** but **improves speed and control**.
+
+That’s why mocking is best reserved for:
+
+* 🧪 Unit or integration tests
+* 🧱 Environments like **Jest** running in **Node.js** (not a browser)
+* 🤹 APIs that are **hard or impossible** to simulate in tests (like `geolocation`, `canvas`, or media queries)
+
+📖 Learn more:
+👉 [The Merits of Mocking](https://kentcdodds.com/blog/the-merits-of-mocking)
+👉 [What is a JavaScript mock?](https://kentcdodds.com/blog/but-really-what-is-a-javascript-mock)
+
+---
+
+## 💡 Why We Need to Mock Browser APIs
+
+Here’s the truth:
+
+> ⚠️ Jest tests run in **Node.js**, not a real browser.
+
+Instead, they use a browser-like simulation library called [jsdom](https://github.com/jsdom/jsdom). jsdom does a great job mimicking the DOM—but it’s not perfect.
+
+For example:
+
+* ❌ `window.navigator.geolocation.getCurrentPosition()` is *not implemented* in jsdom
+* ❌ `window.resizeTo()` doesn’t exist
+* ❌ `matchMedia` is unimplemented
+
+So what do we do?
+
+> ✅ We **mock** them.
+
+Here’s an example from testing a `useMedia` hook that relies on `matchMedia` and responds to window resizing.
+
+```js
+import matchMediaPolyfill from 'mq-polyfill'
+
+beforeAll(() => {
+  matchMediaPolyfill(window)
+
+  window.resizeTo = function resizeTo(width, height) {
+    Object.assign(this, {
+      innerWidth: width,
+      innerHeight: height,
+      outerWidth: width,
+      outerHeight: height,
+    }).dispatchEvent(new this.Event('resize'))
+  }
+})
+```
+
+This lets us simulate media queries and resizing—even in Node.
+
+---
+
+## 🧪 Real Example: Mocking Geolocation
+
+Let’s say you have a `Location` component that calls:
+
+```js
+navigator.geolocation.getCurrentPosition(success, error)
+```
+
+Since `getCurrentPosition` doesn’t exist in jsdom, we need to mock it in our test:
+
+```js
+beforeEach(() => {
+  const fakePosition = {
+    coords: {
+      latitude: 51.1,
+      longitude: 45.3,
+    },
+  }
+
+  window.navigator.geolocation = {
+    getCurrentPosition: jest.fn((success) => {
+      success(fakePosition)
+    }),
+  }
+})
+```
+
+This approach:
+
+* 🧠 Replaces the real `getCurrentPosition` with a mock
+* ✅ Lets us control when and how the callback is called
+* 💡 Gives full control over testing success and error cases
+
+---
+
+## 🎁 Bonus: When to Use `act()`
+
+React testing sometimes requires wrapping updates in `act()` to make sure state updates are processed before assertions.
+
+```js
+import { act } from 'react-dom/test-utils'
+
+await act(async () => {
+  // run the mocked getCurrentPosition
+})
+```
+
+Usually, libraries like React Testing Library wrap `act()` for you. But when mocking asynchronous behavior like `geolocation`, you may need it manually.
+
+📚 Learn more: [Fix the “not wrapped in act(...)” warning](https://kentcdodds.com/blog/fix-the-not-wrapped-in-act-warning)
+
+---
+
+## 🎭 Mocking Modules with Jest
+
+Sometimes, you’re not mocking a browser API—you’re mocking a module your code imports.
+
+For example, here’s a simple math module:
+
+```js
+// math.js
+export const add = (a, b) => a + b
+export const subtract = (a, b) => a - b
+```
+
+And in the test:
+
+```js
+import { add, subtract } from '../math'
+
+jest.mock('../math')
+
+// `add` and `subtract` are now Jest mock functions
+add.mockImplementation(() => 42)
+
+expect(add).toHaveBeenCalledWith(2, 3)
+```
+
+If you only want to mock **part** of a module:
+
+```js
+jest.mock('../math', () => {
+  const actual = jest.requireActual('../math')
+  return {
+    ...actual,
+    subtract: jest.fn(),
+  }
+})
+```
+
+This keeps `add()` as-is, but mocks `subtract()`.
+
+📖 More on this: [Manual Mocks – Jest Docs](https://jestjs.io/docs/manual-mocks)
+
+---
+
+## 💯 Extra Credit Challenges
+
+### 1. ✅ Mock the module instead of the browser API
+
+If you’re using a **custom hook** that relies on a browser API (like `useGeoLocation`), you might choose to **mock the hook** instead of the API.
+
+```js
+jest.mock('../hooks/useGeoLocation', () => () => ({
+  latitude: 12.34,
+  longitude: 56.78,
+}))
+```
+
+This is especially useful when:
+
+* You're confident in the module's test suite
+* The browser API is too complex to mock directly
+* You want simpler, focused tests for components using that hook
+
+💡 Bonus tip: You can mock a hook with another hook—just return mock state using `useState()` or `useEffect()` inside.
+
+---
+
+### 2. ❌ Test the “unhappy path”
+
+Don’t just test success cases. Always test what happens when **errors occur**.
+
+```js
+window.navigator.geolocation.getCurrentPosition = jest.fn((_, errorCallback) => {
+  errorCallback({ message: 'Permission denied' })
+})
+
+expect(screen.getByRole('alert')).toHaveTextContent(/permission denied/i)
+```
+
+Make sure your components fail gracefully, show error messages, and remain accessible.
+
+---
+
+## ✅ Recap: Mocking in React Tests
+
+| Mocking Target       | When to Use                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| `window` APIs        | When `jsdom` doesn’t support them (`geolocation`, `matchMedia`, etc.) |
+| Custom hooks         | When mocking APIs is too complex or unnecessary                       |
+| External modules     | When a module does something side-effecty (like making requests)      |
+| Use `act()` manually | When mocking async behavior that affects state                        |
+
+---
+
+## 🧠 Final Thoughts
+
+Mocking is a double-edged sword: powerful, but easy to misuse. Keep these principles in mind:
+
+* Mock only what’s necessary
+* Avoid mocking what the user would care about
+* Use mocking to simulate environments, not to cheat test coverage
+
+And always remember: **the more realistic your tests, the more confidence they give you.**
+
+---
+
+## 📋 Practice & Reflect
+
+Fill out the elaboration and feedback form to lock in what you’ve learned:
+
+👉 [Mocking Browser APIs – Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=06%3A%20mocking%20Browser%20APIs%20and%20modules&em=)
+
+---

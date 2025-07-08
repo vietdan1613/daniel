@@ -1,0 +1,195 @@
+---
+title: "React Testing: Testing custom hook"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-09
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Testing Custom React Hooks the Right Way**
+
+Custom React hooks are one of the most powerful features of the React ecosystem. They let us encapsulate logic into reusable, composable functions—but once you’ve built a custom hook, you might ask:
+
+> **“How do I test this thing?”**
+
+This post walks you through **the most effective way to test custom hooks**, based on one key principle:
+
+> 🧠 “The more your tests resemble the way your software is used, the more confidence they can give you.” — Kent C. Dodds
+
+Let’s explore what that really means when it comes to testing hooks.
+
+---
+
+## 🎣 How Are Custom Hooks Actually Used?
+
+Hooks are not called in isolation. They’re used **inside components**. That’s the only place they’re allowed to be called! So, if you want to write tests that resemble real usage, then you should test your hook **via a component**.
+
+Instead of trying to test the hook directly, we test a component that uses the hook—and verify its behavior from the outside.
+
+This method:
+
+* ✅ Aligns with how the hook is used in real code
+* ✅ Avoids implementation details
+* ✅ Gives you confidence in your hook’s behavior
+
+---
+
+## 🧪 Example: Testing a useCounter Hook
+
+Let’s say you’ve extracted the logic from a `<Counter />` component into a `useCounter` custom hook.
+
+Here’s how you can test it the right way:
+
+```js
+import * as React from 'react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import useCounter from '../use-counter'
+
+function CounterComponent() {
+  const { count, increment, decrement } = useCounter()
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+      <button onClick={decrement}>Decrement</button>
+    </div>
+  )
+}
+
+test('it shows initial count and responds to button clicks', async () => {
+  render(<CounterComponent />)
+
+  expect(screen.getByText(/count:/i)).toHaveTextContent('Count: 0')
+
+  await userEvent.click(screen.getByText(/increment/i))
+  expect(screen.getByText(/count:/i)).toHaveTextContent('Count: 1')
+
+  await userEvent.click(screen.getByText(/decrement/i))
+  expect(screen.getByText(/count:/i)).toHaveTextContent('Count: 0')
+})
+```
+
+✅ You’re not testing `useCounter()` directly
+✅ You’re testing how it behaves **through the component**
+✅ The user could care less that the logic lives in a hook—that’s an implementation detail
+
+---
+
+## 💯 Extra Credit: More Advanced Patterns
+
+### 1. Fake Component for Isolated Hook Testing
+
+Sometimes, you don’t need any UI—you just want to test how the hook behaves directly. You can create a **minimal fake component** to access the hook:
+
+```js
+let result
+function TestComponent(props) {
+  result = useCounter(props)
+  return null
+}
+
+render(<TestComponent />)
+
+// Now `result` contains the hook's return values
+result.increment()
+expect(result.count).toBe(1)
+```
+
+This isolates the hook logic but still adheres to React rules of hooks.
+
+📚 Learn more: [How to Test Custom Hooks](https://kentcdodds.com/blog/how-to-test-custom-react-hooks)
+
+---
+
+### 2. 🛠 Extract a `setup()` Function
+
+When you find yourself repeating logic in multiple tests, abstract it into a `setup()` function:
+
+```js
+const result = {}
+
+function TestComponent(props) {
+  Object.assign(result, useCounter(props))
+  return null
+}
+
+function setup(props) {
+  render(<TestComponent {...props} />)
+  return result
+}
+
+test('allows customization of the initial count', () => {
+  const utils = setup({initialCount: 3})
+  expect(utils.count).toBe(3)
+})
+
+test('allows customization of the step', () => {
+  const utils = setup({step: 2})
+  utils.increment()
+  expect(utils.count).toBe(2)
+})
+```
+
+This keeps your tests dry and focused.
+
+> 🧠 Remember: use `Object.assign` instead of `let result = ...` to ensure React doesn’t lose the reference when rerendering.
+
+---
+
+### 3. 🧪 Use `renderHook` from React Testing Library
+
+You might be thinking: “There’s got to be a library for this!” And yes—React Testing Library provides a `renderHook` function just for this purpose!
+
+```js
+import { renderHook, act } from '@testing-library/react'
+import useCounter from '../use-counter'
+
+test('supports custom initial count and step', () => {
+  const { result } = renderHook(() => useCounter({ initialCount: 5, step: 2 }))
+
+  expect(result.current.count).toBe(5)
+
+  act(() => result.current.increment())
+  expect(result.current.count).toBe(7)
+})
+```
+
+This:
+
+* ✅ Handles rendering and rerendering your hook
+* ✅ Lets you call `act()` for state updates
+* ✅ Gives you access to the current hook state via `result.current`
+
+> 📦 This is built into `@testing-library/react` — no need to install `@testing-library/react-hooks` anymore.
+
+---
+
+## 🧼 Recap: Best Practices for Testing Custom Hooks
+
+| Practice                             | Benefit                                                          |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| ✅ Use a component                    | Aligns test with real usage                                      |
+| 🧪 Test behavior, not implementation | Focus on how the hook behaves through UI or side effects         |
+| 🛠 Use `setup()` function            | DRYs up tests, especially when testing configuration props       |
+| 🧠 Use `renderHook()` for simplicity | Great for hooks without UI or that return plain values/functions |
+
+---
+
+## 🦉 Reflect and Learn More
+
+Remember: your custom hook is just code used in a component. So your tests should treat it the same way your users (aka components) do!
+
+Want to reinforce what you’ve learned? Fill out this elaboration and feedback form:
+
+👉 [Testing Custom Hooks – Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=08%3A%20testing%20custom%20hooks&em=)
+
+---
+
+## 👋 Final Thoughts
+
+Testing hooks isn’t hard—it just requires thinking from a **user-first** perspective. Whether that user is a component or another hook, write tests that mirror real usage. That’s how you build tests that are **resilient**, **refactor-friendly**, and **meaningful**.
+
+If you’d like a ready-to-use hook testing starter template or want help converting your tests to use `renderHook`, let me know—I’d be happy to help you level up your testing skills!

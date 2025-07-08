@@ -1,0 +1,136 @@
+---
+title: "React Testing: Simple test with React Testing Library"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-03
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Simplifying Your Tests with React Testing Library**
+
+Welcome back to your journey in testing React applications! Previously, we built a test using `ReactDOM`, manually creating DOM nodes, appending them to the body, cleaning up, and wrapping interactions in `act()`. It worked—but it was a bit clunky.
+
+Now it’s time to **streamline and modernize** your test setup with a powerful tool designed specifically for this purpose: **React Testing Library**.
+
+---
+
+## 💡 Why Use React Testing Library?
+
+React Testing Library (RTL) is the React-specific implementation of the [DOM Testing Library](https://testing-library.com/), which also powers tools for Angular, Vue, React Native, and more.
+
+RTL encourages best practices by helping you test components in a way that’s **closer to how users interact with them**. It removes boilerplate, automatically handles cleanup, and wraps everything in `act()` behind the scenes.
+
+Let’s explore how this library can help you write **cleaner, more readable, and more robust tests**.
+
+---
+
+## 🛠 The Problem with Manual Setup
+
+In our earlier test, we had to:
+
+* Manually create a `div` and append it to the `document.body`
+* Render the component using `createRoot`
+* Use `act()` for every interaction
+* Manually clean up the DOM after the test
+* Write low-level DOM queries like `querySelector()`
+
+It worked, but all of that setup distracted us from what really matters: **testing user behavior**.
+
+---
+
+## ✨ Enter React Testing Library
+
+Let’s simplify everything using RTL.
+
+```js
+import { render, fireEvent, screen } from '@testing-library/react'
+import Counter from '../counter'
+
+test('counter increments and decrements', () => {
+  render(<Counter />)
+
+  const incrementButton = screen.getByText('Increment')
+  const decrementButton = screen.getByText('Decrement')
+  const message = screen.getByText(/current count/i)
+
+  fireEvent.click(incrementButton)
+  expect(message).toHaveTextContent('Current count: 1')
+
+  fireEvent.click(decrementButton)
+  expect(message).toHaveTextContent('Current count: 0')
+})
+```
+
+Let’s break down what happened here:
+
+✅ No need for `createRoot`, `act`, or `cleanup` — RTL handles that for you
+✅ We use **screen queries** (like `getByText`) which resemble how users find things
+✅ Assertions use **`toHaveTextContent`** from `@testing-library/jest-dom` — more expressive and helpful
+✅ The test is shorter, clearer, and more maintainable
+
+---
+
+## 🔍 A Closer Look at `screen` and `fireEvent`
+
+* **`screen`** is the global query interface provided by RTL. Instead of destructuring results from `render()`, you can use `screen.getByText`, `screen.getByRole`, and other queries to search the DOM like a user would.
+* **`fireEvent`** simulates user interactions like clicking, typing, or focusing.
+
+> 🧠 Tip: RTL also supports `userEvent`, which simulates interactions more realistically. We'll explore that later!
+
+---
+
+## 💯 Extra Credit: Use `@testing-library/jest-dom` for Better Assertions
+
+You're not limited to Jest's built-in assertions. RTL comes with [@testing-library/jest-dom](https://testing-library.com/docs/ecosystem-jest-dom/), a set of custom matchers that give you more expressive test code and clearer error messages.
+
+For example, instead of writing:
+
+```js
+expect(message.textContent).toBe('Current count: 1')
+```
+
+Write this:
+
+```js
+expect(message).toHaveTextContent('Current count: 1')
+```
+
+Benefits:
+
+* ✅ Reads like natural language
+* ✅ Gives better error messages when the assertion fails
+* ✅ Automatically integrated in most RTL setups
+
+---
+
+## 🔁 Summary
+
+Here’s what we accomplished today:
+
+| Old Way (`ReactDOM`) | New Way (React Testing Library)  |
+| -------------------- | -------------------------------- |
+| Manual DOM setup     | `render()` abstracts setup       |
+| `act()` everywhere   | Wrapped for you automatically    |
+| `textContent` checks | `toHaveTextContent` matcher      |
+| Cleanup required     | Auto cleanup between tests       |
+| Low-level selectors  | High-level queries (`getByText`) |
+
+---
+
+## 📝 Reflect and Practice
+
+Want to lock in what you just learned? Take a moment to reflect and submit your thoughts in this form:
+
+🔗 [Elaboration & Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=02%3A%20simple%20test%20with%20React%20Testing%20Library&em=)
+
+---
+
+## 🚀 Next Up
+
+Now that you've seen how React Testing Library simplifies your tests, you're ready to explore **user interactions** more deeply using tools like `userEvent`, and learn to test more complex components involving context, state, and async behavior.
+
+Remember: **test the way users use your app**, and you'll build more confident, resilient software.
+
+---

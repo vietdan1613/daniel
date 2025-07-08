@@ -1,0 +1,189 @@
+---
+title: "React Testing: Form testing"
+category: React JS
+author: Daniel Nguyen
+tags: ['#ReactTesting']
+date: 2024-09-05
+thumbnail: image.jpg
+featured: true
+---
+
+**🧪 Form Testing in React: From Basics to Best Practices**
+
+Forms are the heart of many web applications. Whether it's a **login screen**, a **checkout form**, or a **sign-up page**, your users rely on forms to interact with your app. That’s why testing forms is **critical**—they must always behave as expected, even as your codebase evolves.
+
+In this post, you’ll learn how to test forms using **React Testing Library**, the right way—**from the user’s perspective**—without relying on brittle implementation details. Along the way, you’ll see how to simplify test maintenance, generate realistic data, and write clean, expressive test code.
+
+---
+
+## 💡 The Goal of Form Testing
+
+When a user interacts with a form, they expect to:
+
+1. See fields with appropriate labels.
+2. Type in their data.
+3. Submit the form.
+4. See the app respond correctly.
+
+Your test should reflect that same behavior—**just like a real user would**.
+
+---
+
+## 🧪 The Scenario: A Login Form
+
+Imagine we have a simple login form that accepts a `username` and `password`, then calls an `onSubmit` callback when submitted.
+
+Let’s write a test for this.
+
+### ✅ Step-by-Step Form Test
+
+```jsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import Login from '../login' // assume this is your Login component
+
+test('submits username and password', async () => {
+  const handleSubmit = jest.fn()
+  render(<Login onSubmit={handleSubmit} />)
+
+  const usernameInput = screen.getByLabelText(/username/i)
+  const passwordInput = screen.getByLabelText(/password/i)
+  const submitButton = screen.getByRole('button', { name: /submit/i })
+
+  await userEvent.type(usernameInput, 'johndoe')
+  await userEvent.type(passwordInput, 's3cret')
+
+  await userEvent.click(submitButton)
+
+  expect(handleSubmit).toHaveBeenCalledWith({
+    username: 'johndoe',
+    password: 's3cret',
+  })
+})
+```
+
+This test does everything from the user's point of view:
+
+* 🧭 Finds fields using accessible labels
+* ⌨️ Types text with `userEvent`
+* ✅ Submits the form
+* 📦 Verifies the callback received the correct data
+
+---
+
+## 💯 Extra Credit: Make Your Tests Even Better
+
+### 1. ✅ Use a Jest Mock Function
+
+Instead of checking `submittedData` manually, you can use `jest.fn()` and assert it was called correctly:
+
+```js
+const handleSubmit = jest.fn()
+...
+expect(handleSubmit).toHaveBeenCalledWith({ username, password })
+```
+
+> 📘 Read more about [jest.fn()](https://jestjs.io/docs/mock-functions) and [toHaveBeenCalledWith](https://jestjs.io/docs/expect#tohavebeencalledwitharg1-arg2-)
+
+---
+
+### 2. 🔀 Generate Random Test Data
+
+Hardcoding values like `'chucknorris'` or `'password123'` might make the test look specific—even when they aren’t.
+
+Instead, use a data generator to signal:
+**“The specific value doesn’t matter here.”**
+
+```js
+import { faker } from '@faker-js/faker'
+
+const username = faker.internet.userName()
+const password = faker.internet.password()
+```
+
+This clearly communicates that the values don’t hold any special meaning—they’re just realistic inputs.
+
+---
+
+### 3. 🧰 Create a `buildLoginForm` Helper
+
+Make your tests even cleaner and more reusable by wrapping your data generation in a helper:
+
+```js
+function buildLoginForm(overrides = {}) {
+  return {
+    username: faker.internet.userName(),
+    password: faker.internet.password(),
+    ...overrides,
+  }
+}
+```
+
+Use it like this:
+
+```js
+const { username, password } = buildLoginForm()
+```
+
+Or, override a field when needed:
+
+```js
+const { username, password } = buildLoginForm({ password: 'abc123' })
+```
+
+> This communicates intent: *“This test cares about the specific password, but the username can be anything.”*
+
+---
+
+### 4. 🧙 Use Test Data Bot
+
+Want a cleaner, more structured way to generate test data?
+
+Check out [`@jackfranklin/test-data-bot`](https://www.npmjs.com/package/@jackfranklin/test-data-bot).
+
+```js
+import { build, fake } from '@jackfranklin/test-data-bot'
+
+const buildLoginForm = build('LoginForm', {
+  fields: {
+    username: fake(f => f.internet.userName()),
+    password: fake(f => f.internet.password()),
+  },
+})
+```
+
+Now use it in your tests:
+
+```js
+const { username, password } = buildLoginForm()
+```
+
+This keeps your tests clean, expressive, and ready for future changes.
+
+---
+
+## ✅ Final Tips
+
+| ✅ Good Practice                       | ❌ Bad Practice                          |
+| ------------------------------------- | --------------------------------------- |
+| Use `getByLabelText` / `getByRole`    | Use `querySelector`, `firstChild`, etc. |
+| Use `userEvent` for realistic actions | Use `fireEvent` (less accurate)         |
+| Use `jest.fn()` for form submission   | Manually track state                    |
+| Generate test data                    | Hardcode usernames like `'admin'`       |
+
+---
+
+## 🧠 Summary
+
+* ✅ Test forms like real users fill them out.
+* ✅ Keep tests implementation detail-free and refactor-friendly.
+* ✅ Use random test data to signal intent and reduce fragility.
+* ✅ Use `jest.fn` and custom data builders for clean, maintainable tests.
+
+---
+
+## 📋 Reflect and Practice
+
+Ready to reinforce what you’ve learned? Fill out the feedback form:
+
+👉 [Form Testing – Feedback Form](https://ws.kcd.im/?ws=Testing%20React%20Applications%20%F0%9F%A7%90&e=04%3A%20form%20testing&em=)
