@@ -1,368 +1,228 @@
 ---
-title: "Advanced React Patterns 4: Slots"
+title: "Advanced React Patterns: Slots"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPatterns']
 date: 2024-06-24
 thumbnail: image.jpg
 featured: true
 ---
 
-# Slots
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-slots" />
+**🎛️ Mastering the Slots Pattern in React for Component Flexibility**
 
 <callout-success>
-	**One liner:** Slots allow you to specify an element which takes on a
-	particular role in the overall collection of components.
+<strong>One-liner:</strong> The <strong>Slots Pattern</strong> allows components to take on specific roles within a parent’s layout, enabling flexible composition and safer, accessible design.
 </callout-success>
 
-This pattern is particularly useful for situations where you're building a UI
-library with a lot of components that need to work together. It's a way to
-provide a flexible API for your components that allows them to be used in a
-variety of contexts.
+---
 
-If you're building a component library, you have to deal with two competing
-interests:
+## 🧱 Problem: Balancing Flexibility and Correctness in UI Libraries
 
-1. Correctness
-2. Flexibility
+When building a component library, you're constantly balancing two goals:
 
-You want to make sure people don't mess up things like accessibility, but you
-also want to give them the flexibility to build things the way their diverse
-needs require. Slots can help with this.
+1. **Correctness** – accessibility, semantic markup, behavior.
+2. **Flexibility** – giving developers the freedom to structure their UI however they want.
 
-Here's a quick example of a component that uses slots (from the
-[`react-aria`](https://react-spectrum.adobe.com/react-aria/index.html) docs):
+How can we ensure developers don’t break important things (like accessibility), but still offer composability?
+
+That’s where **Slots** come in. 🎯
+
+---
+
+## 🤔 What Are Slots?
+
+Slots allow child components to declare **their role** within a parent component. The parent can then provide **role-specific props** through context—without controlling layout or markup structure.
+
+### Real-World Analogy
+
+In HTML, consider this form element:
 
 ```tsx
 <CheckboxGroup>
-	<Label>Pets</Label>
-	<MyCheckbox value="dogs">Dogs</MyCheckbox>
-	<MyCheckbox value="cats">Cats</MyCheckbox>
-	<MyCheckbox value="dragons">Dragons</MyCheckbox>
-	<Text slot="description">Select your pets.</Text>
+  <Label>Pets</Label>
+  <MyCheckbox value="dogs">Dogs</MyCheckbox>
+  <MyCheckbox value="cats">Cats</MyCheckbox>
+  <Text slot="description">Select your pets.</Text>
 </CheckboxGroup>
 ```
 
-The `slot="description"` prop is letting the `Text` component know that it needs
-to look for special props that are meant to be used as a description. Those
-special props will be provided by the `CheckboxGroup` component.
+The `Text` component has `slot="description"`, telling the parent:
 
-Essentially, the `CheckboxGroup` component will say: "here's a bucket of props
-for any component that takes on the role of a description." The `Text` component
-will then say: "Oh look, I've got a `slot` prop that matches the `description`
-slot, so I'll use these props to render myself."
+> "Hey, I’m the description."
 
-All of this is built using context.
+Then `CheckboxGroup` supplies the appropriate props—like `id` and `aria-describedby`—based on the slot name.
 
-What this enables is a powerfully flexible capability to have components which
-are highly reusable. The `Text` component can be used in many different
-contexts, and it can adapt to the needs of the parent component. For example,
-it's also used in react-aria's `ComboBox` components. Here's the anatomy of a
-react-aria `ComboBox` component:
+This pattern is widely used in libraries like [`react-aria`](https://react-spectrum.adobe.com/react-aria/index.html), and it's fantastic for **decoupling layout from logic**, **enabling accessibility**, and **promoting reusability**.
 
-```tsx lines=5,10,11
-<ComboBox>
-	<Label />
-	<Input />
-	<Button />
-	<Text slot="description" />
-	<FieldError />
-	<Popover>
-		<ListBox>
-			<ListBoxItem>
-				<Text slot="label" />
-				<Text slot="description" />
-			</ListBoxItem>
-			<Section>
-				<Header />
-				<ListBoxItem />
-			</Section>
-		</ListBox>
-	</Popover>
-</ComboBox>
-```
+---
 
-This can be used to apply appropriate `aria-` attributes as well as `id`s and
-event handlers. You might think about it as a way to implement compound
-components in a way that doesn't require an individual component for every
-single use case.
+## 🛠️ Implementing the Slot Pattern
 
-## Implementation
+Here’s how we do it in React:
 
-Folks tend to struggle with this one a bit more than the rest, but it's simpler
-than it seems.
+### Step 1: Provide Slot Props via Context
 
-The basic concept is your root component creates collections of props like so:
+Your parent component (e.g. `TextField`) generates the data and passes it through context.
 
 ```tsx
-function NumberField({ children }: { children: React.ReactNode }) {
-	// setup state/events/etc
+function TextField({ children }) {
+  const id = useId()
+  const slots = {
+    label: { htmlFor: id },
+    input: { id },
+  }
 
-	const slots = {
-		label: { htmlFor: inputId },
-		decrement: { onClick: decrement },
-		increment: { onClick: increment },
-		description: { id: descriptionId },
-		input: { id: inputId, 'aria-describedby': descriptionId },
-	}
-	return <SlotContext value={slots}>{children}</SlotContext>
+  return (
+    <SlotContext.Provider value={slots}>
+      {children}
+    </SlotContext.Provider>
+  )
 }
 ```
 
-Then the consuming components use the `use(SlotContext)` to get access to the
-`slots` object and pluck off the props they need to do their job:
+### Step 2: Consume Slot Props in Children
+
+A hook merges the provided props with the default/slot-specific ones:
 
 ```tsx
+function useSlotProps(props, slotName) {
+  const slotContext = useContext(SlotContext)
+  const slotProps = slotContext?.[slotName] ?? {}
+  return { ...slotProps, ...props }
+}
+```
+
+Now your components can declare which role they serve:
+
+```tsx
+function Label(props) {
+  const labelProps = useSlotProps(props, 'label')
+  return <label {...labelProps} />
+}
+
 function Input(props) {
-	props = useSlotProps(props, 'input')
-
-	return <input {...props}>
+  const inputProps = useSlotProps(props, 'input')
+  return <input {...inputProps} />
 }
 ```
 
-The `useSlotProps` hook is responsible for taking the props that have been
-specified and combining it with those from the `SlotContext` for the named slot.
-# Slot Context
+✅ Accessibility props are applied
+✅ Layout is customizable
+✅ Logic is abstracted
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/slot-context" />
+---
 
-👨‍💼 It's a tale as old as time. Our `label` and `input` are not properly
-associated in this form and so clicking the `label` will not focus the `input`
-as expected (in addition to other accessibility issues).
+## 📦 Real-World Benefits
 
-But we don't want developers to be able to make this mistake. So we've made a
-`TextField` component which will generate the `id` for the relationship (if one
-is not provided). The tricky bit is we want people to be able to structure their
-label and input however they want, so we can't render the `input` and `label`
-for them. Instead, we want to be able to provide the `id` and `htmlFor` props to
-the `label` and `input`.
+Let's look at a real use case.
 
-So what we want you to do is first create a `SlotContext` and `useSlotProps`
-hook in <InlineFile file="slots.tsx" />, then use those in the `Label` and
-`Input` components to retrieve the necessary props.
+### Problem: Manual IDs = Mistakes
 
-The `useSlotProps` hook should accept a props object and a slot name and return
-the props to be applied to the element for that slot. It should merge the props
-it's been given with the props from the `SlotContext` for that slot.
+Developers often forget to manually associate `<label>` and `<input>` using `id` and `htmlFor`, which breaks accessibility.
 
-Once you've finished that, then render the `SlotContext` provider in the
-`TextField` component in <InlineFile file="text-field.tsx" /> to provide slot
-props for the `label` and `input`.
+Using the slots pattern, your `TextField` component can handle the logic behind the scenes:
 
-When you're finished, the label and input should be properly associated and
-clicking the label should focus the input.
-# Generic Slot Components
+```tsx
+<TextField>
+  <Label>Email</Label>
+  <Input />
+</TextField>
+```
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/generic-slot-components" />
+Behind the scenes, `Label` and `Input` receive automatically generated `id` and `htmlFor` props—ensuring correctness **without extra work.**
 
-👨‍💼 You'll notice our party mode toggle button is using `useId` to properly
-associate the toggle button with its label. We'd like to make that implicit and
-reuse the `Label` component for the `Toggle` as well.
+---
 
-Please update the `Toggle` component in <InlineFile file="toggle.tsx" /> to
-render a `SlotContext` provider (in addition to the `ToggleContext` provider
-it's already rendering) so it can provide props for a `label` slot (the slot
-name for a `Label`). You'll also want to put the `id` in the `ToggleContext` so
-the `ToggleButton` can grab it.
+## ⚡ Going Further: Generic Slot Components
 
-Once you're finished with that, you can remove the manual `id`/`htmlFor` props
-in the <InlineFile file="app.tsx" /> file and the `id` should be provided
-automatically.
-# Slot Prop
+Let’s make our API even more powerful.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/slot-prop" />
+### Before:
 
-👨‍💼 We have `ToggleOn` and `ToggleOff` components, but really we could make those
-components a simple `Text` component that accepts a `slot` prop. Then the
-`Toggle` component could define the props that the individual `Text` components
-should have based on which slot they're taking.
-
-In fact, we could do this with the `Switch` as well!
-
-🧝‍♂️ I've added `Text` and `Switch` components to
-the <InlineFile file="slots.tsx" /> file for you to use. These are both already
-wired up to consume a `slot` named `text` and `switch`. You
-can <DiffLink app1={-1}>check the diff</DiffLink> for details.
-
-What we want to do in this exercise is add a `slot` prop to each of our slot
-components so the slot they're taking can be defined by the parent component.
-
-Then you'll need to update `Toggle` to get rid of the `ToggleContext` provider
-and instead use the `SlotProvider` for all the components it wants to send props
-to:
-
-- `label` - `htmlFor`
-- `onText` - `hidden` (`undefined` if `isOn` is true, and `true` if `isOn` is
-  `false`)
-- `offText` - `hidden` (`undefined` if `isOn` is false, and `true` if `isOn` is
-  `true`)
-- `switch` - `id`, `on`, and `onClick`
-
-So by the end of all of this, here's what I want the API to be like:
+You might have separate components like:
 
 ```tsx
 <Toggle>
-	<Label>Party mode</Label>
-	<Switch />
-	<Text slot="onText">Let's party 🥳</Text>
-	<Text slot="offText">Sad town 😭</Text>
+  <ToggleOn>Party time 🎉</ToggleOn>
+  <ToggleOff>Sad town 😭</ToggleOff>
+  <ToggleButton />
 </Toggle>
 ```
 
-Once that's been updated, you can delete the `useToggle` hook and the
-`ToggleOn`, `ToggleOff`, and `ToggleButton` components.
+Now let’s unify this using **generic components + slots**:
 
-Reusability FTW!
-
-## app.tsx
+### After:
 
 ```tsx
-import { Input, Label, Switch, Text } from './slots.tsx'
-import { TextField } from './text-field.tsx'
-import { Toggle } from './toggle.tsx'
+<Toggle>
+  <Label>Party mode</Label>
+  <Switch />
+  <Text slot="onText">Let’s party 🥳</Text>
+  <Text slot="offText">Sad town 😭</Text>
+</Toggle>
+```
 
-export function App() {
-	return (
-		<div>
-			<div>
-				<Toggle>
-					<Label>Party mode</Label>
-					<Switch />
-					<Text slot="onText">Let's party 🥳</Text>
-					<Text slot="offText">Sad town 😭</Text>
-				</Toggle>
-			</div>
-			<hr />
-			<div>
-				<TextField>
-					<Label>Venue</Label>
-					<Input />
-				</TextField>
-			</div>
-		</div>
-	)
+The `Toggle` parent passes slot-specific props:
+
+```tsx
+const slots = {
+  label: { htmlFor: switchId },
+  switch: { id: switchId, on: isOn, onClick: toggle },
+  onText: { hidden: !isOn },
+  offText: { hidden: isOn },
 }
 ```
 
-## slot.tsx
+Your `Text` and `Switch` components handle the rest:
 
 ```tsx
-import { createContext, use } from 'react'
-import { Switch as BaseSwitch } from '#shared/switch'
-
-type Slots = Record<string, Record<string, unknown>>
-export const SlotContext = createContext<Slots>({})
-
-function useSlotProps<Props>(
-	props: Props & { slot?: string },
-	defaultSlot?: string,
-): Props {
-	const slot = props.slot ?? defaultSlot
-	if (!slot) return props
-
-	const slots = use(SlotContext)
-
-	// a more proper "mergeProps" function is in order here
-	// to handle things like merging event handlers better.
-	// we'll get to that a bit in a later exercise.
-	return { ...slots[slot], slot, ...props } as Props
+function Text({ slot, ...props }) {
+  const textProps = useSlotProps(props, slot)
+  return <span {...textProps} />
 }
 
-export function Label(
-	props: React.ComponentProps<'label'> & { slot?: string },
-) {
-	props = useSlotProps(props, 'label')
-	return <label {...props} />
-}
-
-export function Input(
-	props: React.ComponentProps<'input'> & { slot?: string },
-) {
-	props = useSlotProps(props, 'input')
-	return <input {...props} />
-}
-
-export function Text(props: React.ComponentProps<'span'> & { slot?: string }) {
-	props = useSlotProps(props, 'text')
-	return <span {...props} />
-}
-
-type SwitchProps = Omit<React.ComponentProps<typeof BaseSwitch>, 'on'> & {
-	slot?: string
-}
-export function Switch(props: SwitchProps) {
-	return (
-		<BaseSwitch
-			{...(useSlotProps(props, 'switch') as React.ComponentProps<
-				typeof BaseSwitch
-			>)}
-		/>
-	)
+function Switch({ slot, ...props }) {
+  const switchProps = useSlotProps(props, slot)
+  return <button {...switchProps}>{switchProps.on ? 'ON' : 'OFF'}</button>
 }
 ```
 
-## textfield.tsx
+No more manually passing state. No custom hooks. No prop drilling.
+Just clean, declarative composition. ✨
 
-```tsx
-import { useId } from 'react'
-import { SlotContext } from './slots'
+---
 
-export function TextField({
-	id,
-	children,
-}: {
-	id?: string
-	children: React.ReactNode
-}) {
-	const generatedId = useId()
-	id ??= generatedId
+## 🔄 Bonus: Removing Boilerplate
 
-	const slots = {
-		label: { htmlFor: id },
-		input: { id },
-	}
+Once this pattern is in place:
 
-	return <SlotContext value={slots}>{children}</SlotContext>
-}
-```
+* You can delete repetitive components (`ToggleOn`, `ToggleOff`, `ToggleButton`)
+* Reduce bugs from forgetting to wire up state or props
+* Give developers full control over structure and styling
 
-## toggle.tsx
+It’s especially helpful when building **design systems**, **accessibility wrappers**, and **framework-agnostic UI kits**.
 
-```tsx
-import { useId, useState } from 'react'
-import { SlotContext } from './slots'
+---
 
-export function Toggle({
-	id,
-	children,
-}: {
-	id?: string
-	children: React.ReactNode
-}) {
-	const [on, setOn] = useState(false)
-	const generatedId = useId()
-	id ??= generatedId
+## 🧪 Final Thoughts
 
-	const toggle = () => setOn(!on)
+The **Slots Pattern** is a step up from compound components:
 
-	const labelProps = { htmlFor: id }
-	const onTextProps = { hidden: on ? undefined : true }
-	const offTextProps = { hidden: on ? true : undefined }
-	const switchProps = { id, on, onClick: toggle }
+| Feature               | Compound Components  | Slots Pattern            |
+| --------------------- | -------------------- | ------------------------ |
+| State Sharing         | Context              | Context                  |
+| Layout Flexibility    | Moderate             | Very High                |
+| Customization         | Limited (custom API) | Unlimited (native props) |
+| Accessibility Support | Manual               | Built-in                 |
 
-	return (
-		<SlotContext
-			value={{
-				label: labelProps,
-				onText: onTextProps,
-				offText: offTextProps,
-				switch: switchProps,
-			}}
-		>
-			{children}
-		</SlotContext>
-	)
-}
-```
+If you're building component libraries (especially reusable or accessible ones), **slots are your secret weapon.**
+
+---
+
+## 🔗 Resources
+
+* 📘 [React Aria Documentation](https://react-spectrum.adobe.com/react-aria/index.html)
+* 🧠 [Compound Components Pattern](https://epicreact.dev/compound-components)
+* 🧩 [Creating Flexible Layouts with Context](https://kentcdodds.com/blog/application-state-management-with-react)
+
+---

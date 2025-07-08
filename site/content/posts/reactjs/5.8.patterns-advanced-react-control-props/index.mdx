@@ -1,237 +1,190 @@
 ---
-title: "Advanced React Patterns 8: Control Props"
+title: "Advanced React Patterns: Control Props"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPatterns']
 date: 2024-06-28
 thumbnail: image.jpg
 featured: true
 ---
 
-# Control Props
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-control-props" />
+**🎛️ Control Props in React: Letting Users Take the Wheel**
 
 <callout-success>
-	**One liner:** The Control Props pattern allows users to completely control
-	state values within your component. This differs from the state reducer
-	pattern in the fact that you can not only change the state changes based on
-	actions dispatched but you _also_ can trigger state changes from outside the
-	component or hook as well.
+<strong>One-liner:</strong> The <strong>Control Props</strong> pattern gives users full control over your component’s internal state—just like controlled form elements in React.
 </callout-success>
 
-Sometimes, people want to be able to manage the internal state of our component
-from the outside. The state reducer allows them to manage what state changes are
-made when a state change happens, but sometimes people may want to make state
-changes themselves. We can allow them to do this with a feature called "Control
-Props."
+Let’s talk about a powerful pattern that will take your component APIs to the next level of flexibility: **Control Props**.
 
-This concept is basically the same as
-[controlled form elements 📜](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable)
-in React that you've probably used many times.
+Imagine this: you're building a reusable component. You want it to work out of the box, but you also want to give developers the option to control its behavior completely—from the outside.
+
+Sound familiar?
+
+It should. You’ve already seen this pattern in action a thousand times:
+
+```tsx
+<input value={value} onChange={handleChange} />
+```
+
+This is a controlled input element. You provide the value, and React calls your `onChange` to “suggest” a new one.
+
+Let’s take that same concept… and apply it to **any reusable component**.
+
+---
+
+## 🧩 A Quick Refresher on Controlled Inputs
+
+Controlled inputs are the basis of most React forms:
 
 ```tsx
 function MyCapitalizedInput() {
-	const [capitalizedValue, setCapitalizedValue] = useState('')
+  const [capitalizedValue, setCapitalizedValue] = useState("")
 
-	return (
-		<input
-			value={capitalizedValue}
-			onChange={e => setCapitalizedValue(e.target.value.toUpperCase())}
-		/>
-	)
+  return (
+    <input
+      value={capitalizedValue}
+      onChange={(e) => setCapitalizedValue(e.target.value.toUpperCase())}
+    />
+  )
 }
 ```
 
-In this case, the "component" that's implemented the "control props" pattern is
-the `<input />`. Normally it controls state itself (like if you render
-`<input />` by itself with no `value` prop). But once you add the `value` prop,
-suddenly the `<input />` takes the back seat and instead makes "suggestions" to
-you via the `onChange` prop on the state updates that it would normally make
-itself.
+This is a classic example of using control props (`value` and `onChange`). The `input` doesn't manage its own state anymore — **you do**.
 
-This flexibility allows us to change how the state is managed (by capitalizing
-the value), and it also allows us to programmatically change the state whenever
-we want to, which enables this kind of synchronized input situation:
+Why is this so powerful?
+
+* 🔄 You can sync the input value with other components
+* 🎯 You can transform user input before storing it
+* ⚙️ You gain full control over the UI's behavior
+
+---
+
+## 🔥 Applying This to Custom Components
+
+Let’s say we’ve built a `<Toggle />` component. It’s a simple on/off switch.
+
+Here’s the typical version where the component manages its own state:
+
+```tsx
+function Toggle() {
+  const [on, setOn] = useState(false)
+  return <button onClick={() => setOn(!on)}>{on ? "On" : "Off"}</button>
+}
+```
+
+Nice and simple. But what if someone wants to control that `on` state from the outside?
+
+Now we need to implement **control props**:
+
+```tsx
+function Toggle({ on: controlledOn, onChange }) {
+  const [internalOn, setInternalOn] = useState(false)
+
+  const isControlled = controlledOn !== undefined
+  const on = isControlled ? controlledOn : internalOn
+
+  function toggle() {
+    const newState = !on
+    if (isControlled) {
+      onChange?.(newState)
+    } else {
+      setInternalOn(newState)
+      onChange?.(newState)
+    }
+  }
+
+  return <button onClick={toggle}>{on ? "On" : "Off"}</button>
+}
+```
+
+### 🧠 Breakdown:
+
+* If `on` is passed in → the component is **controlled**
+* If `on` is `undefined` → the component manages state internally
+* When toggled →
+
+  * In controlled mode: we call `onChange` with the suggested next state
+  * In uncontrolled mode: we update internal state and still call `onChange`
+
+This gives users *two options*:
+
+1. Use `<Toggle />` like a normal self-contained component
+2. Or pass in `on` and `onChange` to fully manage its state externally
+
+---
+
+## ✨ Real-World Example: Synchronizing Inputs
+
+What if we want two components to always reflect the same value?
 
 ```tsx
 function MyTwoInputs() {
-	const [capitalizedValue, setCapitalizedValue] = useState('')
-	const [lowerCasedValue, setLowerCasedValue] = useState('')
+  const [value, setValue] = useState("")
 
-	function handleInputChange(e) {
-		setCapitalizedValue(e.target.value.toUpperCase())
-		setLowerCasedValue(e.target.value.toLowerCase())
-	}
+  function handleChange(e) {
+    setValue(e.target.value)
+  }
 
-	return (
-		<>
-			<input value={capitalizedValue} onChange={handleInputChange} />
-			<input value={lowerCasedValue} onChange={handleInputChange} />
-		</>
-	)
+  return (
+    <>
+      <input value={value.toUpperCase()} onChange={handleChange} />
+      <input value={value.toLowerCase()} onChange={handleChange} />
+    </>
+  )
 }
 ```
 
-**Real World Projects that use this pattern:**
+Using control props here makes it possible to **synchronize behavior** between components. This is especially powerful when building design systems or shared UI libraries.
 
-- [downshift](https://github.com/downshift-js/downshift)
-- [`@radix-ui/react-select`](https://www.radix-ui.com/primitives/docs/components/select#controlling-the-value-displayed-in-the-trigger)
-# Control Props
+---
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/control-props" />
+## 🧪 In Practice: Making Toggle Controlled
 
-👨‍💼 In this exercise, we've created a `<Toggle />` component which can accept a
-prop called `on` and another called `onChange`. These work similar to the
-`value` and `onChange` props of `<input />`. Your job is to make those props
-actually control the state of `on` and call the `onChange` with the suggested
-changes.
+Back to our `<Toggle />`:
 
-## app.tsx
+Your exercise is to make it behave like a controlled component. Specifically, you should:
 
-```tsx
-import { useState } from 'react'
-import { Toggle, type ToggleAction, type ToggleState } from './toggle.tsx'
+* Accept an `on` prop
+* Accept an `onChange` callback
+* Internally track state only if `on` is not provided
+* When toggled, always call `onChange` with the proposed next value
 
-export function App() {
-	const [bothOn, setBothOn] = useState(false)
-	const [timesClicked, setTimesClicked] = useState(0)
+This will give consumers full flexibility:
 
-	function handleToggleChange(state: ToggleState, action: ToggleAction) {
-		if (action.type === 'toggle' && timesClicked > 4) {
-			return
-		}
-		setBothOn(state.on)
-		setTimesClicked(c => c + 1)
-	}
+* Use the component “as-is” without needing to manage state
+* Or pass in `on` and `onChange` to take control themselves
 
-	function handleResetClick() {
-		setBothOn(false)
-		setTimesClicked(0)
-	}
+---
 
-	return (
-		<div>
-			<div>
-				<Toggle on={bothOn} onChange={handleToggleChange} />
-				<Toggle on={bothOn} onChange={handleToggleChange} />
-			</div>
-			{timesClicked > 4 ? (
-				<div data-testid="notice">
-					Whoa, you clicked too much!
-					<br />
-				</div>
-			) : (
-				<div data-testid="click-count">Click count: {timesClicked}</div>
-			)}
-			<button onClick={handleResetClick}>Reset</button>
-			<hr />
-			<div>
-				<div>Uncontrolled Toggle:</div>
-				<Toggle
-					onChange={(...args) =>
-						console.info('Uncontrolled Toggle onChange', ...args)
-					}
-				/>
-			</div>
-		</div>
-	)
-}
-```
+## 🛠️ Real Projects That Use This Pattern
 
-## toggle.tsx
+The **Control Props** pattern is used in many popular UI libraries, including:
 
-```tsx
-import { useReducer, useRef } from 'react'
-import { Switch } from '#shared/switch.tsx'
+* [`downshift`](https://github.com/downshift-js/downshift) for autocomplete & dropdowns
+* [`@radix-ui/react-select`](https://www.radix-ui.com/primitives/docs/components/select) for customizable select menus
 
-function callAll<Args extends Array<unknown>>(
-	...fns: Array<((...args: Args) => unknown) | undefined>
-) {
-	return (...args: Args) => fns.forEach(fn => fn?.(...args))
-}
+These libraries rely on control props to give users the power to integrate deeply with their own state and data.
 
-export type ToggleState = { on: boolean }
-export type ToggleAction =
-	| { type: 'toggle' }
-	| { type: 'reset'; initialState: ToggleState }
+---
 
-export function toggleReducer(state: ToggleState, action: ToggleAction) {
-	switch (action.type) {
-		case 'toggle': {
-			return { on: !state.on }
-		}
-		case 'reset': {
-			return action.initialState
-		}
-	}
-}
+## ✅ Summary
 
-export function useToggle({
-	initialOn = false,
-	reducer = toggleReducer,
-	onChange,
-	on: controlledOn,
-}: {
-	initialOn?: boolean
-	reducer?: typeof toggleReducer
-	onChange?: (state: ToggleState, action: ToggleAction) => void
-	on?: boolean
-} = {}) {
-	const { current: initialState } = useRef<ToggleState>({ on: initialOn })
-	const [state, dispatch] = useReducer(reducer, initialState)
-	const onIsControlled = controlledOn != null
-	const on = onIsControlled ? controlledOn : state.on
+The **Control Props** pattern:
 
-	function dispatchWithOnChange(action: ToggleAction) {
-		if (!onIsControlled) {
-			dispatch(action)
-		}
-		onChange?.(reducer({ ...state, on }, action), action)
-	}
+| ✅ Feature               | 🔍 Benefit                                             |
+| ----------------------- | ------------------------------------------------------ |
+| User-controlled state   | Lets devs hook your component into their own app logic |
+| Bidirectional sync      | Great for syncing values across components             |
+| Declarative flexibility | Makes your API more powerful without adding complexity |
 
-	const toggle = () => dispatchWithOnChange({ type: 'toggle' })
-	const reset = () => dispatchWithOnChange({ type: 'reset', initialState })
+If you're building a reusable component and want to let developers **fully manage or sync state**, then the **Control Props** pattern is exactly what you need.
 
-	function getTogglerProps<Props>({
-		onClick,
-		...props
-	}: { onClick?: React.ComponentProps<'button'>['onClick'] } & Props) {
-		return {
-			'aria-checked': on,
-			onClick: callAll(onClick, toggle),
-			...props,
-		}
-	}
+---
 
-	function getResetterProps<Props>({
-		onClick,
-		...props
-	}: { onClick?: React.ComponentProps<'button'>['onClick'] } & Props) {
-		return {
-			onClick: callAll(onClick, reset),
-			...props,
-		}
-	}
+### 🧠 Final Thought
 
-	return {
-		on,
-		reset,
-		toggle,
-		getTogglerProps,
-		getResetterProps,
-	}
-}
+Control Props is more than just a fancy name — it's about **making components flexible enough to be used in real-world, complex situations** while still being dead simple for the easy cases.
 
-export function Toggle({
-	on: controlledOn,
-	onChange,
-}: {
-	on?: boolean
-	onChange?: (state: ToggleState, action: ToggleAction) => void
-}) {
-	const { on, getTogglerProps } = useToggle({ on: controlledOn, onChange })
-	const props = getTogglerProps({ on })
-	return <Switch {...props} />
-}
-```
+The best APIs do both. 💪
+
+---

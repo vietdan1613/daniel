@@ -1,212 +1,226 @@
 ---
-title: "React Performance 5: Expensive Calculations"
+title: "React Performance: Expensive Calculations"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPerformance']
 date: 2024-07-06
 thumbnail: image.jpg
 featured: true
 ---
 
-# Expensive Calculations
+**⚡ Speeding Up Expensive Calculations in React (with `useMemo`, Web Workers & Suspense)**
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/intro-to-expensive-calculations" />
+Modern React development gives us superpowers: composable state, hooks, and declarative UI. But along with great power comes… well, performance pitfalls.
 
-React hooks are amazing. Being able to put all the logic and state management
-within a function component allows for mind blowing composability.
+One sneaky performance bottleneck? **Expensive calculations inside your render functions.**
 
-This power comes with an unfortunate limitation that calculations performed
-within render will be performed every single render, regardless of whether the
-inputs for the calculations change. For example:
+In this post, we’ll explore how to identify these issues and fix them using:
+
+* `useMemo` for memoizing heavy functions
+* Web Workers for offloading work from the main thread
+* Suspense + async rendering for smoother UX
+
+Let’s walk through these one step at a time. 🧠💡
+
+---
+
+## 🧮 The Problem: Re-Calculating Every Render
+
+Consider this example:
 
 ```tsx
 function Distance({ x, y }) {
 	const distance = calculateDistance(x, y)
-	return (
-		<div>
-			The distance between {x} and {y} is {distance}.
-		</div>
-	)
+	return <div>The distance between {x} and {y} is {distance}.</div>
 }
 ```
 
-If that component's parent rerenders, or if we add some unrelated state to the
-component and trigger a rerender, we'll be calling `calculateDistance` every
-render which could lead to a performance bottleneck.
+Even if the `x` and `y` values don’t change, if the parent re-renders or local state changes, `calculateDistance` runs again. For heavy calculations or large data sets, this is a performance killer.
 
-This is why we have the `useMemo` hook from React:
+---
+
+## ✅ Solution: Memoization with `useMemo`
+
+React provides the `useMemo` hook to optimize these situations:
 
 ```tsx
 function Distance({ x, y }) {
 	const distance = useMemo(() => calculateDistance(x, y), [x, y])
-	return (
-		<div>
-			The distance between {x} and {y} is {distance}.
-		</div>
-	)
+	return <div>The distance between {x} and {y} is {distance}.</div>
 }
 ```
 
-This allows us to put that calculation behind a function which is only called
-when the result actually needs to be re-evaluated (when the dependencies
-change). In the example above the array `[x, y]` are called "dependencies" and
-React knows that so long as those do not change, the result of our function will
-be the same as the last time the function was called.
+Now, `calculateDistance` only runs when `x` or `y` changes. Simple and effective.
 
-`useMemo` (and its sibling `useCallback`) is nuanced and should not be applied
-in all cases. Read more about this in
-[When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
+But don’t overuse `useMemo`—it adds complexity. Learn when it’s appropriate here:
+👉 [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
 
-## Measuring Performance
+---
 
-To measure performance for a React app, you'll want to simulate a production
-user's experience as much as possible. There are two important differences
-between what you experience in development and what your users experience in
-production which I want to discuss:
+## 🎯 Real-World Example: Filtering Cities
 
-- They're running the optimized build of your app
-- They're running on less powerful devices
+Let’s say you have a dropdown with thousands of cities. To help users search efficiently, you're using a library like `match-sorter`:
 
-To address, these, you need to make certain your performance measurements
-simulate this as much as possible. This means you need to first run the build.
-
-In this exercise, we're using Vite for building our application. You can run
-the build in the `playground` directory with:
-
-```sh nonumber
-npm run build
+```tsx
+const results = searchCities(userInput)
 ```
 
-Then you can run that application with the `preview` script:
+This function is slow, especially on weaker devices.
 
-```sh nonumber
-npm run preview
+---
+
+## 🔍 Step 1: Measuring Performance with DevTools
+
+Before optimizing, let’s **measure**.
+
+1. Run your app in production mode:
+
+   ```bash
+   npm run build
+   npm run preview
+   ```
+
+2. Open Chrome DevTools → **Performance** tab
+
+3. Click the gear ⚙️ and enable CPU throttling: **6x slowdown**
+
+4. Start a performance recording, interact with the combobox, and stop the recording.
+
+Look for the `searchCities` call in the flame graph. Is it getting called every time? Even when the search hasn’t changed?
+
+It probably is. Let’s fix that.
+
+---
+
+## 🧠 Step 2: Wrap in `useMemo`
+
+Memoize the result of `searchCities`:
+
+```tsx
+const results = useMemo(() => searchCities(input), [input])
 ```
 
-This will allow you to then pull up the DevTools and simulate a slower device
-in the performance tab:
+Now it only runs when the input changes. Rerendering the component alone won’t trigger the expensive function.
 
-![DevTools showing the performance tab and "CPU throttling" options](/img/performance-cpu-slowdown.png)
+💡 **Verify it:** In the Performance tab, search for `searchCities` in the call tree. If you’ve done it right, it shouldn’t appear during unrelated rerenders.
 
-From there you can hit "record," perform an operation, then stop and analyze the
-resulting flame graph.
+---
 
-![DevTools flamegraph](/img/flame-graph.png)
+## 🧵 Step 3: Moving to a Web Worker
 
-This is a pretty low-level tool, but at the same time very practical. Learning
-how to use this tab will help you understand what bottlenecks you should be
-optimizing. And whenever you apply a performance optimization, you should be
-certain to check the before/after of this flame graph to ensure what you've done
-actually improves things.
+Even when it only runs once, `searchCities` is still **blocking the main thread**. This freezes the UI on slower devices.
 
-This tab also takes a lot of practice to get used to (even just navigating
-around is tricky). Spend time with it. You'll get it eventually!
+Rather than dumbing down our sorting algorithm, let’s move the work **off the main thread** with a **Web Worker**.
 
-<callout-info>
-	To be clear, you don't always have to build the application for production
-	before you use the flame graph, but you should know that React adds a lot of
-	development-only code to improve the development experience of using React. So
-	when you're really trying to get an accurate measure of performance, you'll
-	want to use the built version.
-</callout-info>
+### Why Web Workers?
 
-# useMemo
+Web Workers allow you to run JS in the background without blocking UI interactions. Perfect for CPU-intensive tasks.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/usememo" />
+We’ll use:
 
-👨‍💼 We have a combobox that's calling `searchCities` every render. This function
-is really slow because it's attempting to intelligently sort thousands of items
-based on the user's filter input.
+* [`comlink`](https://npm.im/comlink) to simplify messaging between the main thread and worker
+* [Vite's built-in worker support](https://vitejs.dev/guide/features.html#web-workers)
 
-Your job is to improve performance by wrapping `searchCities` in `useMemo`.
+---
 
-To observe the performance problem with `searchCities`, open the Chrome DevTools
-"Performance" tab, click the settings gear and set CPU from "no throttling" to
-"6x slowdown." Then select any item from the dropdown. Next, click the "Record"
-circle icon in the devtools to start a recording. Then click on "force rerender"
-and then click the "Record" circle again to stop the recording. You'll notice
-that `searchCities` was called when it should not have been (and it took a LONG
-time to run). Your goal is to make it so `searchCities` is only called when the
-filter changes.
+## 🧑‍💻 Step 4: Creating the Worker
 
-<callout-info>
-	Tip: Below the flame graph, you'll find a few tabs. One of those is "Call
-	Tree" and in that you can search the functions that were called. You'll know
-	you got this right when `searchCities` doesn't appear.
-</callout-info>
+Let’s refactor our city search into a worker file.
 
-# Web Worker
+```tsx
+// filter-cities.worker.ts
+import { expose } from 'comlink'
+import { searchCities } from './search-utils'
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/web-worker" />
+const api = {
+	filterCities: (query: string) => searchCities(query),
+}
 
-<callout-warning>
-	Warning, this one's _really_ cool, but kinda tricky... Also, the intent isn't
-	necessarily for you to learn about [web
-	workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers),
-	but just to expose you to a good use case for them. You can get started
-	learning about web workers in [Speed up your app with web
-	workers](https://kentcdodds.com/blog/speed-up-your-app-with-web-workers).
-</callout-warning>
+expose(api)
+```
 
-👨‍💼 It's awesome that we reduced how often we have to call `searchCities`.
-Unfortunately, on low-powered devices, `searchCities` is still quite slow when
-it actually _does_ need to run and we'd like to speed it up. So I was thinking
-that we need to ditch [`match-sorter`](https://npm.im/match-sorter) in favor of
-a simple string `includes` because the experience is not fast enough (even
-though `match-sorter` does provide a much superior UX).
+Now in our app:
 
-But no! We must have the better UX! There may be ways to optimize `match-sorter`
-itself, but let's try throwing this all into a web worker instead...
+```tsx
+import { wrap } from 'comlink'
+import Worker from './filter-cities.worker?worker'
 
-<callout-warning>
-	This change is going to take two steps. So when we're finished with this bit,
-	we actually won't see any improvement until we take advantage of it in the
-	next step.
-</callout-warning>
+const worker = new Worker()
+const api = wrap<WorkerApi>(worker)
 
-🧝‍♂️ To avoid distrupting our existing `App` component, I have
-copied <InlineFile file="src/cities/index.ts" />
-into <InlineFile file="src/cities/legacy.ts" /> and update the import
-in <InlineFile file="src/app.tsx" />. Feel free
-to <PrevDiffLink>check it out</PrevDiffLink>.
+async function handleSearch(query: string) {
+	const cities = await api.filterCities(query)
+	setResults(cities)
+}
+```
 
-👨‍💼 Thanks Kellie! Now you're ready to make changes
-in <InlineFile file="src/cities/index.ts" />
-and <InlineFile file="src/cities/filter-cities.worker.ts" /> for this exercise.
+✨ You now have a performant, non-blocking way to search cities!
 
-Oh, and when you're finished with that, then go
-into <InlineFile file="src/app.tsx" /> and add an import for `./cities/index.ts`
-just so you can see the web worker get loaded into our sources tab of the
-DevTools like this:
+---
 
-![Sources tab in devtools showing another thread called filter-cities.worker.ts](/img/worker-thread.png)
+## 🌀 Step 5: Render Async Results with `Suspense`
 
-🦉 We'll be using a library called [`comlink`](https://npm.im/comlink) to manage
-communication with this web worker and have some nice type safety. You may find
-it useful to view the docs a bit for that project before proceeding.
+Let’s improve the experience further by using **React’s `use` hook** and `Suspense` to handle async rendering.
 
-We'll also be taking advantage of
-[Vite's web workers feature](https://vitejs.dev/guide/features.html#web-workers).
-Those docs would also be useful to peruse just a bit.
+```tsx
+const citiesPromise = useMemo(() => api.filterCities(query), [query])
+const cities = use(citiesPromise)
 
-# Async Results
+return (
+	<Suspense fallback={<div>Loading cities...</div>}>
+		<CityList cities={cities} />
+	</Suspense>
+)
+```
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/async-results" />
+Add `useTransition` for smooth state transitions without janky UI:
 
-👨‍💼 Now that we have a web worker we can work with, let's refactor our `App` to
-use this new async data source. We'll be using React's `use` hook and passing
-a promise to that. This means we'll want to have state for the promises of data
-and an initial promise for when the app starts up (for the initial cities).
-Also, we'll need a `Suspense` boundary and we'll want to manage the pending
-state with `useTransition`.
+```tsx
+const [isPending, startTransition] = useTransition()
 
-You'll know we made things better when you start a peformance profile and type
-a single character in the search input. Compare the before/after flame graph and
-you should notice a significant difference.
+const handleInput = (query: string) => {
+	startTransition(() => {
+		setQuery(query)
+	})
+}
+```
 
-<callout-success>
-	Tip: The easiest way to do this comparison is to run app in the `Problem` tab
-	and compare that one to the one in your `Playground` tab in the workshop app.
-</callout-success>
+---
 
-Good luck!
+## 🧪 Step 6: Validate the Win 🎉
+
+Repeat your DevTools performance trace:
+
+* Record input changes
+* Observe flame graph and UI responsiveness
+* Search for `searchCities` or blocking operations
+
+You should see a drastic improvement! 🚀
+
+---
+
+## 🧠 Summary
+
+| Technique          | Purpose                                 |
+| ------------------ | --------------------------------------- |
+| `useMemo`          | Avoid recalculating on every render     |
+| Web Workers        | Offload expensive work from main thread |
+| `comlink`          | Simplify worker communication           |
+| `useTransition`    | Keep UI responsive during state updates |
+| `Suspense` + `use` | Render async results declaratively      |
+
+---
+
+## 📚 Resources
+
+* 🧠 [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
+* 🧵 [Speed Up Your App with Web Workers](https://kentcdodds.com/blog/speed-up-your-app-with-web-workers)
+* 🛠️ [Vite + Web Workers](https://vitejs.dev/guide/features.html#web-workers)
+* 🪄 [comlink Docs](https://github.com/GoogleChromeLabs/comlink)
+* ⚙️ [Chrome DevTools Performance Guide](https://developer.chrome.com/docs/devtools/evaluate-performance/)
+
+---
+
+Performance is a user experience issue—and React gives us the tools to fix it.
+
+Use them wisely. ⚡

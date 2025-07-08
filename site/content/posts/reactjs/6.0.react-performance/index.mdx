@@ -2,72 +2,154 @@
 title: "React Performance: Introduction"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPerformance']
 date: 2024-07-01
 thumbnail: image.jpg
 featured: true
 ---
 
-In this workshop you will diagnose, profile, and fix performance problems in your React application using the Browser Profiler, React DevTools Profiler, and optimization techniques.
+**Mastering React Performance: A Practical Guide to Building Fast and Efficient Apps**
 
-There are always trade-offs to consider when thinking about optimization.
+Optimizing performance in a React application isn't just about making things faster—it's about understanding what to optimize, why it matters, and how to do it responsibly. In this guide, we’ll walk you through the key concepts and techniques you need to profile, diagnose, and resolve performance bottlenecks in your React apps.
 
-You will be learning optimizaiton patterns in this workshop.
+Whether you’re dealing with unnecessary re-renders, sluggish transitions, or massive lists, this article will give you the tools and mental models you need to make smart optimization decisions.
 
-But, more importantly you'll be learning how to measure the performance of your app, carefully consider the complexity trade-offs of optimization, and understand which optimizations apply to certain situations.
+---
 
-By the end of this workshop you'll understand how to:
+## ⚖️ Performance Optimization: Understand the Trade-Offs
 
-Prevent unnecessary re-renders
-Render concurrently
-Lazy and eager load components
-Use memoization and web workers
-and use windowing with react-virtual
-Element Optimization
-Gain practical experience optimizing React component rendering.
+Before diving into specific techniques, it's crucial to remember that performance work is a **balancing act**. Optimization often introduces complexity. Your goal should be **measurable improvements** without sacrificing maintainability or readability.
 
-Learn to hoist React elements to prevent unnecessary renders, pass elements as props, use React's Context API to trigger re-renders only on necessary state changes, and apply useMemo and React.memo.
+Rather than blindly applying patterns, you’ll learn to use the **React DevTools Profiler**, the **browser performance tab**, and thoughtful observation to find real issues.
 
-## Optimize Context
-Here you'll learn three ways to optimize context: Memoize context values, create a provider component, and split context values into setter functions.
+---
 
-In addition to the techniques, this will teach you how to use the devtools to determine which ones you need to use.
+## 🔍 Diagnosing & Profiling React Performance
 
-## Concurrent Rendering
-Sometimes, you're rendering so many components or those components are doing such complex things that you can't afford to render them all quickly enough.
+The first step in any performance effort is to **measure**. React DevTools Profiler allows you to visualize rendering patterns, component trees, and time spent rendering. Use this tool to spot:
 
-Find out how to use the useDeferredValue hook and memo to prioritize the rendering of some parts of your app over others.
+* Components rendering too often
+* Heavy re-renders that don’t affect the UI
+* Deeply nested updates that bubble unnecessarily
 
-## Code Splitting
-Code splitting acts on the principle that loading less code will speed up your app. There are three ways we'll approach it in this section:
+Once you’ve identified a potential bottleneck, it’s time to apply the right fix.
 
-Lazy loading, eager loading, and transitions.
+---
 
-In lazy loading you'll learn how to use React's lazy method for lazy loading components
+## 🧠 Prevent Unnecessary Re-Renders
 
-Eager loading is like a layer on top of lazy loading. You'll learn how to deferr the loading of a component until some event occurs like a mouse over or on focus.
+React is efficient, but it will re-render components when their props or state change—even if the actual output doesn’t.
 
-In transitions you'll learn to optimize the loading experience using the useTransition hook and the useSpinDelay hook from the spin-delay package.
+To prevent this:
 
-## Expensive Calculations
-JavaScript is single-threaded which poses a problem when you need to deal with some kind of expensive calculation.
+* Use `React.memo()` to wrap functional components and avoid unnecessary renders.
+* Combine it with `useMemo()` or `useCallback()` to memoize complex values or functions passed as props.
+* Consider a **custom comparator function** if `React.memo()`’s default shallow comparison isn’t enough.
 
-React has ways of dealing with this but if you are outside of React-land you'll be blocking the thread while the calculation is being performed. Luckily there are a couple options for dealing with this.
+This alone can improve rendering performance significantly, especially in large component trees.
 
-useMemo is useful if you're working with indempotent functions. And if you aren't, Web Workers let you perform the calculations on a separate thread but they add some complexity to your code.
+---
 
-Throughout this workshop you'll be learning to measure performance and weigh the trade-offs of all the techniques you learn!
+## 🏗️ Element Optimization Techniques
 
-## Optimize Rendering
-React is pretty smart about determining when it needs to re-render. But, sometimes there are cases we can get a bit of an edge over it ourselves.
+Here’s how to gain more control over rendering:
 
-If your components are re-rendering when a DOM update isn't actually needed, you'll want to reach for memo and memoize your components.
+* **Hoist React elements**: Move JSX creation outside the render function if it doesn’t depend on props or state.
+* **Pass elements as props**: For example, pass a pre-rendered button instead of recreating it on every render.
+* **Use Context wisely**: Context updates trigger re-renders. Keep your context lean and split values (like state setters) across providers when needed.
+* Combine `React.memo()` with context consumers to avoid re-renders in unrelated child components.
 
-But, what if memo's built-in comparitor isn't doing the trick? It works off a simple Object.is. Which is great most of the time but if you're dealing with complex props you have the option of passing a custom comparitor function.
+---
 
-## Windowing
-And lastly you'll be exploring an advanced technique for when you're dealing with a truly massive amount of elements.
+## ⚙️ Optimizing Context
 
-There's only so much optimizing you can do when you need to rendering thousands of elements. But, what if you only had to render a slice of them? That's where windowing comes in.
+React’s Context API is powerful but needs care to scale efficiently:
 
-You'll be using the @tanstack/react-virtual library to virtualize only the visible DOM nodes (and a few nodes outside of view for the fast-scrollers) in a large scrollable element.
+1. **Memoize context values**: Wrap context values in `useMemo()` to prevent unnecessary updates.
+2. **Create dedicated providers**: Isolate pieces of your state into different context providers to limit what re-renders when.
+3. **Split context state and setters**: Use one context for reading state and another for updating it.
+
+You’ll learn to profile which parts of your app are re-rendering due to context and apply these optimizations precisely.
+
+---
+
+## ⏱️ Concurrent Rendering & Prioritization
+
+Sometimes, rendering too many components at once leads to noticeable lags. This is where **concurrent rendering** patterns help.
+
+* Use `useDeferredValue()` to **de-prioritize** updates that aren’t immediately important (like filters or search results).
+* Combine with `React.memo()` to maintain responsiveness while keeping the UI interactive.
+* Use `useTransition()` to defer non-urgent UI updates while keeping the interface snappy.
+
+These tools let you balance responsiveness with computational workload.
+
+---
+
+## 📦 Code Splitting: Load What You Need, When You Need It
+
+Large bundles hurt load time. React supports **code splitting** to reduce the initial payload:
+
+* **Lazy loading**: Use `React.lazy()` and `Suspense` to dynamically load components only when they’re needed.
+* **Eager loading**: Trigger loading *before* components are rendered—on hover, focus, or any interaction—using `import()` proactively.
+* **Transitions**: Use `useTransition()` and libraries like `spin-delay` to improve the loading experience while lazy loading.
+
+These techniques help your app feel faster without reducing features.
+
+---
+
+## 🧮 Handling Expensive Calculations
+
+Heavy calculations can block the UI thread, making your app feel sluggish.
+
+React provides two main strategies:
+
+* **useMemo()**: Perfect for caching pure, idempotent calculations that are expensive but predictable.
+* **Web Workers**: Offload truly expensive or asynchronous work to a separate thread using Web Workers. This keeps the main thread free but adds communication complexity.
+
+You'll learn to spot expensive computations and decide whether to memoize them or move them off-thread entirely.
+
+---
+
+## 🎯 Optimize Rendering at the Component Level
+
+If your app is still rendering more than necessary:
+
+* Use `React.memo()` to skip rendering unless props actually change.
+* Use custom comparator functions for deeply nested or complex props.
+* Move inline functions and objects out of render with `useCallback()` or `useMemo()`.
+
+This helps React skip renders for parts of the UI that haven't changed.
+
+---
+
+## 🪟 Windowing: Virtualize Large Lists
+
+When rendering hundreds or thousands of elements (e.g., in a table or feed), DOM and memory performance becomes an issue.
+
+Enter **windowing** (or virtualization):
+
+* Use libraries like [`@tanstack/react-virtual`](https://tanstack.com/query/v3/docs/react/virtual) to render only the visible subset of elements.
+* This technique avoids mounting thousands of DOM nodes and dramatically improves scroll performance.
+
+Windowing is a **must-have** for large lists or tables.
+
+---
+
+## 🚀 Final Thoughts
+
+Performance optimization in React is as much about **measurement and strategy** as it is about implementation. The tools and techniques you apply must be guided by actual bottlenecks, not just best practices.
+
+In this workshop, you’ve learned how to:
+
+* Prevent unnecessary re-renders
+* Use memoization and memoization-aware patterns
+* Optimize context usage
+* Handle heavy computations smartly
+* Prioritize important UI updates
+* Apply code splitting and windowing techniques
+
+Always **measure first**, then **optimize with purpose**. React gives you the tools. Now you have the knowledge.
+
+Happy coding! ⚛️🔥
+
+---

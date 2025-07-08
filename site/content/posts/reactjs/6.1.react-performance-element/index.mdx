@@ -1,262 +1,240 @@
 ---
-title: "React Performance 1: Element Optimization"
+title: "React Performance: Element Optimization"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPerformance']
 date: 2024-07-02
 thumbnail: image.jpg
 featured: true
 ---
 
-# Element Optimization
+**🎯 React Element Optimization: How to Avoid Unnecessary Renders and Improve Performance**
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/intro-to-element-optimization" />
+React is an incredibly powerful UI library—but with great power comes the responsibility to keep things **performant**. One of the most common culprits of sluggish React apps? **Unnecessary re-renders**.
 
-Elements are the fundamentals building blocks of React UI. It was the first
-we started with when you started learning React in this workshop series. And
-React has some smarts under the hood we can take advantage of when we're
-rendering elements.
+This post walks through how React handles re-renders, and more importantly, **how you can optimize your components** using techniques like memoization, JSX reuse, and context. We’ll build a simple app and use React DevTools to understand what causes a component to re-render—and how to stop it when we don’t need it.
 
-What we're going to be learning about in this exercise can be summed up as:
+Let’s dive in!
 
-> If you give React the same element you gave it on the last render, it wont
-> bother re-rendering that element. – [@kentcdodds](https://twitter.com/kentcdodds/status/1143200604065431552)
+---
 
-Here's a simple example:
+## ⚛️ React Elements: The Basics
+
+In React, **elements** are the fundamental building blocks of your UI. JSX gives you a convenient way to define these elements, but under the hood, they're just objects.
+
+Here’s a quote to keep in mind:
+
+> “If you give React the same element you gave it on the last render, it won’t bother re-rendering that element.”
+> — [Kent C. Dodds](https://twitter.com/kentcdodds/status/1143200604065431552)
+
+Let’s see this in action.
 
 ```tsx
 function Message({ greeting }) {
-	console.log('rendering greeting', greeting)
-	return <div>{greeting}</div>
+  console.log('rendering greeting', greeting)
+  return <div>{greeting}</div>
 }
 
 function Counter() {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount((c) => c + 1)
-	return (
-		<div>
-			<button onClick={increment}>The count is {count}</button>
-			<Message greeting="Hello!" />
-		</div>
-	)
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <button onClick={() => setCount(c => c + 1)}>
+        The count is {count}
+      </button>
+      <Message greeting="Hello!" />
+    </div>
+  )
 }
 ```
 
-With this set up, we'll get a log every time the counter is incremented. Meaning
-the `<Message />` component is rerendered every time its parent rerenders
-(which is to be expected). But this is unnecessary since the greeting component
-won't ever change what it's rendering.
+With this setup, clicking the button logs **every time**, even though the `<Message />` component receives the **same props**.
 
-What if I refactored things a little bit. For example:
+Now look at this slight change:
 
 ```tsx
-function Message({ greeting }) {
-	console.log('rendering greeting', greeting)
-	return <div>{greeting}</div>
-}
-
 const message = <Message greeting="Hello!" />
 
 function Counter() {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount((c) => c + 1)
-	return (
-		<div>
-			<button onClick={increment}>The count is {count}</button>
-			{message}
-		</div>
-	)
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <button onClick={() => setCount(c => c + 1)}>
+        The count is {count}
+      </button>
+      {message}
+    </div>
+  )
 }
 ```
 
-In this situation, the `<Message />` component only renders once and won't
-rerender whenever the count changes. This is because we're giving React the same
-element every time. How does this work?
+Now the `Message` component **only renders once**—even when the `count` changes. Why? Because the JSX element is created **once outside** the render function and reused across renders.
 
-When React is given the same element it was given on the last render, it won't
-bother rerendering that element again because that would be pointless. It just
-keeps the same element and moves on.
+💡 **React recognizes it’s the same element and skips the update.**
 
-This is a simple, but powerful optimization that can help you avoid unnecessary
-rerenders in your application. It's not always possible to do this, but you'd be
-surprised how **simply restructuring your components** can make this possible
-more and more often.
+---
 
-The optimization we're going to be learning about in this exercise is explained
-with examples in
-[One simple trick to optimize React re-renders](https://kentcdodds.com/blog/optimize-react-re-renders).
-Feel free to check that out for a more in depth explanation for how this works.
-# Reusing Elements
+## 🔁 Reusing Elements to Avoid Renders
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/reusing-elements" />
+Let’s take this further in a real-world scenario.
 
-👨‍💼 We're going to be building a simple user interface and in the process we want
-to limit unnecessary renders as much as possible (not because it's necessary
-for this specific application, but because it's a useful exercise for you to
-learn how to do for when it is necessary).
-
-Right now, when you click the counter button, both the `App` and `Footer`
-components rerender.
-
-But the `Footer` component doesn't change so that render is unnecessary. So
-please take advantage of React's element optimization by creating a `Footer`
-element outside the `App` so you can render that inline in the `App` component.
-
-Make sure to check the before/after using the React DevTools so you know that
-your work is making a difference.
-
-# Element Props
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/element-props" />
-
-🧝‍♂️ I've enhanced our app a bit to add some buttons that will control the color
-of our footer. This means we can't just render the component outside the `App`
-component since we need to pass the `color` as a prop. Feel free
-to <PrevDiffLink>check my work</PrevDiffLink>.
-
-👨‍💼 Yep, to make it work, Kellie had to render the `<Footer />` in `<Main />`
-which means the `<Footer />` gets rerendered every time we click the count
-button even if the color doesn't change.
-
-So your job is to restructure things so the `Footer` only re-renders when the
-`color` is changed.
-
-Make sure to pull up the React DevTools to be certain incrementing the count
-doesn't trigger a rerender of the footer.
-
-# Context
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/context" />
-
-👨‍💼 We now have a counter inside the `App` component and every time that count is
-incremented, we trigger a rerender of the `Footer` component! Have we lost the
-ability to take advantage of React's element optimization? No!
-
-Instead of accepting the `color` via props, we can place it in a context provider
-that the `Footer` can consume. And with that, the `footer` no longer accepts any
-dynamic props so we can move it outside the `App` component again, which means
-the only way it can be rerendered is if the context changes (which is exactly
-what we want).
-
-When you're done, make certain that the `Footer` only rerenders when the `color`
-changes and not when the counters are incremented.
-
-# Memoize Elements
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/memoize-elements" />
-
-👨‍💼 Now we want our users to be able to type their name and have that show up in
-the footer. But we don't want to use context for the name like we do with the
-color just yet. We just want to be able to pass the `name` as a regular prop.
-But we still want to make sure that the `Footer` only rerenders when it should
-and no more. So you're going to need to combine `useMemo` with this React
-element optimization.
-
-Remember that `useMemo` allows you to get the same value back if the
-dependencies haven't changed. Well, you can create a React element that depends
-on the `name` and render that:
+Imagine your app has a static `<Footer />` that doesn’t depend on state:
 
 ```tsx
-const someElement = useMemo(() => <MyComponent myProp={myProp} />, [myProp])
-```
-
-Give that a shot! (Double-check your work with the React DevTools).
-
-# Memoize Components
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/memoize-components" />
-
-🦉 Memoizing elements is such a common idea that React has a built-in optimizer
-called `memo` which allows you to memoize an entire component based on its
-props:
-
-```tsx
-import { memo } from 'react'
-
-const MyComponent = memo(function MyComponent(props) {
-	/* only rerenders if props change */
-})
-```
-
-This effectively turns the `props` object into a dependency array a la `useMemo`
-and applys wherever the component is rendered.
-
-🧝‍♂️ <PrevDiffLink>I've moved the `Footer` out of `useMemo`</PrevDiffLink> so
-we've got it rendering unnecessarily again.
-
-👨‍💼 You're going to use `memo` to get the `Footer` back into a position where
-it only renders when the `name` or `color` change. Good luck!
-
-[📜 Check out the `memo` docs](https://react.dev/reference/react/memo)
-
-```tsx
-import { createContext, memo, use, useState } from 'react'
-import * as ReactDOM from 'react-dom/client'
-
-const ColorContext = createContext<string | null>(null)
-
-function useColor() {
-	const color = use(ColorContext)
-	if (!color) throw new Error('ColorContext not found')
-	return color
-}
-
-const Footer = memo(function FooterImpl({ name }: { name: string }) {
-	const color = useColor()
-	return (
-		<footer style={{ color }}>
-			I am the ({color}) footer, {name || 'Unnamed'}
-		</footer>
-	)
-})
-
-
-function Main({ footer }: { footer: React.ReactNode }) {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount((c) => c + 1)
-	return (
-		<div>
-			<button onClick={increment}>The count is {count}</button>
-			{footer}
-		</div>
-	)
+function Footer() {
+  console.log('rendering footer')
+  return <footer>© 2025 React Workshop</footer>
 }
 
 function App() {
-	const [appCount, setAppCount] = useState(0)
-	const [color, setColor] = useState('black')
-	const [name, setName] = useState('Kody')
-	return (
-		<ColorContext value={color}>
-			<div>
-				<div>
-					<p>Set the footer color:</p>
-					<div style={{ display: 'flex', gap: 4 }}>
-						<button onClick={() => setColor('black')}>Black</button>
-						<button onClick={() => setColor('blue')}>Blue</button>
-						<button onClick={() => setColor('green')}>Green</button>
-					</div>
-				</div>
-				<div>
-					<p>Set the footer name:</p>
-					<label>
-						Name:
-						<input
-							value={name}
-							onChange={(e) => setName(e.currentTarget.value)}
-						/>
-					</label>
-				</div>
-				<button onClick={() => setAppCount((c) => c + 1)}>
-					The app count is {appCount}
-				</button>
-				<Main footer={<Footer name={name} />} />
-			</div>
-		</ColorContext>
-	)
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <button onClick={() => setCount(c => c + 1)}>Click</button>
+      <Footer />
+    </div>
+  )
 }
-
-const rootEl = document.createElement('div')
-document.body.append(rootEl)
-ReactDOM.createRoot(rootEl).render(<App />)
 ```
+
+Every button click re-renders `<Footer />`, even though it **doesn’t need to**.
+
+### ✅ Fix it by hoisting:
+
+```tsx
+const footer = <Footer />
+
+function App() {
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <button onClick={() => setCount(c => c + 1)}>Click</button>
+      {footer}
+    </div>
+  )
+}
+```
+
+Boom 💥! The footer is no longer re-rendered needlessly.
+
+---
+
+## 🎨 When Props Change: Pass Elements as Props
+
+Now suppose the `Footer` has a **dynamic prop** like a `color`:
+
+```tsx
+function Footer({ color }) {
+  console.log('rendering footer with color', color)
+  return <footer style={{ color }}>Thanks for visiting</footer>
+}
+```
+
+We can no longer define the JSX statically outside the render function. But we **can** still optimize.
+
+---
+
+## 🌐 Optimize With React Context
+
+Let’s use **React Context** to avoid prop drilling and isolate re-renders.
+
+### Step 1: Create a Color Context
+
+```tsx
+const ColorContext = React.createContext()
+```
+
+### Step 2: Provide color via context
+
+```tsx
+function App() {
+  const [color, setColor] = useState('black')
+
+  return (
+    <ColorContext.Provider value={color}>
+      <Main />
+    </ColorContext.Provider>
+  )
+}
+```
+
+### Step 3: Consume it in Footer
+
+```tsx
+function Footer() {
+  const color = useContext(ColorContext)
+  console.log('rendering footer with color', color)
+  return <footer style={{ color }}>Thanks!</footer>
+}
+```
+
+Now, Footer doesn't receive **props**, so you can **hoist it again** and React will only re-render it **when context changes**.
+
+---
+
+## 🧠 Memoizing Elements with `useMemo`
+
+What if you **must** pass props (like `name`) but still want to optimize?
+
+React’s `useMemo()` is your friend:
+
+```tsx
+const memoizedFooter = useMemo(() => {
+  return <Footer name={name} />
+}, [name])
+```
+
+Now `<Footer />` is only re-rendered when `name` changes—not on every unrelated state update.
+
+💡 Use `React DevTools Profiler` to confirm re-render behavior.
+
+---
+
+## ⚡ Component-Level Memoization with `React.memo`
+
+React even gives you a **component-level memoizer**: `React.memo`.
+
+```tsx
+const Footer = memo(function FooterImpl({ color, name }) {
+  console.log('rendering footer')
+  return <footer style={{ color }}>Hello, {name}!</footer>
+})
+```
+
+This acts like a built-in `useMemo()` for components: React skips re-renders unless **props have changed**.
+
+This is a **cleaner and more robust solution** than manually memoizing every element.
+
+> ⚠️ Be careful: `memo` uses `Object.is` under the hood, so if you’re passing complex objects, you may need to memoize them too.
+
+---
+
+## 🔍 Final Thoughts
+
+Here’s a quick summary of **how to optimize React elements** and avoid unnecessary re-renders:
+
+* ✅ **Reuse JSX**: Move static elements outside your component.
+* ✅ **Use Context**: Avoid prop drilling and isolate re-renders.
+* ✅ **Memoize Elements**: Use `useMemo()` when JSX depends on state.
+* ✅ **Memoize Components**: Use `React.memo()` for full component optimization.
+* ✅ **Check With DevTools**: Always verify with profiling tools.
+
+React is smart—but it’s not omniscient. A few simple tweaks to how and where you define your elements can yield a **significant performance boost**.
+
+So next time you’re profiling your app and wondering why something is rendering when it shouldn’t—remember this guide 😉
+
+---
+
+📚 **Further reading:**
+
+* [Optimize React re-renders (Kent C. Dodds)](https://kentcdodds.com/blog/optimize-react-re-renders)
+* [React.memo docs](https://react.dev/reference/react/memo)
+* [What is JSX?](https://kentcdodds.com/blog/what-is-jsx)
+
+---
+
+Want a live example or need help debugging your own components? Drop a comment or reach out!
+
+Happy optimizing ⚛️🔥
+
+---

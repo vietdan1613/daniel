@@ -1,180 +1,235 @@
 ---
-title: "Advanced React Patterns 5: Prop Collections and Getters"
+title: "Advanced React Patterns: Prop Collections and Getters"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPatterns']
 date: 2024-06-25
 thumbnail: image.jpg
 featured: true
 ---
 
-# Prop Collections and Getters
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-prop-collections-and-getters" />
+**🧰 Prop Collections and Getters in React: Building Flexible Hooks Without Sacrificing Usability**
 
 <callout-success>
-	**One liner:** The Prop Collections and Getters Pattern allows your hook to
-	support common use cases for UI elements people build with your hook.
+<strong>One-liner:</strong> The <strong>Prop Collections and Getters</strong> pattern allows hooks to provide easy-to-use, accessible, and flexible APIs for common UI interactions.
 </callout-success>
 
-In typical UI components, you need to take accessibility into account. For a
-button functioning as a toggle, it should have the `aria-checked` attribute set
-to `true` or `false` if it's toggled on or off. In addition to remembering that,
-people need to remember to also add the `onClick` handler to call `toggle`.
+React hooks are amazing for encapsulating stateful logic, but when you’re building reusable hooks—especially for component libraries—you often need to do a bit more than just return state and state setters.
 
-Lots of the reusable/flexible components and hooks that we'll create have some
-common use-cases and it'd be cool if we could make it easier to use our
-components and hooks the right way without requiring people to wire things up
-for common use cases.
+This is where the **Prop Collections and Prop Getters** patterns shine. They help abstract away common event handling, accessibility concerns, and interaction logic—making it easier for consumers of your hook to use them correctly with minimal configuration.
 
-Here's a quick example:
+Let’s explore how this works. 👇
 
-```tsx
-function useCounter() {
-	const [count, setCount] = useState(initialCount)
-	const increment = () => setCount(c => c + 1)
-	return {
-		count,
-		increment,
-		counterButtonProps: { children: count, onClick: increment },
-	} // <-- this is the prop collection
-}
+---
 
-function App() {
-	const counter = useCounter()
-	return <button {...counter.counterButtonProps} />
-}
-```
+## 🤖 Problem: Too Much Boilerplate
 
-🦉 Note that we're moving from a collection of related components (compound
-components) to a hook for the upcoming patterns. We'll bring back a `Toggle`
-component that uses the hook later, but often it's useful to drop down to a
-lower level of abstraction to give consumers more power and then build on top of
-that. And you can definitely combine the patterns (read my old post on the
-subject demonstrating how to do this with class components:
-[Mixing Component Patterns](https://kentcdodds.com/blog/mixing-component-patterns)).
-
-**Real World Projects that use this pattern:**
-
-- [downshift](https://github.com/downshift-js/downshift) (uses prop getters)
-- [conform's `getFormProps`](https://conform.guide/api/react/getFormProps) (prop
-  getters)
-# Prop Collections
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/prop-collections" />
-
-🧝‍♂️ I've removed the work we did with the Slot pattern and we're also going to be
-focusing the next few exercises on the hook. So we've simplified things a little
-bit to give us a better focus on the hook.
-
-👨‍💼 In our simple example, this isn't too much for folks to remember, but in more
-complex components, the list of props that need to be applied to elements can be
-extensive, so it can be a good idea to take the common use cases for our hook
-and/or components and make objects of props that people can simply spread across
-the UI they render.
-
-In this exercise you need to create a `togglerProps` object that has all the
-props people would typically need applied to a toggle button.
-# Prop Getters
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/prop-getters" />
-
-👨‍💼 Uh oh! Someone wants to use our `togglerProps` object, but they need to apply
-their own `onClick` handler! Try doing that by updating the `App` component to
-this:
+Let’s say you're building a simple toggle button using a custom `useToggle` hook. You’d typically expect users to do this:
 
 ```tsx
 function App() {
-	const { on, togglerProps } = useToggle()
-	return (
-		<div>
-			<Switch on={on} {...togglerProps} />
-			<hr />
-			<button
-				aria-label="custom-button"
-				{...togglerProps}
-				onClick={() => console.info('onButtonClick')}
-			>
-				{on ? 'on' : 'off'}
-			</button>
-		</div>
-	)
+  const { on, toggle } = useToggle()
+  return <button aria-pressed={on} onClick={toggle}>{on ? 'On' : 'Off'}</button>
 }
 ```
 
-I want both the toggle to work as well as the log. Does that work? Why not? Can
-you change it to make it work?
+Not too bad, right?
 
-What if we change the API slightly so that instead of having an object of props,
-we call a function to get the props. Then we can pass that function the props we
-want applied and that function will be responsible for composing the props
-together.
+But in more complex scenarios, users might need to remember:
 
-Let's try that. Our <InlineFile file="app.tsx" /> file has been updated to use a
-new API we're responsible for creating. See if you can make that API work.
+* `aria-pressed` for accessibility
+* `onClick` to trigger `toggle`
+* Custom labels or styling
 
-🦺 The types for the argument to the `getTogglerProps` component might be a bit
-tricky, so here's a little tip: you can get the `onClick` prop from:
-`React.ComponentProps<'button'>['onClick']`.
+This can become error-prone. Wouldn’t it be great if your hook could *suggest* the right props or even *generate* them for the user?
 
-## app.tsx
+---
+
+## 🧩 Solution: Prop Collections
+
+A **prop collection** is a bundle of props your hook returns that users can spread onto an element.
+
+### Example:
 
 ```tsx
-import { Switch } from '#shared/switch.tsx'
-import { useToggle } from './toggle.tsx'
+function useCounter(initialCount = 0) {
+  const [count, setCount] = React.useState(initialCount)
+  const increment = () => setCount(c => c + 1)
 
-export function App() {
-	const { on, getTogglerProps } = useToggle()
-	return (
-		<div>
-			<Switch {...getTogglerProps({ on })} />
-			<hr />
-			<button
-				{...getTogglerProps({
-					'aria-label': 'custom-button',
-					onClick: () => console.info('onButtonClick'),
-					id: 'custom-button-id',
-				})}
-			>
-				{on ? 'on' : 'off'}
-			</button>
-		</div>
-	)
+  return {
+    count,
+    increment,
+    counterButtonProps: {
+      children: count,
+      onClick: increment,
+    },
+  }
+}
+
+function App() {
+  const counter = useCounter()
+  return <button {...counter.counterButtonProps} />
 }
 ```
 
-## toggle.tsx
+💡 Prop collections make it easy to use your hook for **typical cases**, without thinking about implementation details.
+
+---
+
+## ⚠️ Problem with Collections: Overriding Props
+
+What happens if someone needs to customize a prop—say, they want to add their own `onClick`?
 
 ```tsx
-import { useState } from 'react'
+<button
+  {...togglerProps}
+  onClick={() => console.log('Custom click')}
+/>
+```
 
-function callAll<Args extends Array<unknown>>(
-	...fns: Array<((...args: Args) => unknown) | undefined>
-) {
-	return (...args: Args) => fns.forEach(fn => fn?.(...args))
-}
+Uh oh… Your `onClick` just got overwritten! The toggle logic no longer runs.
 
-export function useToggle() {
-	const [on, setOn] = useState(false)
-	const toggle = () => setOn(!on)
+---
 
-	function getTogglerProps<Props>({
-		onClick,
-		...props
-	}: {
-		onClick?: React.ComponentProps<'button'>['onClick']
-	} & Props) {
-		return {
-			'aria-checked': on,
-			onClick: callAll(onClick, toggle),
-			...props,
-		}
-	}
+## 🔄 Enter: Prop Getters
 
-	return {
-		on,
-		toggle,
-		getTogglerProps,
-	}
+**Prop Getters** solve this by turning the prop object into a function.
+
+### Instead of this:
+
+```tsx
+<button {...togglerProps} />
+```
+
+### We do this:
+
+```tsx
+<button {...getTogglerProps({ onClick: () => console.log('custom') })} />
+```
+
+Now the getter function can **merge** or **compose** the incoming props with its internal behavior—so both `toggle()` and your custom `console.log()` work together.
+
+---
+
+## 🛠️ Building a Prop Getter in `useToggle`
+
+Here’s how it might look:
+
+```tsx
+function useToggle() {
+  const [on, setOn] = React.useState(false)
+  const toggle = () => setOn(prev => !prev)
+
+  const getTogglerProps = ({
+    onClick,
+    ...props
+  }: React.ComponentProps<'button'> = {}) => {
+    return {
+      'aria-pressed': on,
+      onClick: (e: React.MouseEvent) => {
+        onClick?.(e)
+        toggle()
+      },
+      ...props,
+    }
+  }
+
+  return { on, toggle, getTogglerProps }
 }
 ```
+
+This ensures the toggle functionality **always runs**, even when developers pass their own `onClick`.
+
+---
+
+## ✅ Benefits of Prop Getters
+
+| Benefit           | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| **Composability** | Users can layer their own props on top of internal ones |
+| **Accessibility** | Ensure the correct ARIA attributes are always included  |
+| **Encapsulation** | Logic stays inside your hook, UI stays flexible         |
+| **Reusability**   | Build components and hooks once, use them everywhere    |
+
+---
+
+## 🧪 Example in Action
+
+Here’s how you use it:
+
+```tsx
+function App() {
+  const { on, getTogglerProps } = useToggle()
+
+  return (
+    <div>
+      <button {...getTogglerProps()}>
+        {on ? 'ON' : 'OFF'}
+      </button>
+
+      <button
+        {...getTogglerProps({
+          onClick: () => console.log('Custom click'),
+          'aria-label': 'custom-button',
+        })}
+      >
+        {on ? 'Custom On' : 'Custom Off'}
+      </button>
+    </div>
+  )
+}
+```
+
+Now both buttons work flawlessly—and even your accessibility tooling will thank you. 🧼
+
+---
+
+## 🧠 Bonus Tip: Build on Top of Hooks
+
+You can use prop getters inside a component like `ToggleButton`, then hide all the wiring from the outside world:
+
+```tsx
+function ToggleButton() {
+  const { getTogglerProps } = useToggle()
+  return <button {...getTogglerProps()} />
+}
+```
+
+Or allow consumers to opt-in to either:
+
+* A fully built component (`<ToggleButton />`)
+* A customizable hook with prop getters (`useToggle()`)
+
+This hybrid approach gives you the best of both worlds: **power + simplicity**.
+
+---
+
+## 📦 Real-World Libraries Using This Pattern
+
+* [Downshift](https://github.com/downshift-js/downshift): Combobox, autocomplete, select menus
+* [Conform](https://conform.guide): For validating and managing accessible forms
+* [Reakit](https://reakit.io): Low-level accessible component toolkit
+
+---
+
+## 🔚 Conclusion
+
+The **Prop Collections and Getters** pattern is a powerful addition to your React toolkit—especially when building **hooks for reusable UI logic**.
+
+It helps you:
+
+* Reduce boilerplate for consumers
+* Preserve flexibility with user-defined props
+* Ensure correct and accessible behavior
+
+Whether you're creating a design system, open-source library, or an internal component platform, adopting this pattern can make your APIs both **easy to use** and **hard to misuse**.
+
+---
+
+## 📚 Further Reading
+
+* 🧱 [Compound Components](https://epicreact.dev/compound-components)
+* 🔁 [Mixing Component Patterns](https://kentcdodds.com/blog/mixing-component-patterns)
+* ⚙️ [Downshift Prop Getters in Action](https://www.downshift-js.com)
+
+---

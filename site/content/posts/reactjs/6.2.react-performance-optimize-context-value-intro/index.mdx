@@ -1,236 +1,212 @@
 ---
-title: "React Performance 2: Optimize Context"
+title: "React Performance: Optimize Context"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPerformance']
 date: 2024-07-03
 thumbnail: image.jpg
 featured: true
 ---
 
-# Optimize Context
+**⚡ Optimize React Context: How to Avoid Unnecessary Re-renders**
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/intro-to-optimize-context" />
+React’s Context API is a powerful tool for avoiding prop drilling and managing global state. But it comes with a hidden cost: **every context update triggers a re-render of all its consumers**—even if they don’t rely on the part of the context that changed.
 
-The way that context works is that whenever the provided value changes from one
-render to another, it triggers a re-render of all the consuming components
-(which will re-render whether or not they're memoized).
+In this post, you’ll learn how to **optimize context usage** to prevent unnecessary re-renders, improve performance, and keep your React app feeling fast.
 
-So take this for example:
+Let’s dive into the "why" and "how" of optimizing React Context with techniques like **memoization**, **provider component separation**, and **context splitting**.
+
+---
+
+## 🚨 The Problem with Context Updates
+
+Here’s a common setup:
 
 ```tsx
-type CountContextValue = readonly [number, Dispatch<SetStateAction<number>>]
-const CountContext = createContext<CountContextValue | null>(null)
+type CountContextValue = readonly [number, Dispatch<SetStateAction<number>>];
+const CountContext = createContext<CountContextValue | null>(null);
 
-function CountProvider(props) {
-	const [count, setCount] = useState(0)
-	const value = [count, setCount]
-	return <CountContext value={value} {...props} />
+function CountProvider({ children }) {
+  const [count, setCount] = useState(0);
+  const value = [count, setCount];
+  return (
+    <CountContext.Provider value={value}>
+      {children}
+    </CountContext.Provider>
+  );
 }
 ```
 
-Every time the `<CountProvider />` is re-rendered, the `value` is brand new, so
-even though the `count` value itself may stay the same, all component consumers
-will be re-rendered.
+Looks innocent, right? But here's the issue: every time the `CountProvider` renders—even if the `count` value stays the same—the `value` array is **new**, and that causes **all consumers** to re-render.
 
-This can be problematic in certain scenarios.
+React compares context values by **reference**, not by content. So a fresh array or object always looks “different,” even if the values inside are the same.
 
-The quick and easy solution to this problem is to memoize the value that you
-provide to the context provider:
+---
 
-```tsx lines=6
-type CountContextValue = readonly [number, Dispatch<SetStateAction<number>>]
-const CountContext = createContext<CountContextValue | null>(null)
+## ✅ Step 1: Memoize the Context Value
 
-function CountProvider(props) {
-	const [count, setCount] = useState(0)
-	const value = useMemo(() => [count, setCount], [count])
-	return <CountContext value={value} {...props} />
+The easiest and most effective fix is to **memoize** the value passed to the provider:
+
+```tsx
+function CountProvider({ children }) {
+  const [count, setCount] = useState(0);
+  const value = useMemo(() => [count, setCount], [count]);
+  return (
+    <CountContext.Provider value={value}>
+      {children}
+    </CountContext.Provider>
+  );
 }
 ```
 
-By memoizing the value, you're ensuring that the value is only re-created when
-the `count` value changes. As a result, the consuming components will only
-rerender when the `count` value changes.
+Now, the `value` reference only changes when `count` does. As a result, **consumer components will only re-render when necessary**.
 
-# Memoize Context
+This small change can make a **big difference**, especially in apps with deep or complex trees of consumers.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/memoize-context" />
+---
 
-🧝‍♂️ I've taken the `name` and `color` state and combined them into a single
-`FooterContext` as well as extracted some of the UI into a `FooterSetters`
-component (for all the stuff that allows you to control the `Footer`). Feel free
-to <PrevDiffLink>check my work</PrevDiffLink> to inspect the changes if you
-want.
+## 🎨 Example: Footer Customization
 
-👨‍💼 Great, now if you pull up the React DevTools, you'll notice all the
-components rerender whenever you change the counter in the App component. This
-is happening because the `FooterContext` is a new `value` prop every
-render.
+Let’s say you’re building a customizable `<Footer>` component that supports both a `name` and a `color`. You want users to change these via a control panel (`FooterSetters`), but you don’t want the entire app to re-render every time the footer state changes.
 
-So if you memoize the `value` prop with `useMemo`, you can prevent the
-unnecessary rerender of consuming components when the `value` prop doesn't
-change.
-
-# Provider Component
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/provider-component" />
-
-👨‍💼 We've noticed that when we change some of the Footer context stuff, we're
-actually rerendering the `App` and `Main` components even though those don't
-have anything to do with the Footer context.
-
-So we're going to take advantage of React's optimizations for reusing elements
-by creating a `FooterProvider` component and accepting `children`. That way
-whenever the Footer context changes, only the `FooterProvider` component and its
-consumers will rerender. React will be able to reuse the `children` element
-since that doesn't change when the Footer's state changes.
-
-When you're finished, changing the footer color of setting the footer name
-should not cause the `App` or `Main` components to rerender.
-
-
-# Split Context
-
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/split-context" />
-
-👨‍💼 Something you may have noticed is that the `FooterSetters` component is
-rerendering whenever the footer state changes, but that component doesn't
-actually depend on the footer state at all. All it cares about is the setter
-functions which never change!
-
-Let's assume that `FooterSetters` is an expensive component to render. How could
-we prevent it from rerendering unnecessarily when the footer state changes?
-
-How about you split the context into two separate contexts: one for the state
-and one for the setters. For example:
+So you create a `FooterContext` to share the footer state:
 
 ```tsx
-function SomeProvider() {
-	const [state, setState] = useState()
-	const setters = useMemo(() => ({ setState }), [setState])
-	const stateValue = useMemo(() => ({ state }), [state])
-	return (
-		<StateContext value={stateValue}>
-			<SettersContext value={setters}>{children}</SettersContext>
-		</StateContext>
-	)
-}
-```
-
-This way, `FooterSetters` can consume only the setters
-(which never change)!
-
-Give that a shot in this exercise (and for extra credit you can also `memo`-ize
-the `FooterSetters` component and it will _never_ rerender!).
-
-This is going to require a fair bit of refactoring, but it should be pretty
-quick. Make sure you check out how components rerender in the React DevTools!
-
-```tsx
-import { createContext, memo, use, useMemo, useState } from 'react'
-import * as ReactDOM from 'react-dom/client'
-
-const FooterStateContext = createContext<{
-	color: string
-	name: string
-} | null>(null)
-FooterStateContext.displayName = 'FooterStateContext'
-
-const FooterDispatchContext = createContext<{
-	setColor: (color: string) => void
-	setName: (name: string) => void
-} | null>({
-	setColor: () => {},
-	setName: () => {},
-})
-FooterDispatchContext.displayName = 'FooterDispatchContext'
-
-function FooterProvider({ children }: { children: React.ReactNode }) {
-	const [color, setColor] = useState('black')
-	const [name, setName] = useState('')
-	const footerStateValue = useMemo(() => ({ color, name }), [color, name])
-	const footerDispatchValue = useMemo(() => ({ setColor, setName }), [])
-	return (
-		<FooterStateContext value={footerStateValue}>
-			<FooterDispatchContext value={footerDispatchValue}>
-				{children}
-			</FooterDispatchContext>
-		</FooterStateContext>
-	)
-}
-
-function useFooterState() {
-	const context = use(FooterStateContext)
-	if (!context) throw new Error('FooterStateContext not found')
-	return context
-}
-
-function useFooterDispatch() {
-	const context = use(FooterDispatchContext)
-	if (!context) throw new Error('FooterDispatchContext not found')
-	return context
-}
-
-const Footer = memo(function FooterImpl() {
-	const { color, name } = useFooterState()
-	return (
-		<footer style={{ color }}>
-			I am the ({color}) footer, {name || 'Unnamed'}
-		</footer>
-	)
-})
-
-function Main({ footer }: { footer: React.ReactNode }) {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount((c) => c + 1)
-	return (
-		<div>
-			<button onClick={increment}>The count is {count}</button>
-			{footer}
-		</div>
-	)
-}
-
-const FooterSetters = memo(function FooterImplSetters() {
-	const { setColor, setName } = useFooterDispatch()
-	return (
-		<>
-			<div>
-				<p>Set the footer color:</p>
-				<div style={{ display: 'flex', gap: 4 }}>
-					<button onClick={() => setColor('black')}>Black</button>
-					<button onClick={() => setColor('blue')}>Blue</button>
-					<button onClick={() => setColor('green')}>Green</button>
-				</div>
-			</div>
-			<div>
-				<p>Set the footer name:</p>
-				<label>
-					Name:
-					<input onChange={(e) => setName(e.currentTarget.value)} />
-				</label>
-			</div>
-		</>
-	)
-})
+const FooterContext = createContext(null);
 
 function App() {
-	const [appCount, setAppCount] = useState(0)
-	return (
-		<FooterProvider>
-			<div>
-				<FooterSetters />
-				<button onClick={() => setAppCount((c) => c + 1)}>
-					The app count is {appCount}
-				</button>
-				<Main footer={<Footer />} />
-			</div>
-		</FooterProvider>
-	)
-}
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('black');
+  const value = { name, color, setName, setColor };
 
-const rootEl = document.createElement('div')
-document.body.append(rootEl)
-ReactDOM.createRoot(rootEl).render(<App />)
+  return (
+    <FooterContext.Provider value={value}>
+      <Main />
+    </FooterContext.Provider>
+  );
+}
 ```
+
+But here’s the problem: **every change to `App`—even unrelated state like a counter—creates a new context `value`**, causing re-renders in all components that consume `FooterContext`.
+
+---
+
+## 🧠 Step 2: Create a Dedicated Provider Component
+
+Let’s isolate the context logic into its own `FooterProvider`. This allows React to reuse the rest of the component tree when the footer state changes.
+
+```tsx
+function FooterProvider({ children }) {
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('black');
+
+  const value = useMemo(() => ({ name, color, setName, setColor }), [name, color]);
+
+  return (
+    <FooterContext.Provider value={value}>
+      {children}
+    </FooterContext.Provider>
+  );
+}
+```
+
+Use it like this:
+
+```tsx
+function App() {
+  return (
+    <FooterProvider>
+      <Main />
+    </FooterProvider>
+  );
+}
+```
+
+✅ Now when the footer state changes, only the `FooterProvider` and its children re-render—**not the `App` or `Main` components**.
+
+---
+
+## 🧩 Step 3: Split the Context
+
+Now let’s zoom in on a subtle issue.
+
+You notice that `FooterSetters` (which allows users to update the name and color) re-renders when the footer state changes—even though it **only uses the setters**, which don’t change.
+
+This is a great opportunity to **split the context** into two:
+
+* One for the **state**
+* One for the **setters**
+
+### Example:
+
+```tsx
+const FooterStateContext = createContext(null);
+const FooterSettersContext = createContext(null);
+
+function FooterProvider({ children }) {
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('black');
+
+  const state = useMemo(() => ({ name, color }), [name, color]);
+  const setters = useMemo(() => ({ setName, setColor }), [setName, setColor]);
+
+  return (
+    <FooterStateContext.Provider value={state}>
+      <FooterSettersContext.Provider value={setters}>
+        {children}
+      </FooterSettersContext.Provider>
+    </FooterStateContext.Provider>
+  );
+}
+```
+
+Now, components that only need the `setName` and `setColor` functions can subscribe to `FooterSettersContext`, and they'll never re-render unless **the setter functions themselves change** (which they won’t, thanks to `useMemo`).
+
+---
+
+## 💡 Bonus: Memoize Expensive Components
+
+If your `FooterSetters` component is complex or expensive to render, go one step further:
+
+```tsx
+const FooterSetters = memo(function FooterSettersImpl() {
+  const { setName, setColor } = useContext(FooterSettersContext);
+  // render UI...
+});
+```
+
+Now, `FooterSetters` will **never re-render** unless the setters change—which, again, they won’t.
+
+---
+
+## 🧪 Check Your Work: Use React DevTools
+
+After applying these optimizations, use [React DevTools Profiler](https://react.dev/tools) to confirm that:
+
+* State updates only re-render **necessary components**
+* Changes in the footer no longer re-render the entire app
+* Your `FooterSetters` component doesn’t re-render unless absolutely required
+
+---
+
+## 🚀 Recap: Best Practices for Optimizing Context
+
+| Technique                        | Benefit                                                              |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `useMemo()` on context value     | Prevents re-renders when value reference doesn’t change              |
+| Separate `Provider` component    | Isolates re-renders to only the part of the tree that needs updating |
+| Split context (state vs setters) | Lets components subscribe only to what they need                     |
+| Memoize heavy components         | Prevents unnecessary re-renders from bubbling down                   |
+
+React Context is a powerful tool—but if you’re not careful, it can become a silent performance killer.
+
+By understanding how context updates work and applying these techniques, you can keep your app performant and snappy.
+
+---
+
+🧠 **Further Reading:**
+
+* [React Context Performance Gotchas](https://kentcdodds.com/blog/how-to-optimize-your-context-value)
+* [React DevTools](https://react.dev/learn/debugging#react-developer-tools)
+
+---

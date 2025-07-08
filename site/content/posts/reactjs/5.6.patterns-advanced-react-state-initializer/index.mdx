@@ -1,183 +1,212 @@
 ---
-title: "Advanced React Patterns 6: State Initializer"
+title: "Advanced React Patterns: State Initializer"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPatterns']
 date: 2024-06-26
 thumbnail: image.jpg
 featured: true
 ---
 
-# State Initializer
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-state-initializer" />
+**🔁 The State Initializer Pattern in React: Resetting with Confidence**
 
 <callout-success>
-	**One liner:** The state initializer pattern is a way to initialize (and
-	reset) the state of a component in a predictable way.
+<strong>One-liner:</strong> The <strong>State Initializer</strong> pattern allows you to initialize—and reliably reset—component state to its original value without surprises.
 </callout-success>
 
-This one is simple in concept:
+One of the fundamental building blocks of React is `useState()`. But sometimes, initializing state is only half the story—you also want a way to **reset** it.
+
+The problem? Without proper care, that reset may not behave how you think it should.
+
+Let’s dig into the *State Initializer* pattern, how to implement it correctly, and where it can go wrong. 🧠
+
+---
+
+## 🏁 The Basic Hook
+
+Let’s start simple with a `useCounter` hook:
 
 ```tsx
 function useCounter() {
-	const [count, setCount] = useState(0)
-	const increment = () => setCount(c => c + 1)
-	return { count, increment }
+  const [count, setCount] = useState(0)
+  const increment = () => setCount(c => c + 1)
+
+  return { count, increment }
 }
 ```
 
-If I wanted to initialize the state of the count to a different value, I could
-do so by passing an argument to the `useCounter` function:
+Nothing special. It just counts. But what if we want to let users set the starting value?
+
+---
+
+## 🎚️ Adding Initial State
+
+We can allow for configuration like this:
 
 ```tsx
 function useCounter({ initialCount = 0 } = {}) {
-	const [count, setCount] = useState(initialCount)
-	const increment = () => setCount(c => c + 1)
-	return { count, increment }
+  const [count, setCount] = useState(initialCount)
+  const increment = () => setCount(c => c + 1)
+
+  return { count, increment }
 }
 ```
 
-And often when you have a state initializer, you also have a state resetter:
+Now you can start your counter at `10`, `50`, or any value:
+
+```tsx
+const { count } = useCounter({ initialCount: 10 })
+```
+
+Great! But now comes the kicker...
+
+---
+
+## 🔄 What About Reset?
+
+We want to let users *reset* the count back to that initial value. That means we need to keep track of the original value:
 
 ```tsx
 function useCounter({ initialCount = 0 } = {}) {
-	const [count, setCount] = useState(initialCount)
-	const increment = () => setCount(c => c + 1)
-	const reset = () => setCount(initialCount)
-	return { count, increment, reset }
+  const [count, setCount] = useState(initialCount)
+
+  const increment = () => setCount(c => c + 1)
+  const reset = () => setCount(initialCount)
+
+  return { count, increment, reset }
 }
 ```
 
-But there's a catch. If you truly want to reset the component to its _initial_
-state, then you need to make certain that any changes to the `initialCount` are
-ignored!
+So what’s wrong with that?
 
-You can do this, by using a `ref` which will keep the initial value constant
-across renders:
+### ⚠️ The Gotcha
+
+Let’s say a parent component re-renders and **passes a new `initialCount`** value. Your hook will use the *new* value for resets—not the *original one*. 😬
+
+That’s not what most people expect. The term “reset” implies going back to the state at the time the component was initialized—not the current value of the prop.
+
+---
+
+## 🧷 Locking in Initial State with Refs
+
+The solution? Use a `ref` to capture the initial value once—and never let it change:
 
 ```tsx
 function useCounter({ initialCount = 0 } = {}) {
-	const initialCountRef = useRef(initialCount)
-	const [count, setCount] = useState(initialCountRef.current)
-	const increment = () => setCount(c => c + 1)
-	const reset = () => setCount(initialCountRef.current)
-	return { count, increment, reset }
+  const initialCountRef = useRef(initialCount)
+  const [count, setCount] = useState(initialCountRef.current)
+
+  const increment = () => setCount(c => c + 1)
+  const reset = () => setCount(initialCountRef.current)
+
+  return { count, increment, reset }
 }
 ```
 
-And that's the crux of the state initializer pattern.
-# Initialize Toggle
+🧠 `useRef` stores a value that persists across renders *without* causing re-renders. It’s perfect for capturing “once-on-mount” values like this.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/initialize-toggle" />
+---
 
-👨‍💼 Our toggle component should be able to be customizable for the initial state
-and reset to the initial state.
+## 🧪 Real Example: useToggle with Reducer
 
-🧝‍♂️ I've updated the toggle component to use a reducer instead of `useState`. If
-you'd like to back up, and do that yourself in the playground, by my guest. Or
-you can <PrevDiffLink>check my work</PrevDiffLink> instead.
-
-👨‍💼 Please add a case in our reducer for the `reset` logic, and add an option to
-our `useToggle` hook for setting the initialOn state.
-# Stability
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/stability" />
-
-👨‍💼 We've noticed that if someone passes an `initialOn` that's based on state,
-then calling `reset` will sometimes change the state to the wrong value based on
-what the `initialOn` was set to at the time the component was initialized.
-
-This is confusing and we want to make certain to avoid it.
-
-🧝‍♂️ I've put together a simple example of this for you to experiment with. You'll
-notice we now have a button for toggling the `initialOn` state which we pass as
-an option to `useToggle`. So if you toggle the `initialOn` state and then click
-the reset button, you'll notice it resets to the current `initialOn` state, not
-the original one.
-
-👨‍💼 This is a little confusing for users of the `useToggle` hook, so please fix
-this issue! Thanks!
-
-## app.tsx
+This pattern gets even more important when you manage state with a `reducer`. Here’s a simplified `useToggle` hook:
 
 ```tsx
-import { useState } from 'react'
-import { Switch } from '#shared/switch.tsx'
-import { useToggle } from './toggle.tsx'
-
-export function App() {
-	const [initialOn, setInitialOn] = useState(true)
-	const { on, getTogglerProps, reset } = useToggle({ initialOn })
-	return (
-		<div>
-			<button onClick={() => setInitialOn(o => !o)}>
-				initialOn is: {initialOn ? 'true' : 'false'}
-			</button>
-			<Switch {...getTogglerProps({ on })} />
-			<hr />
-			<button onClick={reset}>Reset</button>
-		</div>
-	)
+function toggleReducer(state, action) {
+  switch (action.type) {
+    case 'toggle': return { ...state, on: !state.on }
+    case 'reset': return { ...state, on: action.initialOn }
+    default: throw new Error('Unhandled action type')
+  }
 }
 ```
 
-## toggle.tsx
+And here’s the hook implementation:
 
 ```tsx
-import { useReducer } from 'react'
+function useToggle({ initialOn = false } = {}) {
+  const initialOnRef = useRef(initialOn)
 
-function callAll<Args extends Array<unknown>>(
-	...fns: Array<((...args: Args) => unknown) | undefined>
-) {
-	return (...args: Args) => fns.forEach(fn => fn?.(...args))
-}
+  const [state, dispatch] = useReducer(toggleReducer, {
+    on: initialOnRef.current,
+  })
 
-type ToggleState = { on: boolean }
-type ToggleAction =
-	| { type: 'toggle' }
-	| { type: 'reset'; initialState: ToggleState }
+  const toggle = () => dispatch({ type: 'toggle' })
+  const reset = () => dispatch({ type: 'reset', initialOn: initialOnRef.current })
 
-function toggleReducer(state: ToggleState, action: ToggleAction) {
-	switch (action.type) {
-		case 'toggle': {
-			return { on: !state.on }
-		}
-		case 'reset': {
-			return action.initialState
-		}
-	}
-}
-
-export function useToggle({ initialOn = false } = {}) {
-	// 🐨 wrap this in a useRef
-	const initialState = { on: initialOn }
-	// 🐨 pass the ref-ed initial state into useReducer
-	const [state, dispatch] = useReducer(toggleReducer, initialState)
-	const { on } = state
-
-	const toggle = () => dispatch({ type: 'toggle' })
-	// 🐨 make sure the ref-ed initial state gets passed here
-	const reset = () => dispatch({ type: 'reset', initialState })
-
-	function getTogglerProps<Props>({
-		onClick,
-		...props
-	}: {
-		onClick?: React.ComponentProps<'button'>['onClick']
-	} & Props) {
-		return {
-			'aria-checked': on,
-			onClick: callAll(onClick, toggle),
-			...props,
-		}
-	}
-
-	return {
-		on,
-		reset,
-		toggle,
-		getTogglerProps,
-	}
+  return { on: state.on, toggle, reset }
 }
 ```
+
+Now no matter how `initialOn` changes later from a parent component, your reset behavior is **locked in** to the original value passed.
+
+---
+
+## 🧪 When It Breaks: Resetting with Changing Initial State
+
+Let’s say we do this:
+
+```tsx
+function Parent() {
+  const [isDarkMode, setDarkMode] = useState(true)
+
+  return (
+    <>
+      <button onClick={() => setDarkMode(prev => !prev)}>Toggle Initial</button>
+      <Toggle initialOn={isDarkMode} />
+    </>
+  )
+}
+```
+
+Now if the user toggles `isDarkMode` and then hits reset in the `Toggle` component...
+
+### ❌ Without `useRef`: Reset will use the *current* `isDarkMode`, not the original.
+
+### ✅ With `useRef`: Reset will go back to the original `isDarkMode` value.
+
+This difference is subtle but can lead to serious bugs—especially when components are reused or toggled conditionally.
+
+---
+
+## ✅ Best Practices for the State Initializer Pattern
+
+| Do                                                | Don’t                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------ |
+| Use `useRef` to lock in initial state             | Don’t trust current `initialX` values after mount            |
+| Combine with `useReducer` for complex state logic | Avoid repeating the same `initialX` logic in multiple places |
+| Name your initializer and reset methods clearly   | Don’t rely on `useEffect` to “patch” initialization          |
+
+---
+
+## 🧠 When to Use the State Initializer Pattern
+
+Use this pattern whenever your component:
+
+* Accepts an “initial” value
+* Has a **reset** button or logic
+* Should not be influenced by future prop changes to the initial value
+
+Some examples:
+
+* Form inputs that reset to defaults
+* Toggle switches that return to a default mode
+* Games or counters that reset to starting values
+
+---
+
+## 🔚 Conclusion
+
+The **State Initializer Pattern** is simple but powerful. By using `useRef`, you can avoid subtle bugs and make your components more predictable—especially in dynamic or complex applications.
+
+Reset behavior should feel intuitive. By anchoring to the *original initial value*, you ensure your users (and teammates) always know what to expect.
+
+---
+
+## 🧪 Want a Playground?
+
+Want a CodeSandbox demo of this pattern in action? Just ask and I’ll hook you up with a live example! 🧑‍🔧
+
+---
+
+Happy resetting! 💡

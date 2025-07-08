@@ -1,206 +1,210 @@
 ---
-title: "Advanced React Patterns 3: Compound Components"
+title: "Advanced React Patterns: Compound Components"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPatterns']
 date: 2024-06-23
 thumbnail: image.jpg
 featured: true
 ---
 
-# Compound Components
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/intro-to-compound-components" />
+**🧩 Building Flexible UIs with the Compound Components Pattern in React**
 
 <callout-success>
-	**One liner:** The Compound Components Pattern enables you to provide a set of
-	components that implicitly share state for a simple yet powerful declarative
-	API for reusable components.
+<strong>One-liner:</strong> The Compound Components Pattern enables you to create a set of components that <em>implicitly share state</em>, offering a powerful and declarative API for reusable UIs.
 </callout-success>
 
-Compound components are components that work together to form a complete UI. The
-classic example of this is `<select>` and `<option>` in HTML:
+---
+
+## 🤔 What's a Compound Component?
+
+A **compound component** is a group of components that work together to form a cohesive UI unit. If you've used native HTML form elements, you’ve already seen this in action:
 
 ```html
 <select>
-	<option value="1">Option 1</option>
-	<option value="2">Option 2</option>
+  <option value="1">Option 1</option>
+  <option value="2">Option 2</option>
 </select>
 ```
 
-The `<select>` is the element responsible for managing the state of the UI, and
-the `<option>` elements are essentially more configuration for how the select
-should operate (specifically, which options are available and their values).
+Here, `<select>` manages the state, and `<option>` elements describe how the select behaves. The options don’t hold any state themselves, but they rely on the context of the `<select>` component to work correctly.
 
-Let's imagine that we were going to implement this native control manually. A
-naive implementation would look something like this:
+This declarative design is what we aim to replicate in React with **compound components**.
+
+---
+
+## 👶 The Naive Approach
+
+Let’s say you want to build your own custom dropdown:
 
 ```tsx
 <CustomSelect
-	options={[
-		{ value: '1', display: 'Option 1' },
-		{ value: '2', display: 'Option 2' },
-	]}
+  options={[
+    { value: '1', display: 'Option 1' },
+    { value: '2', display: 'Option 2' },
+  ]}
 />
 ```
 
-This works fine, but it's less extensible/flexible than a compound components
-API. For example. What if I want to supply additional attributes on the
-`<option>` that's rendered, or I want the `display` to change based on whether
-it's selected? We can easily add API surface area to support these use cases,
-but that's just more for us to code and more for users to learn. That's where
-compound components come in really handy!
+It works, but it's rigid. What if you want to style individual options differently? Or run logic based on which option is selected?
 
-For the rest of the exercises in this workshop, we'll be working with a simple
-`<Toggle />` component.
+To handle all that, you’d need to bloat your component with extra props and APIs. That’s where the compound component pattern comes in—to give developers **control over presentation and flexibility** without overcomplicating the API.
 
-Every reusable component starts out as a simple implementation for a specific
-use case. It's advisable to not overcomplicate your components and try to solve
-every conceivable problem that you don't yet have (and likely will never have).
-But as changes come (and they almost always do), then you'll want the
-implementation of your component to be flexible and changeable. One of the most
-important abilities of a software developer is optimizing for change. Learning
-how to do that is the point of much of this workshop.
+---
 
-This is why we're starting with a super simple `<Toggle />` component. You'll be
-surprised how feature-rich we can make a simple toggle component. Keeping it
-simple allows us to focus in on making it reusable without getting distracted by
-the complexities of the feature implementation (like we would if we were
-building a date picker or something 😅).
+## 🎯 The Real Goal: Reusability and Flexibility
 
-Shout-out to [Ryan Florence](https://twitter.com/ryanflorence) for creating this
-pattern.
+For the rest of this example, we’ll focus on a simpler case: a `<Toggle />` component.
 
-**Real World Projects that use this pattern:**
-
-- [`@radix-ui/react-tabs`](https://www.radix-ui.com/primitives/docs/components/tabs)
-- [`@radix-ui/react-accordion`](https://www.radix-ui.com/primitives/docs/components/accordion)
-- Actually most of [Radix UI](https://www.radix-ui.com/primitives) implements
-  this pattern
-# Compound Components
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/compound-components" />
-
-👨‍💼 In this exercise we're going to make `<Toggle />` the parent of a few
-compound components:
-
-- `<ToggleOn />` renders children when the `on` state is `true`
-- `<ToggleOff />` renders children when the `on` state is `false`
-- `<ToggleButton />` renders the `<Switch />` with the `on` prop set to the `on`
-  state and the `onClick` prop set to `toggle`.
-
-We have a Toggle component that manages the state, and we want to render
-different parts of the UI however we want. We want control over the presentation
-of the UI.
-
-🦉 The fundamental challenge you face with an API like this is the state shared
-between the components is implicit, meaning that the developer using your
-component cannot actually see or interact with the state (`on`) or the
-mechanisms for updating that state (`toggle`) that are being shared between the
-components.
-
-So in this exercise, we'll solve that problem by using the 📜
-[React Context API](https://react.dev/reference/react/use#reading-context-with-use)!
-
-What we want to do in this exercise is allow users of our component to render
-something when the toggle button is on and to render something else when that
-toggle button is off without troubling them with managing the state that's
-controlling whether it's shown or not.
-
-Your job will be to make a `ToggleContext` which will be used to implicitly
-share the state between these components. The `Toggle` component will render the
-`ToggleContext` and the other compound components will access that
-implicit state via `use(ToggleContext)`.
-
-🦺 TypeScript might not like your `use` call depending on how you set up your
-context. We'll deal with this in another step.
-
-# Compound Components Validation
-
-<EpicVideo url="https://www.epicreact.dev/workshops/advanced-react-patterns/compound-components-validation" />
-
-👨‍💼 Change <InlineFile file="app.tsx" /> to this (temporarily):
+Your typical implementation might look like this:
 
 ```tsx
-import { ToggleButton } from './toggle'
-
-export const App = () => <ToggleButton />
+<Toggle
+  on={isOn}
+  toggle={handleToggle}
+/>
 ```
 
-Why doesn't that work (it's not supposed to, but can you explain why)? Can you
-figure out a way to give the developer a better error message that explains what
-they're doing wrong and how to fix it?
-
-🚨 The tests will tell you in the message for the error you must throw when the
-context is undefined.
-
-🦺 Additionally, this is where we can make TypeScript happier (TypeScript knew
-about the problem we'd run into in this step of the exercise!). Remember,
-TypeScript isn't making your life terrible. It's just showing you how terrible
-your life already is 😂 In this exercise, we're going to make our lives better.
-
-(You can go ahead and undo the change to <InlineFile file="app.tsx" /> if you'd
-like. The tests will let you know that you've gotten it right).
-
-## app.tsx
+But what if you want to conditionally render content **inside** the toggle based on its state? Maybe something like:
 
 ```tsx
-import { Toggle, ToggleButton, ToggleOff, ToggleOn } from './toggle.tsx'
+<Toggle>
+  <ToggleOn>✅ The toggle is ON</ToggleOn>
+  <ToggleOff>❌ The toggle is OFF</ToggleOff>
+  <ToggleButton />
+</Toggle>
+```
 
-export function App() {
-	return (
-		<div>
-			<Toggle>
-				<ToggleOn>The button is on</ToggleOn>
-				<ToggleOff>The button is off</ToggleOff>
-				<ToggleButton />
-			</Toggle>
-		</div>
-	)
+Here, `<Toggle>` manages the state, and the child components (`<ToggleOn>`, `<ToggleOff>`, and `<ToggleButton>`) react to that state. This is the compound component pattern in action.
+
+---
+
+## 🧠 The Challenge: Sharing State Implicitly
+
+Unlike prop drilling, where data flows explicitly through props, compound components rely on **implicit state sharing**. The consumer of the API (developer using `<Toggle>`) doesn’t have to know anything about how the state is managed.
+
+That sounds magical… but it means **you** (as the library author) must make the state available internally across components.
+
+Enter: **React Context**.
+
+---
+
+## 🧪 Implementation: Creating a Toggle with Compound Components
+
+Let’s walk through what we want to accomplish.
+
+### The Compound Components:
+
+* `<Toggle />`: the parent that manages state (`on`) and provides a `toggle` function
+* `<ToggleOn />`: shows its children when `on === true`
+* `<ToggleOff />`: shows its children when `on === false`
+* `<ToggleButton />`: renders a toggle button using internal state and `toggle`
+
+To make this work, we’ll use `React.createContext` to create a `ToggleContext` and use `useContext` inside each compound component.
+
+```tsx
+// toggle.tsx
+const ToggleContext = React.createContext(null)
+
+export function Toggle({ children }) {
+  const [on, setOn] = useState(false)
+  const toggle = () => setOn(o => !o)
+
+  return (
+    <ToggleContext.Provider value={{ on, toggle }}>
+      {children}
+    </ToggleContext.Provider>
+  )
 }
 ```
 
-## toggle.tsx
+And inside our compound components:
 
 ```tsx
-import { createContext, use, useState } from 'react'
-import { Switch } from '#shared/switch.tsx'
-
-type ToggleValue = { on: boolean; toggle: () => void }
-const ToggleContext = createContext<ToggleValue | null>(null)
-
-export function Toggle({ children }: { children: React.ReactNode }) {
-	const [on, setOn] = useState(false)
-	const toggle = () => setOn(!on)
-
-	return <ToggleContext value={{ on, toggle }}>{children}</ToggleContext>
+function useToggleContext() {
+  const context = useContext(ToggleContext)
+  if (!context) {
+    throw new Error(
+      'Toggle compound components must be rendered within a <Toggle />'
+    )
+  }
+  return context
 }
 
-function useToggle() {
-	const context = use(ToggleContext)
-	if (!context) {
-		throw new Error(
-			'Cannot find ToggleContext. All Toggle components must be rendered within <Toggle />',
-		)
-	}
-	return context
+export function ToggleOn({ children }) {
+  const { on } = useToggleContext()
+  return on ? children : null
 }
 
-export function ToggleOn({ children }: { children: React.ReactNode }) {
-	const { on } = useToggle()
-	return <>{on ? children : null}</>
+export function ToggleOff({ children }) {
+  const { on } = useToggleContext()
+  return on ? null : children
 }
 
-export function ToggleOff({ children }: { children: React.ReactNode }) {
-	const { on } = useToggle()
-	return <>{on ? null : children}</>
-}
-
-type ToggleButtonProps = Omit<React.ComponentProps<typeof Switch>, 'on'> & {
-	on?: boolean
-}
-export function ToggleButton({ ...props }: ToggleButtonProps) {
-	const { on, toggle } = useToggle()
-	return <Switch {...props} on={on} onClick={toggle} />
+export function ToggleButton() {
+  const { on, toggle } = useToggleContext()
+  return <button onClick={toggle}>{on ? 'ON' : 'OFF'}</button>
 }
 ```
+
+Now developers can compose their UI however they want, with `<Toggle>` managing the logic under the hood.
+
+---
+
+## 😱 What If Someone Uses a Component Outside `<Toggle />`?
+
+```tsx
+<ToggleButton />
+```
+
+This will break! Because there’s no provider above it, the context will be `undefined`.
+
+We can improve developer experience by throwing a helpful error in `useToggleContext()` — which we already did above. This makes debugging easy and educates the developer at the same time.
+
+---
+
+## 🦺 Making TypeScript Happy
+
+TypeScript will likely warn you that `useContext(ToggleContext)` might be `null`. That’s because we initialized the context as `null`. But thanks to our runtime check (that throws if `context` is `null`), we can use TypeScript's non-null assertion pattern to safely type the context.
+
+Here’s a safer and typed version:
+
+```tsx
+type ToggleContextType = {
+  on: boolean
+  toggle: () => void
+}
+
+const ToggleContext = React.createContext<ToggleContextType | undefined>(undefined)
+```
+
+Now, TypeScript helps us ensure the context is always properly consumed.
+
+---
+
+## 🧱 Why This Pattern Is Powerful
+
+The compound component pattern:
+
+✅ Promotes **composition**
+✅ Provides **flexibility** to consumers
+✅ Keeps logic **encapsulated**
+✅ Creates **clean and declarative APIs**
+
+You’ll find this pattern widely used in libraries like:
+
+* [`@radix-ui/react-tabs`](https://www.radix-ui.com/primitives/docs/components/tabs)
+* [`@radix-ui/react-accordion`](https://www.radix-ui.com/primitives/docs/components/accordion)
+* Most of [Radix UI Primitives](https://www.radix-ui.com/primitives)
+
+Shoutout to [Ryan Florence](https://twitter.com/ryanflorence) who popularized this approach. 🙌
+
+---
+
+## ✅ Final Thoughts
+
+Don’t jump straight into abstractions when you’re building components. Start with something simple and specific. But as your components grow in complexity and need to support more use cases, consider adopting the **Compound Components Pattern**.
+
+It will make your components easier to scale, more expressive, and far more enjoyable for others to use.
+
+---

@@ -1,143 +1,258 @@
 ---
-title: "React Performance 4: Code Splitting"
+title: "React Performance: Code Splitting"
 category: React JS
 author: Daniel Nguyen
-tags: ['#React']
+tags: ['#ReactPerformance']
 date: 2024-07-05
 thumbnail: image.jpg
 featured: true
 ---
 
-# Code Splitting
+**🚀 Code Splitting in React: Make Your App Load Faster Without Sacrificing Features**
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/intro-to-code-splitting" />
+Imagine this: You build a stunning dashboard app packed with advanced visualizations using libraries like D3 and Three.js. Your users are excited—until they open your app and the login screen takes forever to load. What happened?
 
-Code splitting acts on the principle that loading less code will speed up your
-app. Say for example that we're building a complex dashboard application that
-includes the venerable d3 library for graphing data. Your users start
-complaining because it takes too long to load the login screen.
+The answer: **You're loading too much JavaScript up front.**
 
-So, considering that performance problems can be resolved by less code, how can we
-solve this one? Well, do we really _need_ to have that code for the chart when
-the user loads the login screen? Nope! We could load that on-demand.
+In this guide, you'll learn how to fix that using **code splitting**—an essential technique for improving load times in modern React apps. You'll explore:
 
-Luckily for us, there's a built-in way to do this with JavaScript standards.
-It's called a dynamic import and the syntax looks like this:
+* `React.lazy()` and `<Suspense />`
+* On-demand loading with `import()`
+* Eager loading via hover or focus
+* Transitions and `useSpinDelay` to improve UX
+
+Let’s dive in. 🏊‍♂️
+
+---
+
+## 📦 What Is Code Splitting?
+
+**Code splitting** is the practice of breaking your JavaScript bundle into smaller chunks that load only when needed. Instead of shipping all features to the user upfront, you load parts of the code **on demand**—especially expensive features that aren’t used immediately.
+
+Think of it like Netflix only streaming the episode you're watching—not the entire season at once.
+
+---
+
+## 💡 The Core Idea: Less Code = Faster Load
+
+Here’s a simple example of dynamic imports using native JavaScript:
 
 ```tsx
 import('/some-module.js').then(
-	(module) => {
-		// do stuff with the module's exports
-	},
-	(error) => {
-		// there was some error loading the module...
-	},
-)
+  (module) => {
+    // Use module exports here
+  },
+  (error) => {
+    // Handle loading error
+  }
+);
 ```
 
-> 📜 Learn more about dynamic imports in the browser in
-> [Super Simple Start to ESModules in the browser](https://kentcdodds.com/blog/super-simple-start-to-es-modules-in-the-browser)
+React takes this a step further with built-in support for lazy-loading components.
 
-To take this further, React has built-in support for loading modules as React
-components. The module must have a React component as the default export, and
-you have to use the `<Suspense />` component to render a fallback value while
-the user waits for the module to be loaded.
+---
+
+## ⚛️ React.lazy + Suspense
+
+React’s `lazy()` function allows you to dynamically import components. You wrap the lazy-loaded component with `<Suspense />` to show a fallback UI while the code loads.
+
+### Example:
 
 ```tsx
-// smiley-face.tsx
+// SmileyFace.tsx
 export default function SmileyFace() {
-	return <div>😃</div>
+  return <div>😃</div>;
 }
 
-// app.tsx
-import { lazy, Suspense } from 'react'
+// App.tsx
+import { lazy, Suspense } from 'react';
 
-const SmileyFace = lazy(() => import('./smiley-face.tsx'))
+const SmileyFace = lazy(() => import('./SmileyFace'));
 
 function App() {
-	return (
-		<div>
-			<Suspense fallback={<div>loading...</div>}>
-				<SmileyFace />
-			</Suspense>
-		</div>
-	)
+  return (
+    <div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <SmileyFace />
+      </Suspense>
+    </div>
+  );
 }
 ```
 
-🦉 One great way to analyze your app to determine the need/benefit of code
-splitting for a certain feature/page/interaction, is to use
-[the "Coverage" feature of the developer tools](https://developer.chrome.com/docs/devtools/coverage).
+This allows the bundle containing `SmileyFace` to be **excluded from the main bundle**—only fetched when needed.
 
-# lazy
+🛠️ Try using [Chrome’s Coverage tool](https://developer.chrome.com/docs/devtools/coverage) to identify which code is unused at initial load.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/lazy" />
+---
 
-👨‍💼 Our app has a neat Globe component that shows the user where they are on the
-globe. Cool right? It's super duper fun.
+## 🗺️ Use Case: Lazy Load a Globe Component
 
-But one day users started complaining the app is taking too long to load. We're
-using several sizeable libraries to have the really cool globe, but users only
-need to load it if they click the "show globe" button and loading it ahead of
-time makes the app load slower.
+Let’s say your app has a beautiful 3D globe using heavy libraries like `three.js`. It’s impressive—but it shouldn’t slow down the login screen.
 
-So your job as a performance professional is to load the code on-demand so the
-user doesn't have to wait to see the checkbox.
+### The Goal:
 
-For this one, you'll need to open the solution in isolation and open the Chrome
-DevTools Network tab to watch the JavaScript chunks load when you click "show
-globe." Your objective is to have the network load those same chunks so they're
-not in the bundle to begin with.
+Only load the globe code **after** the user clicks “Show Globe.”
 
-💰 Here's a quick tip: In the Network tab, there's a dropdown for artificially
-throttling your network speed. It defaults to "Online" but you can change it to
-"Fast 3G", "Slow 3G", etc.
+### Solution:
 
-Also, spend a bit of time playing with
-[the coverage feature of the dev tools](https://developer.chrome.com/docs/devtools/coverage).
+```tsx
+import { lazy, Suspense, useState } from 'react';
 
-# Eager Loading
+const Globe = lazy(() => import('./Globe'));
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/eager-loading" />
+function App() {
+  const [showGlobe, setShowGlobe] = useState(false);
 
-👨‍💼 So it's great that the users can get the app loaded faster, but it's annoying
-when 99% of the time the reason the users are using the app is so they can
-interact with our globe. We don't want to have to make them wait first to load
-the app and then again to load the globe. Wouldn't it be cool if we could have
-globe start loading as soon as the user hovers over the checkbox? So if they
-`pointerOver` or `focus` the `<label>` for the checkbox, we should kick off a
-dynamic import for the globe module.
+  return (
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          onChange={(e) => setShowGlobe(e.target.checked)}
+        />
+        Show Globe
+      </label>
 
-See if you can make that work.
+      <Suspense fallback={<div>Loading globe...</div>}>
+        {showGlobe && <Globe />}
+      </Suspense>
+    </div>
+  );
+}
+```
 
-<callout-success>
-	Tip: It doesn't matter how many times you call `import('./path-to-module')`,
-	vite will only actually load the module once.
-</callout-success>
+Open the Network tab in DevTools and watch the JavaScript chunk for `Globe` load **on demand** when you click the checkbox.
 
-# Transitions
+🧪 Bonus: Throttle the network to "Slow 3G" to simulate real-world loading scenarios.
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-performance/transitions" />
+---
 
-👨‍💼 By default, when a component suspends (like our `lazy` component is while
-we're lazy-loading some code), React will render the fallback of our suspense
-boundary immediately. Go ahead and try it now. Hover over the checkbox for long
-enough for the code to load and then check it. You'll notice even though the
-code is ready to go, it still shows our fallback UI.
+## ⚡ Eager Load on Hover or Focus
 
-The reason this happens is React wants to help us avoid a flash of loading
-state because it doesn't know whether our content will be ready immediately or
-not. So React shows the fallback immediately, then when it sees the content is
-already ready, it will actually wait a little bit before switching from the
-fallback to the real content. This is a good default, but it's definitely not
-the best user experience for our situation.
+Sometimes, lazy loading introduces delays that hurt UX. What if 99% of users end up clicking “Show Globe” anyway? Waiting **twice**—first for the app to load, then for the globe—is annoying.
 
-So instead, we can wrap our state update `setShowGlobe` in a transition so React
-doesn't go to the suspense fallback and instead we can show a pending UI if we
-so decide.
+### Solution:
 
-This is similar to what we've done in the past, so if you'd like you can add
-`useSpinDelay` from [`spin-delay`](https://npm.im/spin-delay) to prevent pushing
-the flash of loading state to later if the globe's code isn't quite ready yet.
+**Start loading the module in the background** as soon as the user hovers or focuses on the button.
 
-[📜 `useTransition`](https://react.dev/reference/react/useTransition)
+```tsx
+let preloadGlobe = () => import('./Globe');
+
+function App() {
+  const [showGlobe, setShowGlobe] = useState(false);
+  const Globe = lazy(() => preloadGlobe());
+
+  return (
+    <div>
+      <label
+        onPointerOver={preloadGlobe}
+        onFocus={preloadGlobe}
+      >
+        <input
+          type="checkbox"
+          onChange={(e) => setShowGlobe(e.target.checked)}
+        />
+        Show Globe
+      </label>
+
+      <Suspense fallback={<div>Loading globe...</div>}>
+        {showGlobe && <Globe />}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+Now, the module begins loading **before** the user even clicks, leading to a faster, smoother experience.
+
+📦 Pro Tip: Calling `import()` multiple times is fine—your bundler will ensure it only loads once.
+
+---
+
+## ✨ Transitions: Avoid Flashing the Fallback
+
+React shows the `<Suspense fallback />` immediately—even if the lazy component is already loaded. This can lead to an awkward flash of "Loading..." even when the component is ready.
+
+To fix this, you can use `useTransition` to tell React this update is **non-urgent**. This delays the fallback UI and avoids flashing.
+
+```tsx
+import { lazy, Suspense, useTransition } from 'react';
+
+const Globe = lazy(() => import('./Globe'));
+
+function App() {
+  const [showGlobe, setShowGlobe] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <div>
+      <label
+        onPointerOver={() => import('./Globe')}
+        onFocus={() => import('./Globe')}
+      >
+        <input
+          type="checkbox"
+          onChange={(e) => {
+            startTransition(() => {
+              setShowGlobe(e.target.checked);
+            });
+          }}
+        />
+        Show Globe
+      </label>
+
+      {isPending && <span>Preparing globe...</span>}
+
+      <Suspense fallback={<div>Loading globe...</div>}>
+        {showGlobe && <Globe />}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+You can also use the [`spin-delay`](https://npm.im/spin-delay) package to delay the fallback from appearing too quickly:
+
+```tsx
+import { useSpinDelay } from 'spin-delay';
+
+const showFallback = useSpinDelay(isPending, {
+  delay: 300,
+  minDuration: 500
+});
+```
+
+This adds polish and prevents jarring flashes of UI.
+
+---
+
+## 🧠 Summary: React Code Splitting Techniques
+
+| Technique                       | Purpose                       | When to Use                           |
+| ------------------------------- | ----------------------------- | ------------------------------------- |
+| `React.lazy()` + `<Suspense />` | Load components on demand     | For large, infrequently used features |
+| `import()` on `hover` / `focus` | Preload eagerly               | For features users often trigger      |
+| `useTransition`                 | Defer low-priority UI changes | For lazy components to avoid flashing |
+| `useSpinDelay`                  | Smooth loading transitions    | When network speed is inconsistent    |
+
+---
+
+## 🧪 Test Your Optimization
+
+Use Chrome DevTools:
+
+* **Network tab**: Throttle and watch chunks load.
+* **Coverage tab**: Check which JS was actually used.
+* **Performance tab**: Profile rendering and JS execution.
+
+---
+
+## 📚 Further Reading
+
+* [React Docs: Code Splitting](https://react.dev/learn/code-splitting)
+* [Dynamic Imports Explained](https://kentcdodds.com/blog/super-simple-start-to-es-modules-in-the-browser)
+* [`useTransition` API Reference](https://react.dev/reference/react/useTransition)
+* [`spin-delay`](https://npm.im/spin-delay)
+
+---
