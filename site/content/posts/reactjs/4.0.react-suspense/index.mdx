@@ -132,38 +132,6 @@ Boom! All requests fire at the same time. This slashes wait times and improves p
 
 ---
 
-### 🗂️ Bonus: Colocate Without Waterfall
-
-One great Suspense feature is colocating data logic with UI. But that can create hidden waterfalls unless you **trigger fetches earlier**.
-
-You’ll learn how to:
-
-* Preload in parent components
-* Attach `loadData()` methods to components
-* Use composition patterns to split rendering and fetching
-
----
-
-## 🌍 Section 7: Backend Caching with HTTP Headers
-
-You can’t optimize frontend without a solid backend. React Suspense benefits **hugely** from proper cache headers.
-
-Use the `Cache-Control` header to cache API responses in the browser—even across reloads.
-
-```http
-Cache-Control: max-age=3600
-```
-
-This means:
-
-* No new request for up to an hour
-* Faster data load on repeat visits
-* Lower server load
-
-Use it wisely. If your data rarely changes, caching can transform the user experience.
-
----
-
 ## ✅ Summary: Why Suspense Matters
 
 | Concept            | Purpose                                       |
@@ -175,36 +143,5 @@ Use it wisely. If your data rarely changes, caching can transform the user exper
 | `useDeferredValue` | Decouple fast input from slow data            |
 | Promise caching    | Prevent unnecessary requests                  |
 | Preload patterns   | Avoid visual/data waterfalls                  |
-| `Cache-Control`    | Cache data across reloads                     |
 
 ---
-
-## 🧭 Ready for the Next Level?
-
-Once you're confident with these concepts, you're ready to tackle:
-
-* **React Server Components (RSC)**
-* **Advanced performance tuning**
-* **Streaming UI with frameworks like Remix**
-
-In fact, [Remix](https://remix.run) is a framework that’s **designed to help you avoid waterfalls** automatically—so you can just focus on your UI.
-
-> 💡 React 19 has made big improvements around Suspense, including automatic waterfall avoidance in some cases—but understanding how to optimize manually will still make you a better React developer.
-
----
-
-## 🚀 Let’s Build!
-
-Grab your DevTools, turn on throttling, and dive into the world of async rendering. Suspense is your new best friend.
-
-Need help visualizing your waterfalls or preloading logic? Drop a question in the comments or reach out. We’re all in this async journey together. 🫡
-
----
-
-**Further reading:**
-
-* [Render-as-you-fetch pattern](https://epicreact.dev/render-as-you-fetch/)
-* [React Suspense docs](https://react.dev/reference/react/Suspense)
-* [React 19 features](https://react.dev/blog/2024/04/25/react-19)
-
-Let’s make the web faster, one render at a time.

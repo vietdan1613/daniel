@@ -10,15 +10,18 @@ featured: true
 
 **🚀 Optimizing React Suspense: Crush Waterfalls, Preload Images, and Leverage Server Caching**
 
-React Suspense opens up a powerful pattern for colocating data with the components that need it. But like any great power, it comes with risks—and one of the biggest is the dreaded **waterfall**.
+React Suspense opens up a powerful pattern for colocating data with the components that need it. 
+But like any great power, it comes with risks—and one of the biggest is the dreaded **waterfall**.
 
-If you've ever wondered why your app feels slower than expected, you might be triggering unnecessary delays in your data loading. Let's explore how to avoid that.
+If you've ever wondered why your app feels slower than expected, you might be triggering unnecessary 
+delays in your data loading. Let's explore how to avoid that.
 
 ---
 
 ## 💧 What's a Waterfall?
 
-If you open your browser DevTools and look at the Network tab, you’ll see a column called **“Waterfall.”** That name isn’t just visual—it refers to how your app’s requests are being sequenced.
+If you open your browser DevTools and look at the Network tab, you’ll see a column called 
+**“Waterfall.”** That name isn’t just visual—it refers to how your app’s requests are being sequenced.
 
 A *bad* waterfall looks like this:
 
@@ -44,7 +47,8 @@ All requests are made at the same time, reducing total wait time.
 
 ## ⚠️ Why React Suspense Makes Waterfalls Easy (Too Easy)
 
-React Suspense works by suspending the component **as soon as** a Promise is used. If your component triggers multiple `use()` calls in sequence, you’ve already created a waterfall.
+React Suspense works by suspending the component **as soon as** a Promise is used. If your component 
+triggers multiple `use()` calls in sequence, you’ve already created a waterfall.
 
 ### 🧨 Bad: Sequential Fetching (Triggers Waterfall)
 
@@ -96,7 +100,8 @@ function ProfilePage({ username }: { username: string }) {
 }
 ```
 
-The `ProfileDetails` component’s data **won’t even begin to fetch** until the `ProfilePage` finishes suspending on `getUserAvatar`.
+The `ProfileDetails` component’s data **won’t even begin to fetch** until the `ProfilePage` 
+finishes suspending on `getUserAvatar`.
 
 ### ✅ Fix: Preload Promises in the Parent
 
@@ -151,7 +156,8 @@ Yes, you could also pass Promises via props:
 />
 ```
 
-But that spreads your data fetching logic all over the place. Instead, triggering fetches early—then using `use()` where needed—gives you both colocated logic and optimized performance.
+But that spreads your data fetching logic all over the place. Instead, triggering 
+fetches early—then using `use()` where needed—gives you both colocated logic and optimized performance.
 
 ---
 
@@ -161,29 +167,29 @@ Another kind of waterfall happens with **images**.
 
 Imagine this scenario:
 
-* You click a new ship.
-* React fetches the ship's data.
-* After that, React renders `<img src="ship.jpg" />`, and only then does the browser start loading the image.
+* You click a new pokemon.
+* React fetches the pokemon's data.
+* After that, React renders `<img src="pokemon.jpg" />`, and only then does the browser start loading the image.
 
 That’s a **visual waterfall**.
 
 ### ✅ Fix: Preload the Image in Parallel
 
 ```tsx
-function ShipDetails({ name }: { name: string }) {
+function PokemonDetails({ name }: { name: string }) {
   preloadImage(`/img/${name}.jpg`)
-  const ship = use(getShip(name))
+  const pokemon = use(getPokemon(name))
 
   return (
     <>
-      <ShipImg src={`/img/${name}.jpg`} />
-      {/* other ship data */}
+      <PokemonImg src={`/img/${name}.jpg`} />
+      {/* other pokemon data */}
     </>
   )
 }
 ```
 
-Now the image download begins as soon as we know the ship’s name—not after rendering the image tag.
+Now the image download begins as soon as we know the pokemon’s name—not after rendering the image tag.
 
 ---
 
@@ -201,7 +207,7 @@ Cache-Control: max-age=3600
 
 This instructs the browser to cache the response for an hour.
 
-If you have API endpoints like `/api/ship-details`, simply set this header on the response server-side:
+If you have API endpoints like `/api/pokemon-details`, simply set this header on the response server-side:
 
 ```ts
 res.setHeader("Cache-Control", "max-age=3600")
@@ -251,9 +257,3 @@ Avoid waterfalls by:
 Stay sharp, preload smart, and render fast. 🧠💥
 
 ---
-
-📚 **Learn more:**
-
-* [Render-as-you-fetch strategy](https://epicreact.dev/render-as-you-fetch/)
-* [React 19 Suspense enhancements](https://react.dev/blog/2024/04/25/react-19)
-* [Remix: Load data without waterfalls](https://remix.run)

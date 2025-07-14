@@ -10,11 +10,16 @@ featured: true
 
 **⚡ Building Fast and Fluid Experiences with Optimistic UI in React**
 
-When users interact with your UI—clicking buttons, submitting forms, checking off items—they expect it to respond instantly. But when those actions involve network requests, even a small delay can make the UI feel sluggish.
+When users interact with your UI—clicking buttons, submitting forms, checking off items—they 
+expect it to respond instantly. But when those actions involve network requests, even a small 
+delay can make the UI feel sluggish.
 
 That’s where **Optimistic UI** comes in.
 
-Instead of waiting for the server to respond before updating the UI, we **optimistically** assume it will succeed and update the interface immediately. In this post, you’ll learn how to implement Optimistic UI with React’s powerful tools like `useOptimistic` and `useFormStatus`, plus handle multi-step form transitions—all without hurting user experience.
+Instead of waiting for the server to respond before updating the UI, we **optimistically** assume 
+it will succeed and update the interface immediately. In this post, you’ll learn how to implement 
+Optimistic UI with React’s powerful tools like `useOptimistic` and `useFormStatus`, plus handle 
+multi-step form transitions—all without hurting user experience.
 
 ---
 
@@ -24,7 +29,8 @@ Optimistic UI is based on a simple assumption:
 
 > “Most of the time, user actions will succeed.”
 
-So rather than waiting for confirmation from the server, we immediately update the UI with what we **expect** to happen. If something goes wrong, we can always roll it back.
+So rather than waiting for confirmation from the server, we immediately update the UI with what 
+we **expect** to happen. If something goes wrong, we can always roll it back.
 
 Example: If a user checks off a todo, we mark it complete instantly and send a request in the background.
 
@@ -36,9 +42,11 @@ You can learn more about this concept at the end of this [talk by Kent C. Dodds]
 
 ## 🧠 Enter `useOptimistic`: Optimism Inside Transitions
 
-React Suspense and `useTransition` are great for deferring UI changes until data is ready. But what if we want to **optimistically change the UI** even while it's still suspended?
+React Suspense and `useTransition` are great for deferring UI changes until data is ready. But what 
+if we want to **optimistically change the UI** even while it's still suspended?
 
-That’s what `useOptimistic` is for. It works like `useState`, but lets you override state **during a transition** (such as when submitting a form). This makes it ideal for implementing optimistic UI.
+That’s what `useOptimistic` is for. It works like `useState`, but lets you override state 
+**during a transition** (such as when submitting a form). This makes it ideal for implementing optimistic UI.
 
 ### ✅ Example: Optimistically Toggle a Todo Item
 
@@ -66,13 +74,15 @@ function Todo({ todo }: { todo: TodoItem }) {
 }
 ```
 
-Notice how `isComplete` updates **instantly**, even before the server responds. Once the action completes (success or error), React will re-render using the actual prop value again (`todo.isComplete`).
+Notice how `isComplete` updates **instantly**, even before the server responds. Once the action 
+completes (success or error), React will re-render using the actual prop value again (`todo.isComplete`).
 
 ---
 
 ## 🧪 `useFormStatus`: Track Submission State
 
-Sometimes you just want to let users know the form is **submitting**, maybe disable the button or change its label. That’s where `useFormStatus` shines.
+Sometimes you just want to let users know the form is **submitting**, maybe disable the button or 
+change its label. That’s where `useFormStatus` shines.
 
 You can think of the `<form>` as a **context provider**, and `useFormStatus` as the **consumer**.
 
@@ -96,54 +106,57 @@ With this, your button knows when the form is submitting and adjusts accordingly
 
 ## 🚀 Optimistic Form Submission in Action
 
-Let’s say you’re building a page to create new starships.
+Let’s say you’re building a page to create new pokemons.
 
-The issue: When the user submits the form, there's a noticeable delay before the new ship appears. This feels slow—even if your API is fast!
+The issue: When the user submits the form, there's a noticeable delay before the new 
+pokemon appears. This feels slow—even if your API is fast!
 
 Instead, we’ll:
 
-1. Use `createOptimisticShip(formData)` to simulate the new ship.
-2. Show that ship immediately while we wait for the real data.
+1. Use `createOptimisticPokemon(formData)` to simulate the new pokemon.
+2. Show that pokemon immediately while we wait for the real data.
 3. Update the real data once it loads.
 
-### Step 1: Create the Optimistic Ship
+### Step 1: Update the Optimistic Pokemon
 
 Inside your form action:
 
 ```tsx
 action={async (formData) => {
-	const optimisticShip = createOptimisticShip(formData)
-	setOptimisticShip(optimisticShip)
+	const optimisticPokemon = createOptimisticPokemon(formData)
+	setOptimisticPokemon(optimisticPokemon)
 
-	const realShip = await createShip(formData)
-	setSelectedShip(realShip.name)
-	setOptimisticShip(null)
+	const realPokemon = await updatePokemon(formData)
+	setSelectedPokemon(realPokemon.name)
+	setOptimisticPokemon(null)
 }}
 ```
 
-Here, `createOptimisticShip(formData)` creates a ship object instantly (e.g., with `fetchedAt: '...'`). We display that in the UI while waiting for `createShip()` to finish.
+Here, `createOptimisticPokemon(formData)` creates a pokemon object instantly (e.g., with `fetchedAt: '...'`). 
+We display that in the UI while waiting for `updatePokemon()` to finish.
 
 ---
 
 ## 🎯 Hooking Everything Up
 
-You’ll need to lift state up to the parent `<App>` component so that `CreateForm` and `ShipDetails` can both access and modify the optimistic ship:
+You’ll need to lift state up to the parent `<App>` component so that `CreateForm` and `PokemonDetails` 
+can both access and modify the optimistic pokemon:
 
 ```tsx
 function App() {
-	const [selectedShip, setSelectedShip] = useState(null)
-	const [optimisticShip, setOptimisticShip] = useState(null)
+	const [selectedPokemon, setSelectedPokemon] = useState(null)
+	const [optimisticPokemon, setOptimisticPokemon] = useState(null)
 
 	return (
 		<>
-			<CreateForm setOptimisticShip={setOptimisticShip} setSelectedShip={setSelectedShip} />
-			<ShipDetails ship={optimisticShip ?? selectedShip} />
+			<CreateForm setOptimisticPokemon={setOptimisticPokemon} setSelectedPokemon={setSelectedPokemon} />
+			<PokemonDetails pokemon={optimisticPokemon ?? selectedPokemon} />
 		</>
 	)
 }
 ```
 
-This lets you render the optimistic ship first, and the actual one later when it arrives.
+This lets you render the optimistic pokemon first, and the actual one later when it arrives.
 
 ---
 
@@ -154,21 +167,22 @@ What if your form action does **multiple steps**?
 ```tsx
 <form
 	action={async (formData) => {
-		setMessage('Creating ship...')
-		const ship = await createShip(formData)
+		setMessage('Creating pokemon...')
+		const pokemon = await updatePokemon(formData)
 
 		setMessage('Saving to database...')
-		await saveShipToDb(ship)
+		await savePokemonToDb(pokemon)
 
 		setMessage('Almost done...')
-		await notifyFleet(ship)
+		await notifyFleet(pokemon)
 	}}
 >
 	<SubmitButton />
 </form>
 ```
 
-The problem? You **can’t update local state** like `setMessage` inside a transition... unless you use `useOptimistic`.
+The problem? You **can’t update local state** like `setMessage` inside a transition... unless you 
+use `useOptimistic`.
 
 ### ✅ Add an Optimistic Message
 
@@ -179,14 +193,14 @@ function CreateForm() {
 	return (
 		<form
 			action={async (formData) => {
-				setMessage('Creating ship...')
-				const ship = await createShip(formData)
+				setMessage('Creating pokemon...')
+				const pokemon = await updatePokemon(formData)
 
 				setMessage('Saving to DB...')
-				await saveShipToDb(ship)
+				await savePokemonToDb(pokemon)
 
 				setMessage('Almost done...')
-				await notifyFleet(ship)
+				await notifyFleet(pokemon)
 			}}
 		>
 			<SubmitButton message={message} />
@@ -214,13 +228,5 @@ Optimistic UI is a powerful tool to enhance user experience and build responsive
 * Use `useFormStatus` to **monitor form state** and show submission feedback.
 * Combine these to **optimistically render content** and **provide multi-step feedback**.
 * Use fallback values like `"..."` for fields not yet fetched.
-
----
-
-## 📚 Further Resources
-
-* [🔗 `useOptimistic` Documentation](https://react.dev/reference/react/useOptimistic)
-* [🔗 `useFormStatus` Documentation](https://react.dev/reference/react-dom/hooks/useFormStatus)
-* [🎥 Kent C. Dodds on Progressive Enhancement](https://www.youtube.com/embed/EzLGleT1yrY)
 
 ---

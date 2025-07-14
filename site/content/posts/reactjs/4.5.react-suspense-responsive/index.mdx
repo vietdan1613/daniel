@@ -12,7 +12,8 @@ featured: true
 
 Have you ever typed in a search input, only to feel it *lag* behind your keystrokes?
 
-That’s not just annoying—it’s a broken user experience. Fortunately, React gives us tools to **keep your inputs responsive** even during async operations like data fetching.
+That’s not just annoying—it’s a broken user experience. Fortunately, React gives us 
+tools to **keep your inputs responsive** even during async operations like data fetching.
 
 Let’s dive into how you can use `useDeferredValue` to solve this problem.
 
@@ -20,7 +21,8 @@ Let’s dive into how you can use `useDeferredValue` to solve this problem.
 
 ## 🧩 The Problem: Laggy Search Inputs with `useTransition`
 
-In earlier exercises (or maybe in your app), you may have used React’s `useTransition` to manage asynchronous rendering like this:
+In earlier exercises (or maybe in your app), you may have used React’s `useTransition` to 
+manage asynchronous rendering like this:
 
 ```tsx
 const [isPending, startTransition] = useTransition()
@@ -33,7 +35,9 @@ function handleChange(e) {
 }
 ```
 
-This works well for navigation or large UI changes because `useTransition` delays re-rendering of *everything* until it’s ready. It’s great for global UI transitions, **but** it introduces a serious problem in interactive components:
+This works well for navigation or large UI changes because `useTransition` delays re-rendering 
+of *everything* until it’s ready. It’s great for global UI transitions, **but** it introduces 
+a serious problem in interactive components:
 
 > The input field doesn’t update as fast as the user types.
 
@@ -51,7 +55,8 @@ This is where `useDeferredValue` shines. 🌟
 
 ## ✅ The Solution: `useDeferredValue`
 
-`useDeferredValue` is a React Hook designed to **keep inputs responsive** while still supporting async rendering in components that depend on the state.
+`useDeferredValue` is a React Hook designed to **keep inputs responsive** while still supporting 
+async rendering in components that depend on the state.
 
 Here’s how it works:
 
@@ -59,7 +64,10 @@ Here’s how it works:
 const deferredValue = useDeferredValue(value)
 ```
 
-React immediately renders the component with the **latest value**, and in the background, it renders it again with a deferred version of that value. When you're fetching or rendering based on `deferredValue`, React can pause and resume rendering based on how fast or slow that operation is.
+React immediately renders the component with the **latest value**, and in the background, it 
+renders it again with a deferred version of that value. When you're fetching or rendering 
+based on `deferredValue`, React can pause and resume rendering based on how fast or slow that 
+operation is.
 
 ### Example:
 
@@ -67,7 +75,7 @@ React immediately renders the component with the **latest value**, and in the ba
 const [search, setSearch] = useState('')
 const deferredSearch = useDeferredValue(search)
 
-const results = use(searchShips(deferredSearch)) // Suspense-aware data fetching
+const results = use(searchPokemons(deferredSearch)) // Suspense-aware data fetching
 ```
 
 Here’s what happens under the hood:
@@ -117,11 +125,11 @@ Then show a spinner or opacity animation:
 ## 👨‍💻 Practical Code Example
 
 ```tsx
-function ShipSearch() {
+function PokemonSearch() {
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
 
-  const ships = use(searchShips(deferredSearch)) // suspends while fetching
+  const pokemons = use(searchPokemons(deferredSearch)) // suspends while fetching
   const isPending = deferredSearch !== search
 
   return (
@@ -130,12 +138,12 @@ function ShipSearch() {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search ships..."
+        placeholder="Search pokemons..."
       />
       {isPending && <span>Loading...</span>}
       <ul>
-        {ships.map((ship) => (
-          <li key={ship.id}>{ship.name}</li>
+        {pokemons.map((pokemon) => (
+          <li key={pokemon.id}>{pokemon.name}</li>
         ))}
       </ul>
     </>
@@ -150,7 +158,7 @@ function ShipSearch() {
 To really see how this works:
 
 1. Add a `console.log('search', search, 'deferred', deferredSearch)` inside your component.
-2. Simulate a slow network: `searchShips(search, 1000)`
+2. Simulate a slow network: `searchPokemons(search, 1000)`
 3. Watch how many renders React performs and in what order.
 
 You’ll notice:
@@ -163,7 +171,8 @@ You’ll notice:
 
 ## 🧪 Bonus: Use `useDeferredValue` for Slow Components Too
 
-If you have a **slow-to-render** component, pass it a deferred value. React will keep the rest of your UI snappy and only update the slow component when it’s ready.
+If you have a **slow-to-render** component, pass it a deferred value. React will 
+keep the rest of your UI snappy and only update the slow component when it’s ready.
 
 ```tsx
 <SlowComponent data={useDeferredValue(data)} />
@@ -193,7 +202,9 @@ This allows users to interact with other parts of your app without delay.
 
 ## ✍️ Final Thought
 
-In a world where users expect instant feedback, even **100ms of delay** can feel frustrating. With `useDeferredValue`, you can keep your UI buttery smooth—without sacrificing loading logic or async data handling.
+In a world where users expect instant feedback, even **100ms of delay** can feel frustrating. 
+With `useDeferredValue`, you can keep your UI buttery smooth—without sacrificing loading 
+logic or async data handling.
 
 Start small with search bars and inputs—and watch your UX transform. 🚀
 

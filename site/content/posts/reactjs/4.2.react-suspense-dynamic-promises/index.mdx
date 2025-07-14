@@ -10,7 +10,11 @@ featured: true
 
 **🚀 Mastering Dynamic Promises in React: Caching, Transitions & UX Optimization**
 
-When building modern React applications, fetching data and displaying it efficiently is critical for providing a great user experience. But if you’re not careful, data-fetching logic can introduce unnecessary network requests, UI flickering, or even infinite loops. Let’s walk through how to manage promises dynamically in React, optimize performance with caching, and use transition APIs to smooth out the user experience.
+When building modern React applications, fetching data and displaying it efficiently is 
+critical for providing a great user experience. But if you’re not careful, data-fetching 
+logic can introduce unnecessary network requests, UI flickering, or even infinite loops. 
+Let’s walk through how to manage promises dynamically in React, optimize performance with 
+caching, and use transition APIs to smooth out the user experience.
 
 ---
 
@@ -39,13 +43,16 @@ function NumberInfo() {
 }
 ```
 
-Every time you click the button, React re-renders the component, which **calls `fetchUser` again**. This triggers a new network request and causes the component to **suspend**, resulting in a **janky experience** for users.
+Every time you click the button, React re-renders the component, which **calls `fetchUser` 
+again**. This triggers a new network request and causes the component to **suspend**, resulting 
+in a **janky experience** for users.
 
 ---
 
 ## ✅ The Fix: Cache the Promise
 
-React can track a single promise throughout the component lifecycle. So, the goal is to cache the promise so we don’t trigger unnecessary fetches:
+React can track a single promise throughout the component lifecycle. So, the goal is to cache 
+the promise so we don’t trigger unnecessary fetches:
 
 ```tsx
 let userPromise: Promise<User>
@@ -62,7 +69,8 @@ async function fetchUserImpl() {
 }
 ```
 
-Now, every call to `fetchUser()` will return the same promise unless we explicitly invalidate the cache.
+Now, every call to `fetchUser()` will return the same promise unless we explicitly invalidate 
+the cache.
 
 ---
 
@@ -89,7 +97,8 @@ async function fetchUserImpl(id: string) {
 }
 ```
 
-This approach lets us reuse promises and avoid suspending every time we change state or refetch the same data.
+This approach lets us reuse promises and avoid suspending every time
+we change state or refetch the same data.
 
 > 💡 Tip: If you need to **reset** the cache (e.g., during development), simply refresh the page.
 
@@ -97,7 +106,8 @@ This approach lets us reuse promises and avoid suspending every time we change s
 
 ## ✨ Improving UX with `useTransition`
 
-Let’s say you allow users to switch between different items (e.g., starships in a UI). Switching causes the component to **suspend** and display a fallback UI.
+Let’s say you allow users to switch between different items (e.g., starpokemons in a UI). 
+Switching causes the component to **suspend** and display a fallback UI.
 
 This isn’t ideal, especially if the data loads quickly—users may still see a flash of a loading spinner.
 
@@ -106,18 +116,19 @@ This isn’t ideal, especially if the data loads quickly—users may still see a
 ```tsx
 const [isPending, startTransition] = useTransition()
 
-function handleShipChange(newShip: string) {
+function handlePokemonChange(newPokemon: string) {
 	startTransition(() => {
-		setSelectedShip(newShip)
+		setSelectedPokemon(newPokemon)
 	})
 }
 ```
 
-With `useTransition`, React **keeps the old UI visible** while the new data is loading. Meanwhile, the `isPending` flag helps you show a subtle pending indicator (like fading opacity).
+With `useTransition`, React **keeps the old UI visible** while the new data is loading. 
+Meanwhile, the `isPending` flag helps you show a subtle pending indicator (like fading opacity).
 
 ```tsx
 <div style={{ opacity: isPending ? 0.6 : 1 }}>
-	<ShipDetails ship={selectedShip} />
+	<PokemonDetails pokemon={selectedPokemon} />
 </div>
 ```
 
@@ -127,7 +138,8 @@ This results in a **much smoother experience** compared to instantly switching t
 
 ## 🔄 Avoiding Flashy Spinners with `spin-delay`
 
-Sometimes, loading is so fast (\~50ms) that a spinner appears for a blink, which is visually jarring. Instead, you can use [`spin-delay`](https://npm.im/spin-delay) to:
+Sometimes, loading is so fast (\~50ms) that a spinner appears for a blink, which is visually 
+jarring. Instead, you can use [`spin-delay`](https://npm.im/spin-delay) to:
 
 * **Wait before showing a spinner** if the fetch is quick
 * **Guarantee the spinner stays visible for a minimum time** if shown
@@ -142,60 +154,24 @@ const showSpinner = useSpinDelay(isPending, {
 })
 ```
 
-This small tweak can eliminate the "flash of spinner" problem entirely—making your UI feel faster, smoother, and more polished.
+This small tweak can eliminate the "flash of spinner" problem entirely—making your UI feel faster, 
+smoother, and more polished.
 
 ---
 
-## 🛠 Use Case: Ship Viewer with Cache + Transitions
+## 🛠 Use Case: Pokemon Viewer with Cache + Transitions
 
-Imagine a UI where users can select starships and view their details. We want:
+Imagine a UI where users can select starpokemons and view their details. We want:
 
-* 🚫 No re-fetching the same ship
-* 🔄 Smooth transitions between ship details
+* 🚫 No re-fetching the same pokemon
+* 🔄 Smooth transitions between pokemon details
 * ⚡ No flickering spinner on fast networks
 
 You can achieve this by combining:
 
-* A **cache** using `Map<string, Promise<Ship>>`
+* A **cache** using `Map<string, Promise<Pokemon>>`
 * `useTransition` to defer state updates
 * `useSpinDelay` to smartly show/hide spinners
-
-```tsx
-const shipCache = new Map<string, Promise<Ship>>()
-
-function getShip(name: string) {
-	let promise = shipCache.get(name)
-	if (!promise) {
-		promise = fetch(`/api/ship/${name}`).then(res => res.json())
-		shipCache.set(name, promise)
-	}
-	return promise
-}
-```
-
-```tsx
-function ShipComponent() {
-	const [selected, setSelected] = useState('falcon')
-	const [isPending, startTransition] = useTransition()
-	const ship = use(getShip(selected))
-	const showSpinner = useSpinDelay(isPending, { delay: 300, minDuration: 350 })
-
-	return (
-		<>
-			<button onClick={() => startTransition(() => setSelected('falcon'))}>Millennium Falcon</button>
-			<button onClick={() => startTransition(() => setSelected('x-wing'))}>X-Wing</button>
-			{showSpinner ? (
-				<Spinner />
-			) : (
-				<div style={{ opacity: isPending ? 0.6 : 1 }}>
-					<h2>{ship.name}</h2>
-					<p>{ship.description}</p>
-				</div>
-			)}
-		</>
-	)
-}
-```
 
 ---
 
